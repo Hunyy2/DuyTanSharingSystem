@@ -10,5 +10,9 @@ namespace Domain.Interface
     {
         Task<IEnumerable<Ride>> GetActiveRidesAsync();
         Task<Ride?> GetRideByUserIdAsync(Guid userId);
+        Task<int> GetDriveRideCountAsync(Guid userId);
+        Task<int> GetPassengerRideCountAsync(Guid userId);
+        Task<List<Ride>> GetRidePostsByPassengerIdAsync(Guid passengerId, Guid? lastPostId, int pageSize);
+        Task<List<Ride>> GetRidePostsByDriverIdAsync(Guid driverId, Guid? lastPostId, int pageSize);
     }
 }

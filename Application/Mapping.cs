@@ -1,4 +1,5 @@
-﻿using Application.DTOs.CommentLikes;
+﻿using Application.Common;
+using Application.DTOs.CommentLikes;
 using Application.DTOs.Comments;
 using Application.DTOs.Likes;
 using Application.DTOs.Post;
@@ -24,16 +25,29 @@ namespace Application
                 OriginalPost = new OriginalPostDto(post)
             };
         }
-        public static ResultSharePostDto MapToResultSharePostDto(Share share, Post post, User user)
+        public static ResultSharePostDto MapToResultSharePostDto(Post share, Post originalPost, User user)
         {
             return new ResultSharePostDto
             {
-                ShareId = share.Id,
-                SharedAt = share.CreatedAt,
+                Id = share.Id,
+                UserId = user.Id, // ✅ Người dùng đã chia sẻ bài viết
+                FullName = user.FullName,
+                ProfilePicture = user.ProfilePicture,
                 Content = share.Content,
-                User = new UserPostDto(user),
+                CreatedAt = share.CreatedAt,
+                PostType = originalPost.PostType,
+                CommentCount =  0,
+                LikeCount =0,
+                ShareCount = 0,
+                HasLiked = 0,
+                IsSharedPost = true,
+                OriginalPostId = originalPost.Id,
+                OriginalPost = new OriginalPostDto(originalPost) // ✅ Đảm bảo bài viết gốc có đúng User
             };
         }
+
+
+
         public static CommentPostDto MapToCommentPostDto(Comment comment, Post post, User user)
         {
             return new CommentPostDto
@@ -55,7 +69,8 @@ namespace Application
                 UpdatedAt = comment.UpdatedAt,
                 Content = comment.Content,
                 FullName = fullName,
-                ProfilePicture = profilePicture,
+                ProfilePicture = profilePicture != null ? $"{Constaint.baseUrl}{profilePicture}" : null, // ✅ Thêm Base URL
+                ParentCommentId = comment.ParentCommentId // 📌 Thêm ParentCommentId
             };
         }
         public static UserDto MapToUserDto(User? user)
@@ -65,61 +80,76 @@ namespace Application
                 Id = user?.Id,
                 FullName = user?.FullName,
                 Email = user?.Email,
-                ProfilePicture = user?.ProfilePicture,
-                
+                ProfilePicture = user?.ProfilePicture != null ? $"{Constaint.baseUrl}{user?.ProfilePicture}" : null,
             };
         }
-        public static UserProfileDto MaptoUserprofileDto(User user)
+
+        public static MaptoUserprofileDetailDto MaptoUserprofileDto(User user)
         {
-            return new UserProfileDto
+            return new MaptoUserprofileDetailDto
             {
                 Id = user.Id,
                 Email = user.Email,
                 FullName = user.FullName,
-                ProfilePicture = user.ProfilePicture,
+                ProfilePicture = user.ProfilePicture != null ? $"{Constaint.baseUrl}{user.ProfilePicture}" : null,
+                BackgroundPicture = user.BackgroundPicture != null ? $"{Constaint.baseUrl}{user.BackgroundPicture}" : null,
                 Bio = user.Bio,
+                CreatedAt = user.CreatedAt
+            };
+        }
+        public static UserProfileDetailDto MaptoUserprofileDetailDto(User user)
+        {
+            return new UserProfileDetailDto
+            {
+                Id = user.Id,
+                Email= user.Email,
+                FullName = user.FullName,
+                ProfilePicture = user.ProfilePicture != null ? $"{Constaint.baseUrl}{user.ProfilePicture}" : null,
+                BackgroundPicture = user.BackgroundPicture != null ? $"{Constaint.baseUrl}{user.BackgroundPicture}" : null,
+                Bio = user.Bio,
+                PhoneNumber = user.Phone,
+                PhoneNumberRelative = user.RelativePhone,
                 CreatedAt = user.CreatedAt
             };
         }
         public static CommentDto MapToCommentByPostIdDto(Comment comment, Guid userId)
         {
-            var validLikes = comment.CommentLikes?
-                .Where(l => l.IsLike) // 🔥 Chỉ lấy lượt like hợp lệ
-                .ToList() ?? new List<CommentLike>();
-
+            /*            var validLikes = comment.CommentLikes?
+                            .Where(l => l.IsLike) // 🔥 Chỉ lấy lượt like hợp lệ
+                            .ToList() ?? new List<CommentLike>();*/
             return new CommentDto
             {
                 Id = comment.Id,
                 UserId = comment.UserId,
                 UserName = comment.User?.FullName ?? "Unknown",
-                ProfilePicture = comment.User?.ProfilePicture,
+                ProfilePicture = comment.User?.ProfilePicture != null ? $"{Constaint.baseUrl}{comment.User?.ProfilePicture}" : null,
                 Content = comment.Content,
                 CreatedAt = comment.CreatedAt,
                 ParentCommentId = comment.ParentCommentId,
-                HasLiked = validLikes.Any(l => l.UserId == userId) ? 1 : 0,
+                HasLiked = comment.CommentLikes?.Any(l => l.IsLike && l.UserId == userId) == true ? 1 : 0,
                 // Ánh xạ số lượt like
                 /*                CommentLikes = new CommentLikeDto(comment.CommentLikes?.Where(l => l.IsLike).ToList() ?? new List<CommentLike>()),*/
-                LikeCountComment = comment.CommentLikes?.Count ?? 0,
-
+                LikeCountComment = comment.CommentLikes?.Count(l => l.IsLike) ?? 0, // ✅ Đếm số like hợp lệ
+                HasMoreReplies = comment.Replies?.Any(r => !r.IsDeleted) == true
                 // Chỉ lấy tối đa 10 comment con
-                Replies = comment.Replies?
-                    .OrderBy(r => r.CreatedAt)
-                    .Take(10)
-                    .Select(r => MapToCommentByPostIdDto(r, userId))
-                    .ToList() ?? new List<CommentDto>()
+                // 🔥 Cải tiến: Đệ quy để lấy mọi cấp reply (reply trong reply)
+                /* Replies = comment.Replies?
+                         .Where(r => !r.IsDeleted)
+                         .OrderBy(r => r.CreatedAt)
+                         .Select(r => MapToCommentByPostIdDto(r, userId)) // 💡 Gọi lại chính nó để lấy reply của reply
+                         .ToList() ?? new List<CommentDto>()*/
             };
         }
        
         private static PostDto MapToOriginalPostDto(Post p)
-        {
-            var originalPostDto = new PostDto
+        {            var originalPostDto = new PostDto
             {
                 Id = p.Id,
                 Content = p.Content,
                 FullName = p.User?.FullName ?? "Unknown",
                 ProfilePicture = p.User?.ProfilePicture ?? "default.jpg",
-                ImageUrl = p.ImageUrl,
-                VideoUrl = p.VideoUrl,
+                ImageUrl = p.ImageUrl != null ? $"{Constaint.baseUrl}{p.ImageUrl}" : null, // ✅ Thêm Base URL
+                VideoUrl = p.VideoUrl != null ? $"{Constaint.baseUrl}{p.VideoUrl}" : null, // ✅ Thêm Base URL
                 CreatedAt = p.CreatedAt,
                 IsSharedPost = p.IsSharedPost,
                 OriginalPostId = p.OriginalPostId,
@@ -170,8 +200,8 @@ namespace Application
             {
                 PostId = p.Id,
                 Content = p.Content,
-                ImageUrl = p.ImageUrl,
-                VideoUrl = p.VideoUrl,
+                ImageUrl = p.ImageUrl != null ? $"{Constaint.baseUrl}{p.ImageUrl}" : null, // ✅ Thêm Base URL
+                VideoUrl = p.VideoUrl != null ? $"{Constaint.baseUrl}{p.VideoUrl}" : null, // ✅ Thêm Base URL
                 CreateAt = p.CreatedAt,
                 Author = new UserPostDto(p.User ?? new Domain.Entities.User("Người dùng ẩn danh", "anonymous@example.com", "hashed_password"))
             };
@@ -226,9 +256,9 @@ namespace Application
                         ParentCommentId = c.ParentCommentId,
 
                         // 🔥 Lọc replies chưa bị xóa
-                        Replies = allComments
+/*                        Replies = allComments
                             .Where(r => r.ParentCommentId == c.Id)
-                            .ToList()
+                            .ToList()*/
                     })
                     .ToList(),
 
@@ -257,8 +287,7 @@ namespace Application
             };
         }
         public static GetAllPostDto MapToAllPostDto(Post p, Guid userId)
-        {
-            // Lọc các comment chưa bị xóa mềm
+        {            // Lọc các comment chưa bị xóa mềm
             var allComments = p.Comments?
                 .Where(c => !c.IsDeleted) // 🔥 Lọc comment hợp lệ
                 .Select(c => new CommentDto(c))
@@ -275,9 +304,9 @@ namespace Application
                 UserId = p.UserId,
                 Content = p.Content,
                 FullName = p.User?.FullName ?? "Unknown",
-                ProfilePicture = p.User?.ProfilePicture,
-                ImageUrl = p.ImageUrl,
-                VideoUrl = p.VideoUrl,
+                ProfilePicture = p.User?.ProfilePicture != null ? $"{Constaint.baseUrl}{p.User.ProfilePicture}" : null, // ✅ Thêm Base URL
+                ImageUrl = p.ImageUrl != null ? $"{Constaint.baseUrl}{p.ImageUrl}" : null, // ✅ Thêm Base URL
+                VideoUrl = p.VideoUrl != null ? $"{Constaint.baseUrl}{p.VideoUrl}" : null, // ✅ Thêm Base URL
                 CreatedAt = p.CreatedAt,
                 UpdateAt = p.UpdateAt,
                 PostType = p.PostType,

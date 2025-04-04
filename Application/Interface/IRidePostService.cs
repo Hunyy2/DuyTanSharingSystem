@@ -1,9 +1,11 @@
-﻿using Application.DTOs.RidePost;
+﻿using Application.DTOs.Ride;
+using Application.DTOs.RidePost;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Application.DTOs.RidePost.GetAllRidePostForOwnerDto;
 
 namespace Application.Interface
 {
@@ -26,6 +28,7 @@ namespace Application.Interface
         Task<double> CalculateDistanceToDestinationAsync(double currentLat, double currentLng, string destinationAddress);
         Task<GetAllRidePostDto> GetAllRidePostAsync(Guid? lastPostId, int pageSize);
         Task<GetAllRidePostForOwnerDto> GetAllRidePostForOwnerAsync(Guid? lastPostId, int pageSize, Guid ownerId);
-
+        Task<GetAllRideResponseDto> GetRidePostsByDriverIdAsync(Guid driverId, Guid? lastPostId, int pageSize);
+        Task<GetAllRideResponseDto> GetRidePostsByPassengerIdAsync(Guid passengerId, Guid? lastPostId, int pageSize);
     }
 }

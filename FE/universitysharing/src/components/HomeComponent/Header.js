@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import "../../styles/headerHome.scss";
 import logoweb from "../../assets/Logo.png";
 import avatarweb from "../../assets/AvatarDefault.png";
@@ -8,8 +9,32 @@ import messengerIcon from "../../assets/iconweb/MessIcon.png";
 import NotifyModal from "../NotifyModal";
 import MessengerModal from "../MessengerModal";
 import SettingModal from "../SettingModal";
+import { useLocation, useNavigate } from "react-router-dom"; //Chuyển hướng trang
+
+import { useDispatch } from "react-redux";
+
+// import { resetApp } from "../../stores/stores";
 
 const Header = () => {
+  const dispatch = useDispatch();
+  // console.log("Data User truyền xuống: ", usersProfile);
+  const usersProfile = useSelector((state) => state.users.usersProfile);
+  const navigate = useNavigate();
+  //chuyển hướng
+  const UserProfile = () => {
+    // navigate("/ProfileUserView");
+    window.location.href = "/ProfileUserView";
+  };
+  const handleHomeView = () => {
+    navigate("/home");
+  };
+
+  //Đăng xuất
+  const handleLogout = () => {
+    // dispatch(resetApp());
+    localStorage.removeItem("token");
+    window.location.href = "/";
+  };
   const [modalState, setModalState] = useState({
     notify: false,
     messenger: false,
@@ -28,7 +53,7 @@ const Header = () => {
   return (
     <>
       <div className="header">
-        <div className="logoWeb">
+        <div className="logoWeb" onClick={handleHomeView}>
           <img className="logowebsite" src={logoweb} alt="University Sharing" />
         </div>
         <div className="search">
@@ -43,7 +68,11 @@ const Header = () => {
             <img src={notifyIcon} alt="Notifications" />
           </span>
           <span onClick={() => toggleModal("setting")}>
-            <img className="avatarweb" src={avatarweb} alt="Avatar" />
+            <img
+              className="avatarweb"
+              src={usersProfile.profilePicture || avatarweb}
+              alt="Avatar"
+            />
           </span>
         </div>
       </div>
@@ -66,6 +95,9 @@ const Header = () => {
         <SettingModal
           isOpen={modalState.setting}
           onClose={() => toggleModal("setting")}
+          users={usersProfile}
+          UserProfile={UserProfile}
+          logout={handleLogout}
         />
       )}
     </>

@@ -11,6 +11,7 @@ namespace Application.CQRS.Queries.Posts
     public class GetAllPostQuery : IRequest<ResponseModel<GetPostsResponse>>
     {
         public Guid? LastPostId { get; set; } // Bài cuối cùng đã load
-        public int PageSize { get; set; } // Số bài viết mỗi lần load (mặc định 20)
+        public int PageSize { get; private set; } 
+
     }
 }

@@ -1,38 +1,59 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import "../../styles/CommentOverlay.scss";
 import CommentItem from "./CommentItem";
+import { debounce } from "lodash";
+import { replyComments } from "../../stores/action/listPostActions";
+import { useDispatch, useSelector } from "react-redux";
+import getUserIdFromToken from "../../utils/JwtDecode";
+
 const CommentList = ({
-  comments,
+  comment,
+  commentEndRef,
   handleLikeComment,
-  handleLikeCommentRely,
-  handleReplyClick,
-  replyingTo,
-  replyText,
-  setReplyText,
-  replyComment,
-  replyInputRef,
-  commentsEndRef,
-  relyScroll,
+  post,
+  onLoadMore, // New prop for loading more comments
+  isLoadingMore, // New prop to track loading state
+  hasMoreComments, // New prop to check if more comments exist
 }) => {
+  // console.log("Danh sách bình luận ở CommentList:", comment);
+  const dispatch = useDispatch();
+  const userId = getUserIdFromToken();
+  const handleReplyComment = debounce((commentId, content) => {
+    if (!content.trim()) return;
+    dispatch(
+      replyComments({
+        postId: post.id, // ID bài viết
+        parentId: commentId, // ID của comment đang reply
+        content: content, // Nội dung trả lời
+        userId: userId,
+      })
+    );
+  }, 1000);
   return (
     <div className="comments-section">
-      {comments.map((comment) => (
-        <CommentItem
-          key={comment.id}
-          comment={comment}
-          handleLikeComment={handleLikeComment}
-          handleLikeCommentRely={handleLikeCommentRely}
-          handleReplyClick={handleReplyClick}
-          replyingTo={replyingTo}
-          replyText={replyText}
-          setReplyText={setReplyText}
-          replyComment={replyComment}
-          replyInputRef={replyInputRef}
-          relyScroll={relyScroll}
-        />
-      ))}
-      {/* Thẻ ẩn giúp scroll xuống bình luận mới nhất */}
-      <div ref={commentsEndRef} />
+      {Array.isArray(comment) && comment.length > 0 ? (
+        <>
+          {comment.map((comments) => (
+            <CommentItem
+              key={comments.id}
+              comments={comments}
+              handleLikeComment={handleLikeComment}
+              post={post}
+              handleReplyComment={handleReplyComment}
+            />
+          ))}
+
+          {/* Loading indicator */}
+          {isLoadingMore && (
+            <div className="comment-loading">Đang tải thêm bình luận...</div>
+          )}
+        </>
+      ) : (
+        <span>Không có bình luận nào</span>
+      )}
+
+      {/* Sentinel element for infinite scroll */}
+      <div ref={commentEndRef} style={{ height: "1px" }} />
     </div>
   );
 };

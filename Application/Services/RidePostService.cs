@@ -2,6 +2,7 @@
 using static Domain.Common.Helper;
 using Application.Interface.Api;
 using static Application.DTOs.RidePost.GetAllRidePostForOwnerDto;
+using Application.DTOs.Ride;
 
 
 
@@ -177,6 +178,8 @@ namespace Application.Services
                 UserId = x.UserId,
                 StartLocation = x.StartLocation,
                 EndLocation = x.EndLocation,
+                LatLonStart = x.LatLonStart,
+                LatLonEnd = x.LatLonEnd,
                 StartTime =FormatUtcToLocal(x.StartTime),
                 Status = x.Status,
                 CreatedAt =FormatUtcToLocal(x.CreatedAt)
@@ -188,10 +191,80 @@ namespace Application.Services
                 NextCursor = nextCursor
             };
         }
+        public async Task<GetAllRideResponseDto> GetRidePostsByDriverIdAsync(Guid driverId, Guid? lastPostId, int pageSize)
+        {
+            var ridePosts = await _unitOfWork.RideRepository.GetRidePostsByDriverIdAsync(driverId, lastPostId, pageSize);
+            var result = new List<GetAllRideDto>();
+
+            foreach (var ride in ridePosts)
+            {
+                var (start, end) = await _unitOfWork.RidePostRepository.GetLatLonByRidePostIdAsync(ride.RidePostId);
+
+                result.Add(new GetAllRideDto
+                {
+                    RidePostId = ride.RidePostId,
+                    PassengerId = ride.PassengerId,
+                    DriverId = ride.DriverId,
+                    RideId = ride.Id,
+                    StartTime = FormatUtcToLocal(ride.StartTime ?? DateTime.UtcNow),
+                    EndTime = FormatUtcToLocal(ride.EndTime ?? DateTime.UtcNow),
+                    LatLonStart = start,
+                    LatLonEnd = end,
+                    CreateAt = FormatUtcToLocal(ride.CreatedAt),
+                    EstimatedDuration = ride.EstimatedDuration,
+                    Status = ride.Status.ToString(),
+                    IsSafe = ride.IsSafetyTrackingEnabled
+                });
+            }
+            var nextCursor = result.Count > 0 ? (Guid?)result.Last().RideId : null;
+            return new GetAllRideResponseDto
+            {
+                RideList = result,
+                NextCursor = nextCursor
+            };
+        }
+        public async Task<GetAllRideResponseDto> GetRidePostsByPassengerIdAsync(Guid passengerId, Guid? lastPostId, int pageSize)
+        {
+            var ridePosts = await _unitOfWork.RideRepository.GetRidePostsByPassengerIdAsync(passengerId, lastPostId, pageSize);
+
+            var result = new List<GetAllRideDto>();
+
+            foreach (var ride in ridePosts)
+            {
+                var (start, end) = await _unitOfWork.RidePostRepository.GetLatLonByRidePostIdAsync(ride.RidePostId);
+
+                result.Add(new GetAllRideDto
+                {
+                    RidePostId = ride.RidePostId,
+                    PassengerId = ride.PassengerId,
+                    DriverId = ride.DriverId,
+                    RideId = ride.Id,
+                    StartTime = FormatUtcToLocal(ride.StartTime ?? DateTime.UtcNow),
+                    EndTime = FormatUtcToLocal(ride.EndTime ?? DateTime.UtcNow),
+                    LatLonStart = start,
+                    LatLonEnd = end,
+                    CreateAt = FormatUtcToLocal(ride.CreatedAt),
+                    EstimatedDuration = ride.EstimatedDuration,
+                    Status = ride.Status.ToString(),
+                    IsSafe = ride.IsSafetyTrackingEnabled
+                });
+            }
+
+            var nextCursor = result.Count > 0 ? (Guid?)result.Last().RideId : null;
+
+            return new GetAllRideResponseDto
+            {
+                RideList = result,
+                NextCursor = nextCursor
+            };
+        }
+
 
         public async Task<GetAllRidePostForOwnerDto> GetAllRidePostForOwnerAsync(Guid? lastPostId, int pageSize, Guid ownerId)
         {
+            // Lấy danh sách 10 bài mới từ DB
             var ridePosts = await _unitOfWork.RidePostRepository.GetAllRidePostForOwnerAsync(lastPostId, pageSize, ownerId);
+
             // Lấy danh sách PassengerName trước khi mapping
             var passengerNames = await Task.WhenAll(ridePosts
                 .Where(x => x.Ride?.PassengerId != null)
@@ -207,6 +280,8 @@ namespace Application.Services
                 FullName = x.User?.FullName ?? "unknown",
                 StartLocation = x.StartLocation,
                 EndLocation = x.EndLocation,
+                LatLonStart = x.LatLonStart,
+                LatLonEnd = x.LatLonEnd,
                 StartTime = FormatUtcToLocal(x.StartTime),
                 Status = x.Status.ToString(),
                 CreatedAt = FormatUtcToLocal(x.CreatedAt),

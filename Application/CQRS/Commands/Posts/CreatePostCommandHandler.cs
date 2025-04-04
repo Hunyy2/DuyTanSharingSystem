@@ -1,8 +1,10 @@
-﻿using Application.DTOs.Post;
+﻿using Application.Common;
+using Application.DTOs.Post;
 using Application.Interface.Api;
 using Application.Interface.ContextSerivce;
-using Application.Services;
+using static Domain.Common.Helper;
 using static Domain.Common.Enums;
+
 
 
 namespace Application.CQRS.Commands.Posts
@@ -33,11 +35,11 @@ namespace Application.CQRS.Commands.Posts
 
                 // Kiểm tra và lưu ảnh
                 string? imageUrl = request.Image != null ?
-                    await _fileService.SaveFileAsync(request.Image, "images", isImage: true) : null;
+                    await _fileService.SaveFileAsync(request.Image, "images/posts", isImage: true) : null;
 
                 // Kiểm tra và lưu video
                 string? videoUrl = request.Video != null ?
-                    await _fileService.SaveFileAsync(request.Video, "videos", isImage: false) : null;
+                    await _fileService.SaveFileAsync(request.Video, "videos/posts", isImage: false) : null;
 
                 var post = new Post(userId, request.Content, request.PostType, ScopeEnum.Public, imageUrl, videoUrl);
           
@@ -64,17 +66,16 @@ namespace Application.CQRS.Commands.Posts
                 await _unitOfWork.PostRepository.AddAsync(post);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransactionAsync(); // Thêm dòng này để commit nếu hợp lệ
-
                 var postDto = new ResponsePostDto
                 {
                     Id = post.Id,
                     UserId = userId,
                     Content = post.Content,
-                    CreatedAt = post.CreatedAt,
-                    ImageUrl = post.ImageUrl,
-                    VideoUrl = post.VideoUrl,
+                    ImageUrl = post.ImageUrl != null ? $"{Constaint.baseUrl}{post.ImageUrl}" : null, // ✅ Thêm Base URL
+                    VideoUrl = post.VideoUrl != null ? $"{Constaint.baseUrl}{post.VideoUrl}" : null, // ✅ Thêm Base URL
                     PostType = post.PostType,
                     IsApproved = post.IsApproved,
+                    CreatedAt =FormatUtcToLocal(post.CreatedAt),
                 };
 
                 return ResponseFactory.Success(postDto, "Create Post Success", 200);

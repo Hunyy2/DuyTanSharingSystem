@@ -1,4 +1,5 @@
-﻿using Application.DTOs.Post;
+﻿using Application.Common;
+using Application.DTOs.Post;
 using Application.Interface.Api;
 using Application.Interface.ContextSerivce;
 using System;
@@ -43,18 +44,32 @@ namespace Application.CQRS.Commands.Posts
                 {
                     post.RejectAI();
                     await _unitOfWork.RollbackTransactionAsync();
-                    return ResponseFactory.Fail<UpdatePostDto>("Warning! Content is not accepted! If you violate it again, your reputation will be deducted!!", 400);
+                    return ResponseFactory.Fail<UpdatePostDto>("Warning! Content is not accepted!", 400);
                 }
 
-                // ✅ Kiểm tra & lưu file (chỉ khi cần thiết)
-                string? imageUrl = post.ImageUrl;
-                string? videoUrl = post.VideoUrl;
+                // ✅ Xử lý ảnh
+                string? imageUrl = post.ImageUrl;  // Giữ ảnh cũ nếu không có ảnh mới
+                if (request.Image != null && request.Image.Length > 0)  // Nếu có ảnh mới
+                {
+                    if (_fileService.IsImage(request.Image))  // Kiểm tra ảnh hợp lệ
+                        imageUrl = await _fileService.SaveFileAsync(request.Image, "images/posts", true);  // Lưu ảnh mới
+                }
+                else if (request.IsDeleteImage)  // Nếu người dùng muốn xóa ảnh
+                {
+                    imageUrl = null;  // Gán null cho imageUrl nếu xóa ảnh
+                }
 
-                if (request.Image != null && _fileService.IsImage(request.Image))
-                    imageUrl = await _fileService.SaveFileAsync(request.Image, "images", true);
-
-                if (request.Video != null && _fileService.IsVideo(request.Video))
-                    videoUrl = await _fileService.SaveFileAsync(request.Video, "videos", false);
+                // ✅ Xử lý video
+                string? videoUrl = post.VideoUrl;  // Giữ video cũ nếu không có video mới
+                if (request.Video != null && request.Video.Length > 0)  // Nếu có video mới
+                {
+                    if (_fileService.IsVideo(request.Video))  // Kiểm tra video hợp lệ
+                        videoUrl = await _fileService.SaveFileAsync(request.Video, "videos/posts", false);  // Lưu video mới
+                }
+                else if (request.IsDeleteVideo)  // Nếu người dùng muốn xóa video
+                {
+                    videoUrl = null;  // Gán null cho videoUrl nếu xóa video
+                }
 
                 // ✅ Kiểm tra có thay đổi không
                 if (post.Content == request.Content &&
@@ -68,8 +83,9 @@ namespace Application.CQRS.Commands.Posts
                         Id = post.Id,
                         UserId = post.UserId,
                         Content = post.Content,
-                        ImageUrl = post.ImageUrl,
-                        VideoUrl = post.VideoUrl,
+                        ImageUrl = imageUrl != null ? $"{Constaint.baseUrl}{imageUrl}" : null,  // Trả về ảnh cũ hoặc null nếu không có ảnh
+                        VideoUrl = videoUrl != null ? $"{Constaint.baseUrl}{videoUrl}" : null,  // Trả về video mới nếu có, hoặc null nếu không có video
+                        Scope = (int)post.Scope,
                         IsApproved = post.IsApproved,
                         UpdatedAt = post.UpdateAt.GetValueOrDefault(post.CreatedAt)
                     }, "Không có thay đổi nào trong bài viết", 200);
@@ -87,8 +103,8 @@ namespace Application.CQRS.Commands.Posts
                     Id = post.Id,
                     UserId = post.UserId,
                     Content = post.Content,
-                    ImageUrl = post.ImageUrl,
-                    VideoUrl = post.VideoUrl,
+                    ImageUrl = imageUrl != null ? $"{Constaint.baseUrl}{imageUrl}" : null,  // Trả về ảnh cũ hoặc null nếu không có ảnh
+                    VideoUrl = videoUrl != null ? $"{Constaint.baseUrl}{videoUrl}" : null,  // Trả về video mới nếu có
                     Scope = (int)post.Scope,
                     IsApproved = post.IsApproved,
                     UpdatedAt = post.UpdateAt.GetValueOrDefault(post.CreatedAt)
@@ -97,7 +113,7 @@ namespace Application.CQRS.Commands.Posts
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
-                Console.WriteLine($"Lỗi khi cập nhật bài viết: {ex}"); // Log đầy đủ hơn
+                Console.WriteLine($"Lỗi khi cập nhật bài viết: {ex}");
                 return ResponseFactory.Error<UpdatePostDto>("Đã xảy ra lỗi, vui lòng thử lại", 500, ex);
             }
         }

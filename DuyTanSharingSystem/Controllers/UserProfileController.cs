@@ -24,8 +24,14 @@ namespace DuyTanSharingSystem.Controllers
             return Ok(await _mediator.Send(new GetUserProfileQuery()));
         }
         [Authorize]
+        [HttpGet("profile-detail")]
+        public async Task<IActionResult> GetUserProfileDetail()
+        {
+            return Ok(await _mediator.Send(new GetUserProfileDetailQuery()));
+        }
+        [Authorize]
         [HttpPut("upProfile")]
-        public async Task<IActionResult> UpdateUserProfile([FromBody] UpdateUserProfileCommand command)
+        public async Task<IActionResult> UpdateUserProfile([FromForm] UpdateUserProfileCommand command)
         {
             var result = await _mediator.Send(command);
             return Ok(result);

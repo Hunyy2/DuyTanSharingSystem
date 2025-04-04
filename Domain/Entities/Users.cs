@@ -17,13 +17,15 @@ namespace Domain.Entities
             public string Email { get; private set; }
             public string PasswordHash { get; private set; }
             public string? ProfilePicture { get; private set; }
+            public string? BackgroundPicture { get; private set; }
             public string? Bio { get; private set; }
             public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
             public bool IsVerifiedEmail { get; private set; } = false;
-            public int TrustScore { get; private set; } = 0;
+            public decimal TrustScore { get; private set; } = 0;
             public RoleEnum Role { get; private set; } = RoleEnum.User;
             public string? RelativePhone { get; private set; }
             public string? Phone { get; private set; }
+            public DateTime? LastActive { get; private set; }
             public virtual ICollection<Post> Posts { get; private set; } = new HashSet<Post>();
             public virtual ICollection<Like> Likes { get; private set; } = new HashSet<Like>();
             public virtual ICollection<Comment> Comments { get; private set; } = new HashSet<Comment>();
@@ -68,7 +70,7 @@ namespace Domain.Entities
             /// Cập nhật điểm tin cậy của người dùng.
             /// </summary>
             /// <param name="score">Điểm tin cậy mới.</param>
-            public void UpdateTrustScore(int score)
+            public void UpdateTrustScore(decimal score)
             {
                 if (score < 0) throw new ArgumentException("Trust score cannot be negative.");
                 TrustScore = score;
@@ -77,14 +79,17 @@ namespace Domain.Entities
             /// <summary>
             /// Cập nhật thông tin cá nhân (Họ tên, ảnh đại diện, tiểu sử).
             /// </summary>
-            public void UpdateProfile(string fullName, string? profilePicture, string? bio)
+            public void UpdateProfile(string fullName, string? profilePicture,string? backgroundPicture, string? bio, string? phone, string? relativePhone)
             {
                 if (string.IsNullOrWhiteSpace(fullName))
                     throw new ArgumentException("Full name cannot be empty.");
 
                 FullName = fullName;
                 ProfilePicture = profilePicture;
+                BackgroundPicture = backgroundPicture;
                 Bio = bio;
+                Phone = phone;
+                RelativePhone = relativePhone;
             }
 
             /// <summary>
