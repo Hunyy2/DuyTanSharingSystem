@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { searchPost } from "../action/searchAction";
+import { searchPost } from "../../stores/action/searchAction";
 import "../../styles/headerHome.scss";
+import Spinner from "../../utils/Spinner";
 import searchIcon from "../../assets/iconweb/searchIcon.svg";
 
 const SearchComponent = () => {
@@ -50,7 +51,9 @@ const SearchComponent = () => {
       {showResults && (
         <div className="search-results">
           {loading ? (
-            <div className="search-loading">Đang tìm kiếm...</div>
+            <div className="search-loading">
+              <Spinner size={20} />
+            </div>
           ) : search?.length > 0 ? (
             search.map((item) => (
               <div
@@ -61,20 +64,20 @@ const SearchComponent = () => {
                 {item.type === "User" ? (
                   <>
                     <img
-                      src={item.data.profilePicture || "/default-avatar.png"}
-                      alt={item.data.fullName}
+                      src={item.profilePicture || "/default-avatar.png"}
+                      alt={item.fullName}
                       className="result-avatar"
                     />
                     <div className="result-info">
-                      <h4>{item.data.fullName}</h4>
+                      <h4>{item.fullName}</h4>
                       <p>Người dùng</p>
                     </div>
                   </>
                 ) : (
                   <>
                     <div className="result-info">
-                      <h4>{item.data.fullName}</h4>
-                      <p className="post-content">{item.data.content}</p>
+                      <h4>{item.fullName}</h4>
+                      <p className="post-content">{item.content}</p>
                       <p>Bài viết</p>
                     </div>
                   </>

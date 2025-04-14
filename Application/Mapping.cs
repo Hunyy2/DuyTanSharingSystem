@@ -1,6 +1,7 @@
 ﻿using Application.Common;
 using Application.DTOs.CommentLikes;
 using Application.DTOs.Comments;
+using Application.DTOs.FriendShips;
 using Application.DTOs.Likes;
 using Application.DTOs.Post;
 using Application.DTOs.Posts;
@@ -47,6 +48,19 @@ namespace Application
         }
 
 
+        public static FriendDto MapToFriendDto(Friendship friendship, User user, Guid currentUserId)
+        {
+            var otherUserId = friendship.UserId == currentUserId ? friendship.FriendId : friendship.UserId;
+
+            return new FriendDto
+            {
+                FriendId = otherUserId,
+                FullName = user.FullName,
+                PictureProfile = user.ProfilePicture,
+                CreatedAt = friendship.CreatedAt,
+                Status = friendship.Status
+            };
+        }
 
         public static CommentPostDto MapToCommentPostDto(Comment comment, Post post, User user)
         {
@@ -80,6 +94,7 @@ namespace Application
                 Id = user?.Id,
                 FullName = user?.FullName,
                 Email = user?.Email,
+                CreatedAt = user?.CreatedAt ?? DateTime.MinValue, // ✅ Cung cấp giá trị mặc định
                 ProfilePicture = user?.ProfilePicture != null ? $"{Constaint.baseUrl}{user?.ProfilePicture}" : null,
             };
         }
@@ -203,6 +218,8 @@ namespace Application
                 ImageUrl = p.ImageUrl != null ? $"{Constaint.baseUrl}{p.ImageUrl}" : null, // ✅ Thêm Base URL
                 VideoUrl = p.VideoUrl != null ? $"{Constaint.baseUrl}{p.VideoUrl}" : null, // ✅ Thêm Base URL
                 CreateAt = p.CreatedAt,
+                PostType = p.PostType,
+                Scope = p.Scope,
                 Author = new UserPostDto(p.User ?? new Domain.Entities.User("Người dùng ẩn danh", "anonymous@example.com", "hashed_password"))
             };
 
@@ -310,9 +327,10 @@ namespace Application
                 CreatedAt = p.CreatedAt,
                 UpdateAt = p.UpdateAt,
                 PostType = p.PostType,
+                Scope = p.Scope,
                 CommentCount = p.Comments?.Count ?? 0,
                 LikeCount = p.Likes?.Count ?? 0,
-                ShareCount = p.Shares?.Count ?? 0,
+                ShareCount = p.Shares?.Count(s => !s.IsDeleted) ?? 0,
                 HasLiked = validLikes.Any(l => l.UserId == userId) ? 1 : 0,
                 IsSharedPost = p.IsSharedPost,
                 OriginalPostId = p.OriginalPostId,

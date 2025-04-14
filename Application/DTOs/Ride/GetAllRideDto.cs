@@ -12,8 +12,10 @@ namespace Application.DTOs.Ride
         public Guid RideId { get; set; }
         public Guid PassengerId { get; set; }
         public Guid DriverId { get; set; }
-        public string StartTime { get; set; } = string.Empty;
-        public string EndTime { get; set; } = string.Empty;
+        public string StartLocation { get; set; } = string.Empty;
+        public string EndLocation { get; set; } = string.Empty;
+        public string? StartTime { get; set; } = string.Empty;
+        public string? EndTime { get; set; } = string.Empty;
         public string LatLonStart { get; set; } = string.Empty;
         public string LatLonEnd { get; set; } = string.Empty;
         
@@ -25,7 +27,9 @@ namespace Application.DTOs.Ride
     }
     public class GetAllRideResponseDto
     {
-        public List<GetAllRideDto> RideList { get; set; } = new List<GetAllRideDto>();
-        public Guid? NextCursor { get; set; }
+        public List<GetAllRideDto> DriverRideList { get; set; } = new List<GetAllRideDto>();
+        public List<GetAllRideDto> PassengerRideList { get; set; } = new List<GetAllRideDto>();
+        public Guid? DriverNextCursor { get; set; }
+        public Guid? PassengerNextCursor { get; set; }
     }
 }

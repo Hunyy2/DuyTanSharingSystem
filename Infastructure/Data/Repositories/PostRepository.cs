@@ -70,7 +70,7 @@ namespace Infrastructure.Data.Repositories
                      .ThenInclude(s => s.User)
                  .Include(p => p.OriginalPost)
                      .ThenInclude(op => op.User)
-                 .Where(p => !p.IsDeleted && p.Scope == ScopeEnum.Public); // Chỉ lấy bài chưa bị xóa
+                 .Where(p => !p.IsDeleted && p.Scope == 0 && (p.IsApproved || p.ApprovalStatus == ApprovalStatusEnum.Approved)); // Chỉ lấy bài chưa bị xóa
 
 
             // Nếu có LastPostId, chỉ lấy bài viết cũ hơn nó
@@ -158,11 +158,9 @@ namespace Infrastructure.Data.Repositories
             var query = _context.Posts
          .Include(p => p.User)
          .Include(p => p.Comments.Where(c => !c.IsDeleted))
-             .ThenInclude(c => c.User)
          .Include(p => p.Likes.Where(l => l.IsLike)) // Sửa lỗi chỗ này
-             .ThenInclude(l => l.User)
+                .ThenInclude(l => l.User)
          .Include(p => p.Shares.Where(s => !s.IsDeleted))
-             .ThenInclude(s => s.User)
         .Where(p => p.Content.Contains(keyword) || p.User != null && p.User.FullName.Contains(keyword));
 
             if (fromDate.HasValue)
