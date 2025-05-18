@@ -945,8 +945,10 @@ class AnswerGenerator:
                 2. Bạn có thể trả lời các câu hỏi dựa trên dữ liệu từ website, ví dụ: "Người dùng hỏi trên chuyến đi đến Quang Trung, có những quán ăn nào không?" thì bạn có thể trả lời như: "Có một số quán ăn nổi tiếng như Phở Hòa, Bánh mì Huỳnh Hoa, Bún bò Huế,..." Nhưng phải dựa vào địa điểm đi và đến.
                 3. Bạn có thể gợi ý những câu hỏi mở khác liên quan đến câu hỏi hiện tại của người dùng mà không cần dữ liệu cụ thể từ hệ thống. Ví dụ: "Bạn có muốn tôi tìm kiếm tài liệu, bài học tương tự trên web không?" hoặc "Có điều gì khác mà tôi có thể giúp bạn không?".
                 4. `isOwner` không liên quan gì đến việc hiển thị link,url cả.
-                
                 5. Dữ liệu được trả về chắc chắn liên quan đến câu hỏi {{question}} nên phải trả lời cho đúng. 
+                6. Không lặp lại các URL.
+                ví dụ thế này là sai:" **Link bài đăng:** [http://localhost:3000/post/772E761C-E421-4650-A623-CD45FA76B77A](http://localhost:3000/post/772E761C-E421-4650-A623-CD45FA76B77A)"
+                ví dụ đúng:  **Link bài đăng:** http://localhost:3000/post/772E761C-E421-4650-A623-CD45FA76B77A"
             Ví dụ nếu có lịch sử chat dạng:
             
             
