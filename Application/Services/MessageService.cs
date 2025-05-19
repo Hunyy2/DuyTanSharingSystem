@@ -127,38 +127,34 @@ namespace Application.Services
             if (pageSize <= 0) pageSize = Constaint.DefaultPageSize;
             if (pageSize > Constaint.MaxPageSize) pageSize = Constaint.MaxPageSize;
 
-            // === Lấy pageSize + 1 items ===
+            // === Lấy pageSize + 1 items cho tin nhắn ===
             int itemsToFetch = pageSize + 1;
 
-            // === Gọi phương thức Repository ĐÃ SỬA ĐỔI ===
+            // === Gọi phương thức Repository để lấy tin nhắn ===
             var latestMessages = await _unitOfWork.MessageRepository.GetLatestMessagesForInboxAsync(currentUserId, cursor, itemsToFetch);
 
+            // === Lấy tất cả bạn bè chưa có hội thoại ===
+            var friendsWithoutConversation = await _unitOfWork.MessageRepository.GetFriendsWithoutConversationAsync(currentUserId);
+
             var resultDto = new ListInBoxDto();
-            // === Kiểm tra hasNextPage dựa trên số lượng thực tế nhận được ===
-            bool hasNextPage = latestMessages.Count == itemsToFetch;
-
-            // === Chỉ lấy pageSize items để xử lý ===
-            var messagesForPage = latestMessages.Take(pageSize).ToList();
-
             var inboxDtos = new List<InBoxDto>();
+
+            // === Xử lý tin nhắn ===
+            bool hasNextPage = latestMessages.Count == itemsToFetch;
+            var messagesForPage = latestMessages.Take(pageSize).ToList();
 
             foreach (var message in messagesForPage)
             {
-                // --- Logic xác định otherUser, tính unreadCount, isLastMessageSeen, ánh xạ DTO ---
-                // --- (Giữ nguyên như code bạn đã cung cấp) ---
                 var otherUser = (message.Conversation.User1Id == currentUserId)
-                        ? message.Conversation.User2 // Nếu User1 là tôi, thì người kia là User2
-                        : message.Conversation.User1; // Ngược lại, người kia là User1
+                        ? message.Conversation.User2
+                        : message.Conversation.User1;
                 if (otherUser == null)
                 {
                     continue;
                 }
 
-                bool isLastMessageSeenByCurrentUser;
-                if (message.SenderId != currentUserId) { isLastMessageSeenByCurrentUser = message.IsSeen; }
-                else { isLastMessageSeenByCurrentUser = true; }
+                bool isLastMessageSeenByCurrentUser = message.SenderId != currentUserId ? message.IsSeen : true;
 
-                // Tính UnreadCount riêng biệt vì DTO cần nó, ngay cả khi sắp xếp đã dùng trạng thái seen/unread
                 int unreadCount = await _unitOfWork.MessageRepository.GetUnreadMessageCountAsync(message.ConversationId, currentUserId);
 
                 var userDto = new UserDto
@@ -169,27 +165,52 @@ namespace Application.Services
                 };
                 inboxDtos.Add(new InBoxDto
                 {
-                    User = userDto, // DTO người dùng kia
+                    User = userDto,
                     ConversationId = message.ConversationId,
                     LastMessage = message.Content,
                     LastMessageDate = message.SentAt,
-                    UnreadCount = unreadCount, // Vẫn cần để hiển thị số lượng
-                    IsSeen = isLastMessageSeenByCurrentUser // Trạng thái của tin cuối cùng
+                    UnreadCount = unreadCount,
+                    IsSeen = isLastMessageSeenByCurrentUser
                 });
-                //--- Kết thúc logic trong vòng lặp ---
             }
+
+            // === Thêm tất cả bạn bè chưa có hội thoại ===
+            var friendsToAdd = friendsWithoutConversation
+                .Select(f => new InBoxDto
+                {
+                    User = new UserDto
+                    {
+                        Id = f.Friend.Id,
+                        FullName = f.Friend.FullName,
+                        ProfilePicture = f.Friend.ProfilePicture ?? string.Empty
+                    },
+                    ConversationId = Guid.Empty,
+                    LastMessage = $"Bạn và {f.Friend.FullName} hiện đã là bạn",
+                    LastMessageDate = f.CreatedAt, // Sử dụng thời gian kết bạn
+                    UnreadCount = 0,
+                    IsSeen = true
+                });
+
+            inboxDtos.AddRange(friendsToAdd);
+
+            // === Sắp xếp danh sách ===
+            inboxDtos = inboxDtos
+                .OrderBy(dto => dto.UnreadCount > 0 ? 0 : 1) // Ưu tiên tin nhắn chưa đọc
+                .ThenByDescending(dto => dto.LastMessageDate) // Sắp xếp theo thời gian (tin nhắn hoặc kết bạn)
+                .ToList();
 
             resultDto.InBox = inboxDtos;
 
-            // Xác định NextCursor (giữ nguyên logic)
+            // === Xác định NextCursor ===
             if (hasNextPage && messagesForPage.Any())
             {
-                resultDto.NextCursor = messagesForPage.Last().Id; // Dùng ID của item cuối cùng làm cursor
+                resultDto.NextCursor = messagesForPage.Last().Id;
             }
             else
             {
                 resultDto.NextCursor = Guid.Empty;
             }
+
             return resultDto;
         }
     }

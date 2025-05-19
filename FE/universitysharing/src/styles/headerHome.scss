@@ -221,6 +221,8 @@ $transition: all 0.3s ease;
               .content-posts {
                 padding: 0 12px 8px;
                 font-size: 14px;
+                white-space: pre-line; /* Hiển thị \n dưới dạng xuống dòng */
+                word-wrap: break-word; /* Đảm bảo nội dung không tràn */
               }
 
               .media-container {
@@ -579,6 +581,8 @@ $transition: all 0.3s ease;
       font-size: 15px;
       line-height: 1.4;
       word-break: break-word;
+      white-space: pre-line; /* Hiển thị \n dưới dạng xuống dòng */
+      word-wrap: break-word; /* Đảm bảo nội dung không tràn */
     }
 
     .Share-Post-origigin {

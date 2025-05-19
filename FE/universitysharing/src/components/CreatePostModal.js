@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from "react";
+import Picker from "emoji-picker-react"; // Thêm import đúng
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { FaSmile } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify"; // Thêm toast
 import avatarDeafault from "../assets/AvatarDefault.png";
 import closeIcon from "../assets/iconweb/closeIcon.svg";
 import imageIcon from "../assets/iconweb/imageIcon.svg";
 import videoIcon from "../assets/iconweb/videoIcon.svg";
-import "../styles/CreatePostModal.scss";
-import "animate.css";
-
-import { useDispatch, useSelector } from "react-redux";
 import { createPost } from "../stores/action/listPostActions";
+import "../styles/CreatePostModal.scss";
 import Spinner from "../utils/Spinner";
 
 const CreatePostModal = ({ isOpen, onClose, usersProfile }) => {
@@ -18,7 +19,40 @@ const CreatePostModal = ({ isOpen, onClose, usersProfile }) => {
   const [postType, setPostType] = useState(4);
   const [scope, setScope] = useState(0);
   const loading = useSelector((state) => state.posts.loading);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojiPickerRef = useRef(null);
 
+  // Cleanup URL.createObjectURL
+  useEffect(() => {
+    return () => {
+      mediaFiles.forEach((media) => URL.revokeObjectURL(media.url));
+    };
+  }, [mediaFiles]);
+
+  // Đóng emoji picker khi click ra ngoài
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target) &&
+        !event.target.closest(".emoji-btn")
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Xử lý chọn emoji
+  const onEmojiClick = (emojiObject) => {
+    if (emojiObject?.emoji) {
+      setContent((prev) => prev + emojiObject.emoji);
+    }
+    setShowEmojiPicker(false);
+  };
+
+  // Xử lý phím Escape
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
@@ -33,39 +67,52 @@ const CreatePostModal = ({ isOpen, onClose, usersProfile }) => {
     const files = Array.from(event.target.files);
     if (!files.length) return;
 
+    // Giới hạn kích thước file (10MB)
+    const maxSize = 10 * 1024 * 1024;
+    const invalidFiles = files.filter((file) => file.size > maxSize);
+    if (invalidFiles.length) {
+      toast.error("Một số file quá lớn (tối đa 10MB)");
+      return;
+    }
+
     const newMediaFiles = files.map((file) => ({
       url: URL.createObjectURL(file),
       type: file.type.startsWith("video") ? "video" : "image",
-      file: file,
+      file,
     }));
 
     setMediaFiles((prev) => {
-      // Lấy danh sách ảnh hiện tại
       const currentImages = prev.filter((media) => media.type === "image");
-      // Kiểm tra có video trong file mới upload không
       const hasNewVideo = newMediaFiles.some((media) => media.type === "video");
-      // Lấy video mới (nếu có)
       const newVideo = newMediaFiles.find((media) => media.type === "video");
-      // Lấy tất cả ảnh mới
       const newImages = newMediaFiles.filter((media) => media.type === "image");
 
+      // Cleanup URL cũ
+      prev.forEach((media) => {
+        if (hasNewVideo && media.type === "video") {
+          URL.revokeObjectURL(media.url);
+        }
+      });
+
       if (hasNewVideo) {
-        // Nếu có video mới, thay thế video cũ (nếu có) và giữ lại các ảnh hiện tại
         return [...currentImages, newVideo];
       } else {
-        // Nếu chỉ có ảnh mới, thêm vào danh sách ảnh hiện tại
         return [...currentImages, ...newImages];
       }
     });
   };
 
   const handleRemoveMedia = (index) => {
-    setMediaFiles((prev) => prev.filter((_, i) => i !== index));
+    setMediaFiles((prev) => {
+      const newFiles = prev.filter((_, i) => i !== index);
+      URL.revokeObjectURL(prev[index].url); // Cleanup URL
+      return newFiles;
+    });
   };
 
   const handleSubmit = async () => {
-    if (!content.trim()) {
-      alert("Vui lòng nhập nội dung bài viết!");
+    if (!content.trim() && !mediaFiles.length) {
+      toast.error("Vui lòng nhập nội dung hoặc thêm media!");
       return;
     }
 
@@ -83,18 +130,22 @@ const CreatePostModal = ({ isOpen, onClose, usersProfile }) => {
       }
 
       imageFiles.forEach((image) => {
-        formData.append("Images", image.file); // 👈 quan trọng: sửa thành "Images"
-        console.log("hehehe", image.file);
+        formData.append("Images", image.file);
       });
     }
 
-    dispatch(
-      createPost({
-        formData,
-        fullName: usersProfile.fullName || "University Sharing",
-        profilePicture: usersProfile.profilePicture || avatarDeafault,
-      })
-    );
+    try {
+      await dispatch(
+        createPost({
+          formData,
+          fullName: usersProfile.fullName || "University Sharing",
+          profilePicture: usersProfile.profilePicture || avatarDeafault,
+        })
+      );
+      toast.success("Đăng bài thành công!");
+    } catch (error) {
+      toast.error("Không thể đăng bài: " + error.message);
+    }
 
     onClose();
   };
@@ -114,7 +165,6 @@ const CreatePostModal = ({ isOpen, onClose, usersProfile }) => {
             className="close-icon"
           />
         </div>
-        {/* Rest of your JSX remains the same */}
         <div className="user-create-post">
           <img
             src={usersProfile.profilePicture || avatarDeafault}
@@ -124,12 +174,35 @@ const CreatePostModal = ({ isOpen, onClose, usersProfile }) => {
             {usersProfile.fullName || "University Sharing"}
           </span>
         </div>
-        <textarea
-          placeholder="Bạn đang nghĩ gì thế?"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-        ></textarea>
-
+        <div className="textarea-container">
+          <textarea
+            placeholder="Bạn đang nghĩ gì thế?"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+          />
+          <button
+            type="button"
+            className="emoji-btn"
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+          >
+            <FaSmile />
+          </button>
+          {showEmojiPicker && (
+            <div className="emoji-picker-container" ref={emojiPickerRef}>
+              <Picker
+                onEmojiClick={onEmojiClick}
+                pickerStyle={{
+                  width: "100%",
+                  boxShadow: "none",
+                  border: "1px solid #ddd",
+                  borderRadius: "8px",
+                }}
+                groupVisibility={{ flags: false, symbols: false }}
+                native
+              />
+            </div>
+          )}
+        </div>
         <div className="preview-imgae-or-video">
           {mediaFiles.map((media, index) => (
             <div key={index} className="media-preview">
@@ -147,10 +220,9 @@ const CreatePostModal = ({ isOpen, onClose, usersProfile }) => {
             </div>
           ))}
         </div>
-
         <div className="option-create">
-          <label>
-            <img className="image-post" src={imageIcon} alt="Upload Image" />
+          <label className="file-upload-btn">
+            <img src={imageIcon} alt="Upload Image" />
             <input
               type="file"
               accept="image/*"
@@ -159,8 +231,8 @@ const CreatePostModal = ({ isOpen, onClose, usersProfile }) => {
               hidden
             />
           </label>
-          <label>
-            <img className="video-post" src={videoIcon} alt="Upload Video" />
+          <label className="file-upload-btn">
+            <img src={videoIcon} alt="Upload Video" />
             <input
               type="file"
               accept="video/*"
@@ -183,13 +255,13 @@ const CreatePostModal = ({ isOpen, onClose, usersProfile }) => {
         <button
           className="btn-create-post"
           onClick={handleSubmit}
-          disabled={loading}
+          disabled={loading || (!content.trim() && !mediaFiles.length)}
         >
           {loading ? <Spinner size={20} color="#fff" /> : "Đăng bài"}
         </button>
       </div>
     </>,
-    document.body // Render trực tiếp vào body
+    document.body
   );
 };
 

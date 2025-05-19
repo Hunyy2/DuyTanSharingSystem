@@ -1,4 +1,3 @@
-// CreatePostModal.scss
 .create-post-overlay {
   position: fixed;
   top: 0;
@@ -15,15 +14,15 @@
   left: 50%;
   transform: translate(-50%, -50%);
   width: 400px;
-  max-height: 90vh; // Thêm giới hạn chiều cao
-  overflow-y: auto; // Thêm scroll nếu nội dung dài
+  max-height: 90vh;
+  overflow-y: auto;
   background: white;
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   z-index: 100;
+  transition: transform 0.3s ease, opacity 0.3s ease; // Thêm transition
 
-  // Để tránh modal bị tràn khi màn hình nhỏ
   @media (max-width: 480px) {
     width: 90%;
     padding: 15px;
@@ -37,7 +36,7 @@
     font-weight: bold;
     border-bottom: 1px solid #ddd;
     padding-bottom: 10px;
-    position: sticky; // Giữ header cố định khi scroll
+    position: sticky;
     top: 0;
     background: white;
     z-index: 1;
@@ -46,6 +45,11 @@
       width: 20px;
       height: 20px;
       cursor: pointer;
+      transition: transform 0.2s;
+
+      &:hover {
+        transform: scale(1.2);
+      }
     }
   }
 
@@ -66,17 +70,65 @@
     }
   }
 
-  textarea {
+  .textarea-container {
+    position: relative;
     width: 100%;
-    height: 80px;
-    border: none;
-    outline: none;
-    padding: 10px; // Thêm padding đã bị comment
-    font-size: 14px;
-    border-radius: 5px;
-    background: #f3f3f3;
-    resize: none;
-    box-sizing: border-box;
+
+    textarea {
+      width: 100%;
+      height: 80px;
+      border: none;
+      outline: none;
+      padding: 10px 40px 10px 10px; // Thêm padding phải cho emoji button
+      font-size: 14px;
+      border-radius: 5px;
+      background: #f3f3f3;
+      resize: none;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+        Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif; // Font hỗ trợ emoji
+
+      .emoji {
+        font-size: 20px;
+        vertical-align: middle;
+        line-height: 1.2;
+        display: inline-block;
+      }
+    }
+
+    .emoji-btn {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 5px;
+      border-radius: 50%;
+      transition: background 0.2s, transform 0.2s;
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.1);
+        transform: scale(1.1);
+      }
+    }
+
+    .emoji-picker-container {
+      position: fixed;
+      bottom: 40px;
+      right: 10px;
+      z-index: 1001;
+      width: 300px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: opacity 0.2s ease;
+
+      .emoji-picker {
+        width: 100% !important;
+      }
+    }
   }
 
   .preview-imgae-or-video {
@@ -93,6 +145,11 @@
       height: 100px;
       border-radius: 5px;
       overflow: hidden;
+      transition: transform 0.2s;
+
+      &:hover {
+        transform: scale(1.05);
+      }
 
       img,
       video {
@@ -116,6 +173,11 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        transition: background 0.2s;
+
+        &:hover {
+          background: rgba(255, 0, 0, 0.8);
+        }
       }
     }
   }
@@ -129,10 +191,20 @@
     margin: 10px 0;
     align-items: center;
 
-    img {
-      width: 30px;
-      height: 30px;
+    .file-upload-btn {
+      display: flex;
+      align-items: center;
       cursor: pointer;
+
+      img {
+        width: 30px;
+        height: 30px;
+        transition: transform 0.2s;
+
+        &:hover {
+          transform: scale(1.1);
+        }
+      }
     }
   }
 
@@ -148,6 +220,11 @@
       border-radius: 5px;
       border: 1px solid #ccc;
       outline: none;
+      transition: border-color 0.2s;
+
+      &:focus {
+        border-color: #1877f2;
+      }
     }
   }
 
@@ -161,6 +238,7 @@
     font-size: 16px;
     cursor: pointer;
     margin-top: 10px;
+    transition: background 0.2s;
 
     &:hover {
       background: #145dbf;
