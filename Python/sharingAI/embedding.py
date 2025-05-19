@@ -1,6 +1,6 @@
 import os
 import glob
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain.embeddings.huggingface import HuggingFaceEmbeddings
 import logging
 
 logging.basicConfig(

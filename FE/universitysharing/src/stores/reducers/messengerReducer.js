@@ -6,6 +6,7 @@ import {
   getInbox,
   sendMessages,
 } from "../action/messageAction";
+import { fetchFriends } from "../action/friendAction";
 
 const messenger = createSlice({
   name: "messenger",
@@ -89,6 +90,43 @@ const messenger = createSlice({
         state.unReadInbox[senderId] = 1;
       }
     },
+    formatFriendsToInboxRead: (state, action) => {
+      const friend = action.payload.friends;
+      console.warn("Friend Có gì ???", friend);
+
+      // Lấy tất cả các userId đã tồn tại trong inboxRead
+      const existingIds = new Set(
+        state.inboxRead ? state.inboxRead.map((item) => item.user.id) : []
+      );
+
+      // Format friends thành inboxRead, bỏ qua những friendId đã tồn tại
+      const formattedFriends = friend
+        .filter((friend) => !existingIds.has(friend.friendId))
+        .map((friend) => ({
+          user: {
+            id: friend.friendId,
+            fullName: friend.fullName,
+            profilePicture: friend.pictureProfile || "",
+            email: null,
+            bio: null,
+            createdAt: "0001-01-01T00:00:00",
+            status: null,
+          },
+          conversationId: null,
+          lastMessage: null,
+          lastMessageDate: null,
+          unreadCount: 0,
+          isSeen: true,
+          id: null,
+        }));
+
+      // Gán vào state inboxRead
+      if (state.inboxRead) {
+        state.inboxRead.push(...formattedFriends);
+      } else {
+        state.inboxRead = formattedFriends;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -143,9 +181,6 @@ const messenger = createSlice({
         }));
         state.unReadInbox = action.payload.unreadCounts;
       });
-    // .addCase(sendMessages.fulfilled, (state, action) => {
-    //   state.messages.push(action.payload); // hoặc xử lý phù hợp
-    // });
   },
 });
 export const {
@@ -154,5 +189,6 @@ export const {
   addMessage,
   markInboxAsSeen,
   updateInboxOnNewMessage,
+  formatFriendsToInboxRead,
 } = messenger.actions;
 export default messenger.reducer;

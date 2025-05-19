@@ -76,7 +76,6 @@ const ProfileUserView = () => {
             </div>
           </div>
           <div className="profile-user-view__right">
-            {/* Tabs */}
             <div className="tabs">
               <button
                 className={`tab ${activeTab === "posts" ? "active" : ""}`}
@@ -92,7 +91,6 @@ const ProfileUserView = () => {
               </button>
             </div>
 
-            {/* Tab Content */}
             {activeTab === "posts" && (
               <div>
                 <PostInput className="post-input" usersProfile={users} />
