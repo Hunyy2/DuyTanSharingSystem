@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Domain.Interface;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
+﻿using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Infrastructure.Data.UnitOfWork
 {
@@ -19,7 +12,33 @@ namespace Infrastructure.Data.UnitOfWork
             IPostRepository postRepository,
             IEmailTokenRepository emailTokenRepository,
             ILikeRepository likeRepository,
-            IRefreshtokenRepository refreshtokenRepository
+            IRefreshtokenRepository refreshtokenRepository,
+
+            IShareRepository shareRepository,
+            ICommentRepository commentRepository,
+            ICommentLikeRepository commentLikeRepository,
+
+            IRidePostRepository ridePostRepository,
+            IRideRepository rideRepository,
+            ILocationUpdateRepository locationUpdateRepository,
+            IReportRepository reportRepository,
+
+            IRideReportRepository rideReportRepository,
+            IRatingRepository ratingRepository,
+
+            IConversationRepository conversationRepository,
+            IMessageRepository messageRepository,
+
+            IFriendshipRepository friendshipRepository,
+            INotificationRepository notificationRepository,
+
+            IAIConversationRepository aiConversationRepository,
+            IAIChatHistoryRepository aiChatHistoryRepository,
+
+            IUserScoreHistoriesRepository userScoreHistoriesRepository,
+
+            IUserReportRepository userReportRepository
+
             )
         {
             _context = context;
@@ -28,13 +47,62 @@ namespace Infrastructure.Data.UnitOfWork
             EmailTokenRepository = emailTokenRepository;
             LikeRepository = likeRepository;
             RefreshtokenRepository = refreshtokenRepository;
+
+            ShareRepository = shareRepository;
+            CommentRepository = commentRepository;
+            CommentLikeRepository = commentLikeRepository;
+
+            RidePostRepository = ridePostRepository;
+            RideRepository = rideRepository;
+            LocationUpdateRepository = locationUpdateRepository;
+
+            ReportRepository = reportRepository;
+            RideReportRepository = rideReportRepository;
+            RatingRepository = ratingRepository;
+
+            ConversationRepository = conversationRepository;
+            MessageRepository = messageRepository;
+
+            FriendshipRepository = friendshipRepository;
+            
+            NotificationRepository = notificationRepository;
+
+            AIConversationRepository = aiConversationRepository;
+            AIChatHistoryRepository = aiChatHistoryRepository;
+
+            UserScoreHistoriesRepository = userScoreHistoriesRepository;
+            UserReportRepository = userReportRepository;
+
         }
+        public IUserReportRepository UserReportRepository { get; }
         public IUserRepository UserRepository { get; }
         public IPostRepository PostRepository { get; }
         public IEmailTokenRepository EmailTokenRepository { get; }
         public ILikeRepository LikeRepository { get; }
         public IRefreshtokenRepository RefreshtokenRepository { get; }
 
+        public IShareRepository ShareRepository { get; }
+        public ICommentRepository CommentRepository { get; }
+        public ICommentLikeRepository CommentLikeRepository { get; }
+
+        public IRidePostRepository RidePostRepository { get; }
+        public IRideRepository RideRepository { get; }
+        public ILocationUpdateRepository LocationUpdateRepository { get; }
+
+        public IReportRepository ReportRepository { get; }
+        public IRideReportRepository RideReportRepository { get; }
+        public IRatingRepository RatingRepository { get; }
+
+        public IConversationRepository ConversationRepository { get; }
+        public IMessageRepository MessageRepository { get; }
+
+        public IFriendshipRepository FriendshipRepository { get; }
+
+        public INotificationRepository NotificationRepository { get; }
+
+        public IAIConversationRepository AIConversationRepository { get; }
+        public IAIChatHistoryRepository AIChatHistoryRepository { get; }
+        public IUserScoreHistoriesRepository UserScoreHistoriesRepository { get; }
         public async Task<int> SaveChangesAsync()
         => await _context.SaveChangesAsync();
 

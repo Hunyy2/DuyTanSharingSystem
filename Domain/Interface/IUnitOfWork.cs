@@ -13,6 +13,31 @@ namespace Domain.Interface
         IPostRepository PostRepository { get; }
         ILikeRepository LikeRepository { get; }
         IRefreshtokenRepository RefreshtokenRepository { get; }
+        IUserReportRepository UserReportRepository { get; }
+
+        IShareRepository ShareRepository { get; }
+        ICommentRepository CommentRepository { get; }
+        ICommentLikeRepository CommentLikeRepository { get; }
+
+        IRidePostRepository RidePostRepository { get; }
+        IRideRepository RideRepository { get; }
+        ILocationUpdateRepository LocationUpdateRepository { get; }
+
+        IReportRepository ReportRepository { get; }
+        IRideReportRepository RideReportRepository { get; }
+        IRatingRepository RatingRepository { get; }
+
+        IConversationRepository ConversationRepository { get; }
+        IMessageRepository MessageRepository { get; }
+      
+        IFriendshipRepository FriendshipRepository { get; }
+
+        INotificationRepository NotificationRepository { get; }
+
+
+        IAIConversationRepository AIConversationRepository { get; }
+        IAIChatHistoryRepository AIChatHistoryRepository { get; }
+        IUserScoreHistoriesRepository UserScoreHistoriesRepository { get; }
 
         Task<int> SaveChangesAsync();
         Task BeginTransactionAsync(); // ✅ Bắt đầu giao dịch

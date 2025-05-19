@@ -8,12 +8,12 @@ namespace Application.Model.Events
 {
     public class LikeEvent : INotification
     {
-        public Guid UserId { get; set; }
-        public Guid PostId { get; set; }
-        public LikeEvent(Guid postId, Guid userId)
+        public Guid OwnerId { get; set; }
+        public ResponseNotificationModel Data { get; set; }
+        public LikeEvent(Guid ownerId, ResponseNotificationModel data)
         {
-            PostId = postId;
-            UserId = userId;
+            OwnerId = ownerId;
+            Data = data;
         }
     }
 
