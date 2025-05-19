@@ -13,6 +13,11 @@ const ForgotPass = () => {
   const handleForgotPassword = async (e, formData) => {
     e.preventDefault();
     const email = formData.email;
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@dtu\.edu\.vn$/;
+    if (!emailPattern.test(formData.email)) {
+      toast.error("Email sai định dạng");
+      return;
+    }
     console.log("Email value on submit:", email); // Debug khi submit
     if (
       !email ||
