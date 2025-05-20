@@ -134,5 +134,11 @@ namespace Domain.Common
             Suspended,
             Blocked
         }
+        public enum SharePrivacy
+        {
+            Public = 0,
+            Friends = 1,
+            Private = 2
+        }
     }
 }
