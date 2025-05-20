@@ -16,7 +16,7 @@ DuyTanSharingSystem/wwwroot
 *.env
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
-
+*.json
 # Mono auto generated files
 mono_crash.*
 
