@@ -1,6 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-
+import axiosInstance from "../../Service/axiosClient";
 export const fetchShares = createAsyncThunk(
   "posts/fetchShares",
   async ({ postId, lastUserid = null }, { rejectWithValue }) => {
@@ -17,8 +16,8 @@ export const fetchShares = createAsyncThunk(
         params.lastUserid = lastUserid;
       }
 
-      const response = await axios.get(
-        `https://university-sharing-webapp-d6bndpepfpbvfyhr.eastasia-01.azurewebsites.net/api/Share/get-shares`,
+      const response = await axiosInstance.get(
+        `/api/Share/get-shares`,
         {
           params,
           headers: {

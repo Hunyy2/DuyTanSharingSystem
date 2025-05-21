@@ -1,6 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-
+import axiosInstance from "../../Service/axiosClient";
 export const fetchLikes = createAsyncThunk(
   "posts/fetchLikes",
   async ({ postId, lastUserid = null }, { rejectWithValue, getState }) => {
@@ -28,10 +27,10 @@ export const fetchLikes = createAsyncThunk(
       // Chỉ thêm lastUserid vào URL nếu nó tồn tại VÀ nextCursor chưa null
       const url =
         lastUserid && existingLikes?.nextCursor !== null
-          ? `https://localhost:7053/api/Like/get-likes?postid=${postId}&lastUserid=${lastUserid}`
-          : `https://localhost:7053/api/Like/get-likes?postid=${postId}`;
+          ? `/api/Like/get-likes?postid=${postId}&lastUserid=${lastUserid}`
+          : `/api/Like/get-likes?postid=${postId}`;
 
-      const response = await axios.get(url, {
+      const response = await axiosInstance.get(url, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

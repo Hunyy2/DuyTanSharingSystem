@@ -1,15 +1,13 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-import { setUserProfile } from "../reducers/proFileReducers";
-
+import axiosInstance from "../../Service/axiosClient";
 // const token = localStorage.getItem("token");
 export const userProfile = createAsyncThunk(
   "profile/userProfile",
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "https://localhost:7053/api/UserProfile/profile",
+      const response = await axiosInstance.get(
+        "/api/UserProfile/profile",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -28,8 +26,8 @@ export const userProfileDetail = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "https://localhost:7053/api/UserProfile/profile-detail",
+      const response = await axiosInstance.get(
+        "/api/UserProfile/profile-detail",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -48,8 +46,8 @@ export const getPostOwner = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "https://localhost:7053/api/Post/GetPostsByOwner",
+      const response = await axiosInstance.get(
+        "/api/Post/GetPostsByOwner",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -68,8 +66,8 @@ export const updateUserProfile = createAsyncThunk(
   async (formData, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.put(
-        "https://localhost:7053/api/UserProfile/upProfile",
+      const response = await axiosInstance.put(
+        "/api/UserProfile/upProfile",
         formData,
         {
           headers: {
@@ -91,8 +89,8 @@ export const fetchOtherUserProfile = createAsyncThunk(
   async (userId, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `https://localhost:7053/api/UserProfile/user-profile?userid=${userId}`,
+      const response = await axiosInstance.get(
+        `/api/UserProfile/user-profile?userid=${userId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -116,8 +114,8 @@ export const fetchPostImagesPreview = createAsyncThunk(
       const token = localStorage.getItem("token");
       console.log("Fetching images for UserId:", userId);
       console.log("Token:", token);
-      const response = await axios.get(
-        `https://localhost:7053/api/UserProfile/post-images-preview?UserId=${userId}`, // Sửa endpoint
+      const response = await axiosInstance.get(
+        `/api/UserProfile/post-images-preview?UserId=${userId}`, // Sửa endpoint
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -145,8 +143,8 @@ export const fetchAllPostImages = createAsyncThunk(
       const token = localStorage.getItem("token");
       console.log("Fetching images for UserId:", userId);
       console.log("Token:", token);
-      const response = await axios.get(
-        `https://localhost:7053/api/UserProfile/post-images-all?UserId=${userId}`, // Sửa endpoint
+      const response = await axiosInstance.get(
+        `/api/UserProfile/post-images-all?UserId=${userId}`, // Sửa endpoint
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -168,8 +166,8 @@ export const updateUserInformation = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.put(
-        "https://localhost:7053/api/UserProfile/upInformation",
+      const response = await axiosInstance.put(
+        "/api/UserProfile/upInformation",
         {
           Phone: data.phoneNumber,
           PhoneRelative: data.phoneRelative,
@@ -193,8 +191,8 @@ export const fetchTrustScoreHistories = createAsyncThunk(
   async (cursor = null, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "https://localhost:7053/api/UserProfile/trust-score-histories",
+      const response = await axiosInstance.get(
+        "/api/UserProfile/trust-score-histories",
         {
           headers: {
             Authorization: `Bearer ${token}`,
