@@ -330,15 +330,18 @@ export const replyComments = createAsyncThunk(
 //listpostaction
 export const sharePost = createAsyncThunk(
   "post/sharePost",
-
-  async ({ postId, content }, { rejectWithValue }) => {
-    console.log("sharePost action started", { postId, content }); // Thêm dòng này
+  async (
+    { postId, content, fullName, profilePicture },
+    { rejectWithValue }
+  ) => {
+    const toastId = toast.loading("Đang chia sẻ bài viết...");
     try {
       const token = localStorage.getItem("token");
       // if (!token) throw new Error('Vui lòng đăng nhập');
 
       const response = await axiosInstance.post(
         "/api/Share/SharePost",
+
         { postId, content },
         {
           headers: {
@@ -351,34 +354,49 @@ export const sharePost = createAsyncThunk(
       if (!response.data.success) {
         throw new Error(response.data.message || "Chia sẻ thất bại");
       }
-      console.log("chia se");
-      // Format dữ liệu theo chuẩn BE trả về
-      const formatSharedPost = (apiData) => ({
-        id: apiData.id,
-        userId: apiData.userId,
-        fullName: apiData.fullName,
-        profilePicture: apiData.profilePicture,
-        content: apiData.content,
-        createdAt: apiData.createdAt,
-        isSharedPost: true,
-        originalPost: {
-          postId: apiData.originalPostId,
-          content: apiData.originalPost.content,
-          author: apiData.originalPost.author,
-          createAt: apiData.originalPost.createAt,
-        },
-        stats: {
-          likes: 0,
-          comments: 0,
-          shares: 0,
-        },
+
+      toast.update(toastId, {
+        render: response.data.message || "Chia sẻ bài viết thành công!",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
       });
 
-      toast.success(response.data.message);
-      return formatSharedPost(response.data.data);
+      const apiData = response.data.data;
+
+      return {
+        id: apiData.id,
+        userId: apiData.userId,
+        fullName: fullName || apiData.fullName,
+        profilePicture: profilePicture || apiData.profilePicture,
+        content: apiData.content,
+        imageUrl: apiData.imageUrl || null,
+        videoUrl: apiData.videoUrl || null,
+        createdAt: apiData.createdAt,
+        updateAt: null,
+        commentCount: 0,
+        likeCount: 0,
+        shareCount: 0,
+        hasLiked: false,
+        isSharedPost: true,
+        postType: 1,
+        originalPost: {
+          postId: apiData.originalPost.postId,
+          content: apiData.originalPost.content,
+          author: apiData.originalPost.author.userName,
+          createAt: apiData.originalPost.createAt,
+          imageUrl: apiData.originalPost.imageUrl || null,
+          videoUrl: apiData.originalPost.videoUrl || null,
+        },
+      };
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message;
-      toast.error(errorMsg);
+      toast.update(toastId, {
+        render: errorMsg || "Chia sẻ bài viết thất bại!",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
       return rejectWithValue({
         message: errorMsg,
         code: error.response?.status,

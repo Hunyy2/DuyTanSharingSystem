@@ -18,7 +18,7 @@ namespace Domain.Interface
 
         Task<List<Share>> GetSharesByPostIdAsync(Guid postId);
         Task<List<Share>> GetSharedUsersByPostIdWithCursorAsync(Guid postId, Guid? lastUserId, int pageSize, CancellationToken cancellationToken);
-
+        Task<IEnumerable<(DateTime Date, int Count)>> GetSharesOverTimeAsync(string timeRange);
 
     }
 }

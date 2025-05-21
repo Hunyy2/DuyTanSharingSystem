@@ -1,9 +1,5 @@
 ﻿using Application.DTOs.User;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace Application.CQRS.Commands.Users
 {
@@ -27,7 +23,8 @@ namespace Application.CQRS.Commands.Users
                     await _unitOfWork.RollbackTransactionAsync();
                     return ResponseFactory.Fail<UserResponseDto>("UserCreateDto is null", 404);
                 }
-                if(!(request.Email.EndsWith("@dtu.edu.vn")))
+
+                if (!(request.Email.EndsWith("@dtu.edu.vn")))
                 {
                     await _unitOfWork.RollbackTransactionAsync();
                     return ResponseFactory.Fail<UserResponseDto>("Chỉ hợp lệ với Email trường", 404);
@@ -50,6 +47,7 @@ namespace Application.CQRS.Commands.Users
                     return ResponseFactory.Fail<UserResponseDto>("Failed to send verification email", 404);
                 }
                 // 💾 Lưu token vào DB
+                //DateTime.UtcNow.AddHours(1)
                 var saveToken = new EmailVerificationToken(user.Id, tokenSend, DateTime.UtcNow.AddHours(1));
                 await _unitOfWork.EmailTokenRepository.AddAsync(saveToken);
                 await _unitOfWork.SaveChangesAsync();
@@ -62,7 +60,5 @@ namespace Application.CQRS.Commands.Users
                 return ResponseFactory.Error<UserResponseDto>("Failed to register user",400, ex);
             }
         }
-
     }
-
 }

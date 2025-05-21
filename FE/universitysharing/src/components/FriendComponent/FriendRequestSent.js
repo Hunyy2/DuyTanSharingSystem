@@ -5,10 +5,12 @@ import {
   fetchSentFriendRequests,
 } from "../../stores/action/friendAction";
 import "../../styles/FriendViews/FriendViewComponent.scss";
+import "../../styles/FriendViews/SearchBox.scss"; // Import file SCSS cho search-box
 import AvatarDefault from "../../assets/AvatarDefaultFill.png";
 import { useNavigate } from "react-router-dom";
 import getUserIdFromToken from "../../utils/JwtDecode";
 import { toast } from "react-toastify";
+import { FiSearch } from "react-icons/fi"; // Thêm icon tìm kiếm
 
 const FriendRequestsSent = ({
   requests,
@@ -20,8 +22,9 @@ const FriendRequestsSent = ({
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const userId = getUserIdFromToken();
-  const [localRequests, setLocalRequests] = useState(requests); // Local state for immediate UI updates
-  const [isCanceling, setIsCanceling] = useState({}); // Track canceling state per request
+  const [localRequests, setLocalRequests] = useState(requests);
+  const [isCanceling, setIsCanceling] = useState({});
+  const [searchQuery, setSearchQuery] = useState(""); // Thêm state cho từ khóa tìm kiếm
 
   // Sync localRequests with props.requests when it changes
   useEffect(() => {
@@ -37,14 +40,12 @@ const FriendRequestsSent = ({
   };
 
   const handleCancel = async (friendId, fullName) => {
-    if (isCanceling[friendId]) return; // Prevent multiple clicks
+    if (isCanceling[friendId]) return;
 
     setIsCanceling((prev) => ({ ...prev, [friendId]: true }));
     try {
-      // Dispatch cancelFriendRequest action
       const result = await dispatch(cancelFriendRequest(friendId)).unwrap();
 
-      // Show success toast
       toast.success(`Đã hủy lời mời kết bạn với ${fullName}`, {
         position: "top-right",
         autoClose: 3000,
@@ -54,17 +55,14 @@ const FriendRequestsSent = ({
         draggable: true,
       });
 
-      // Update UI immediately by removing the request from local state
       setLocalRequests((prev) =>
         prev.filter((request) => request.friendId !== friendId)
       );
 
-      // Fetch updated sent requests in the background
       dispatch(fetchSentFriendRequests()).catch((error) => {
         console.error("Failed to fetch updated sent requests:", error);
       });
     } catch (error) {
-      // Show error toast
       toast.error(error.message || "Hủy lời mời thất bại", {
         position: "top-right",
         autoClose: 3000,
@@ -78,21 +76,45 @@ const FriendRequestsSent = ({
     }
   };
 
+  // Xử lý thay đổi giá trị tìm kiếm
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // Lọc danh sách lời mời đã gửi theo từ khóa tìm kiếm
+  const filteredRequests = localRequests.filter((request) =>
+    request.fullName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="friend-request-container">
       <h3 className="friend-request-title">Lời mời của bạn</h3>
+      {/* Thanh tìm kiếm */}
+      <div className="search-box-friend">
+        <FiSearch className="search-icon" />
+        <input
+          type="text"
+          placeholder="Tìm kiếm lời mời đã gửi theo tên..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+        />
+      </div>
 
       {error && <div className="error-message">Lỗi: {error}</div>}
-      {loading && localRequests.length === 0 && (
+      {loading && filteredRequests.length === 0 && (
         <div className="loading-message">Đang tải...</div>
       )}
-      {!loading && localRequests.length === 0 && !error && (
-        <div className="no-requests-message">Không có lời mời đi</div>
+      {!loading && filteredRequests.length === 0 && !error && (
+        <div className="no-requests-message">
+          {searchQuery
+            ? "Không tìm thấy lời mời nào khớp với từ khóa"
+            : "Không có lời mời đi"}
+        </div>
       )}
 
-      {localRequests.length > 0 && (
+      {filteredRequests.length > 0 && (
         <div className="friend-request-grid">
-          {localRequests.map((request, index) => (
+          {filteredRequests.map((request, index) => (
             <div
               key={request.friendId || index}
               className="friend-request-card"

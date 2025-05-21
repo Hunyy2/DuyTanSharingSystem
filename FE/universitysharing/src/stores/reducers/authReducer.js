@@ -4,6 +4,8 @@ import {
   forgotPassword,
   resetPassword,
   changePassword,
+  resendVerificationEmail,
+  validateResetToken,
 } from "../action/authAction";
 
 const authSlice = createSlice({
@@ -61,6 +63,32 @@ const authSlice = createSlice({
         state.success = true;
       })
       .addCase(changePassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(resendVerificationEmail.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(resendVerificationEmail.fulfilled, (state) => {
+        state.loading = false;
+        state.success = true;
+      })
+      .addCase(resendVerificationEmail.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(validateResetToken.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(validateResetToken.fulfilled, (state) => {
+        state.loading = false;
+        state.success = true;
+      })
+      .addCase(validateResetToken.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

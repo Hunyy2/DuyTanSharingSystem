@@ -7,6 +7,11 @@ import {
   approvePost,
   adDeletePost,
   fetchUserUserReports,
+  fetchUsers,
+  fetchNotifications,
+  blockUser,
+  suspendUser,
+  activateUser,
 } from "../action/adminActions";
 
 const reporAdmintSlice = createSlice({
@@ -14,8 +19,10 @@ const reporAdmintSlice = createSlice({
   initialState: {
     posts: [],
     totalCount: 0,
-    reportedPosts: [], // Thay đổi: Đổi reportPosts thành reportedPosts
-    userUserReports: [], // Thêm state cho báo cáo người dùng
+    reportedPosts: [],
+    userUserReports: [],
+    users: [],
+    notifications: [],
     loading: false,
     success: false,
     error: null,
@@ -44,7 +51,7 @@ const reporAdmintSlice = createSlice({
       })
       .addCase(fetchReportedPosts.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload.message;
         state.success = false;
       })
       .addCase(fetchUserUserReports.pending, (state) => {
@@ -59,7 +66,107 @@ const reporAdmintSlice = createSlice({
       })
       .addCase(fetchUserUserReports.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload.message;
+        state.success = false;
+      })
+      .addCase(fetchUsers.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchUsers.fulfilled, (state, action) => {
+        state.loading = false;
+        state.users = action.payload;
+        state.success = true;
+        state.error = null;
+      })
+      .addCase(fetchUsers.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload.message;
+        state.success = false;
+      })
+      .addCase(fetchNotifications.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchNotifications.fulfilled, (state, action) => {
+        state.loading = false;
+        state.notifications = action.payload;
+        state.success = true;
+        state.error = null;
+      })
+      .addCase(fetchNotifications.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload.message;
+        state.success = false;
+      })
+      .addCase(blockUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(blockUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.error = null;
+        state.users = state.users.map((user) =>
+          user.id === action.payload.userId
+            ? {
+                ...user,
+                status: "Blocked",
+                blockedUntil: action.payload.untilISO,
+              }
+            : user
+        );
+      })
+      .addCase(blockUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload.message;
+        state.success = false;
+      })
+      .addCase(suspendUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(suspendUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.error = null;
+        state.users = state.users.map((user) =>
+          user.id === action.payload.userId
+            ? {
+                ...user,
+                status: "Suspended",
+                suspendedUntil: action.payload.untilISO,
+              }
+            : user
+        );
+      })
+      .addCase(suspendUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload.message;
+        state.success = false;
+      })
+      .addCase(activateUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(activateUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.error = null;
+        state.users = state.users.map((user) =>
+          user.id === action.payload
+            ? {
+                ...user,
+                status: "Active",
+                blockedUntil: null,
+                suspendedUntil: null,
+              }
+            : user
+        );
+      })
+      .addCase(activateUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload.message;
         state.success = false;
       })
       .addCase(deletePost.pending, (state) => {
@@ -76,7 +183,7 @@ const reporAdmintSlice = createSlice({
       })
       .addCase(deletePost.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload.message;
         state.success = false;
       })
       .addCase(deleteAllReports.pending, (state) => {
@@ -93,10 +200,9 @@ const reporAdmintSlice = createSlice({
       })
       .addCase(deleteAllReports.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload.message;
         state.success = false;
       })
-      // Xử lý fetchPostsByAdmin
       .addCase(fetchPostsByAdmin.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -104,8 +210,8 @@ const reporAdmintSlice = createSlice({
       })
       .addCase(fetchPostsByAdmin.fulfilled, (state, action) => {
         state.loading = false;
-        state.posts = action.payload.posts;
-        state.totalCount = action.payload.totalCount;
+        state.posts = action.payload?.posts || [];
+        state.totalCount = action.payload?.totalCount || 0;
         state.success = true;
         state.error = null;
       })
@@ -114,7 +220,6 @@ const reporAdmintSlice = createSlice({
         state.error = action.payload.message;
         state.success = false;
       })
-      // Xử lý approvePost
       .addCase(approvePost.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -123,19 +228,17 @@ const reporAdmintSlice = createSlice({
         state.loading = false;
         state.success = true;
         state.error = null;
-        // Cập nhật trạng thái bài viết trong danh sách posts
         state.posts = state.posts.map((post) =>
           post.id === action.payload.postId
-            ? { ...post, approvalStatus: 1 } // Chuyển sang Approved
+            ? { ...post, approvalStatus: 1 }
             : post
         );
       })
       .addCase(approvePost.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload.message;
         state.success = false;
       })
-      // Xử lý adDeletePost
       .addCase(adDeletePost.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -156,5 +259,5 @@ const reporAdmintSlice = createSlice({
   },
 });
 
-export const { clearPostState } = reporAdmintSlice.actions;
+export const { clearReportState, clearPostState } = reporAdmintSlice.actions;
 export default reporAdmintSlice.reducer;

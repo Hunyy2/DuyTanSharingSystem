@@ -145,12 +145,13 @@ namespace Domain.Entities
             Score += amount;
         }
         //CHUPS
+        //thanh
         // Tạo bài Share
-        public static Post CreateShare(Guid userId, Post originalPost, string content = "")
+        public static Post CreateShare(Guid userId, Post originalPost, ScopeEnum scope, string content = "")
         {
             if (originalPost == null) throw new ArgumentNullException(nameof(originalPost));
 
-            return new Post(userId, content, ScopeEnum.Public) // Scope mặc định là Public
+            return new Post(userId, content, scope) 
             {
                 OriginalPostId = originalPost.Id
             };

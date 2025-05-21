@@ -6,7 +6,9 @@ import {
 } from "../../stores/action/friendAction";
 import { toast } from "react-toastify";
 import "../../styles/FriendViews/FriendViewComponent.scss";
+import "../../styles/FriendViews/SearchBox.scss"; // Import file SCSS cho search-box
 import AvatarDefault from "../../assets/AvatarDefaultFill.png";
+import { FiSearch } from "react-icons/fi"; // Thêm icon tìm kiếm
 
 const FriendRequestsReceived = ({
   requests,
@@ -18,6 +20,7 @@ const FriendRequestsReceived = ({
   const dispatch = useDispatch();
   const [localRequests, setLocalRequests] = useState(requests);
   const [processingIds, setProcessingIds] = useState(new Set());
+  const [searchQuery, setSearchQuery] = useState(""); // Thêm state cho từ khóa tìm kiếm
 
   // Sync localRequests with props when requests change
   useEffect(() => {
@@ -25,7 +28,6 @@ const FriendRequestsReceived = ({
   }, [requests]);
 
   const handleAccept = async (friendId) => {
-    // Optimistically remove the request from UI
     const originalRequests = [...localRequests];
     setLocalRequests((prev) =>
       prev.filter((request) => request.friendId !== friendId)
@@ -39,7 +41,6 @@ const FriendRequestsReceived = ({
         autoClose: 3000,
       });
     } catch (error) {
-      // Revert UI if the request fails
       setLocalRequests(originalRequests);
       toast.error(error || "Không thể chấp nhận lời mời", {
         position: "top-right",
@@ -55,7 +56,6 @@ const FriendRequestsReceived = ({
   };
 
   const handleReject = async (friendId) => {
-    // Optimistically remove the request from UI
     const originalRequests = [...localRequests];
     setLocalRequests((prev) =>
       prev.filter((request) => request.friendId !== friendId)
@@ -69,7 +69,6 @@ const FriendRequestsReceived = ({
         autoClose: 3000,
       });
     } catch (error) {
-      // Revert UI if the request fails
       setLocalRequests(originalRequests);
       toast.error(error || "Không thể từ chối lời mời", {
         position: "top-right",
@@ -84,21 +83,45 @@ const FriendRequestsReceived = ({
     }
   };
 
+  // Xử lý thay đổi giá trị tìm kiếm
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // Lọc danh sách lời mời kết bạn theo từ khóa tìm kiếm
+  const filteredRequests = localRequests.filter((request) =>
+    request.fullName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="friend-request-container">
       <h3 className="friend-request-title">Lời mời kết bạn</h3>
+      {/* Thanh tìm kiếm */}
+      <div className="search-box-friend">
+        <FiSearch className="search-icon" />
+        <input
+          type="text"
+          placeholder="Tìm kiếm lời mời theo tên..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+        />
+      </div>
 
       {error && <div className="error-message">Lỗi: {error}</div>}
-      {loading && localRequests.length === 0 && (
+      {loading && filteredRequests.length === 0 && (
         <div className="loading-message">Đang tải...</div>
       )}
-      {!loading && localRequests.length === 0 && !error && (
-        <div className="no-requests-message">Không có lời mời kết bạn</div>
+      {!loading && filteredRequests.length === 0 && !error && (
+        <div className="no-requests-message">
+          {searchQuery
+            ? "Không tìm thấy lời mời nào khớp với từ khóa"
+            : "Không có lời mời kết bạn"}
+        </div>
       )}
 
-      {localRequests.length > 0 && (
+      {filteredRequests.length > 0 && (
         <div className="friend-request-grid">
-          {localRequests.map((request, index) => (
+          {filteredRequests.map((request, index) => (
             <div
               key={request.friendId || index}
               className="friend-request-card"
