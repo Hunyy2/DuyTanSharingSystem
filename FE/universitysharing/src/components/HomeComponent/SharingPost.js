@@ -135,7 +135,7 @@ const SharedPost = ({ post }) => {
                   })}
                 </span>
                 <span className="status-post-share">
-                  {getPrivacyStatus(post.originalPost.scope)}
+                  {getPrivacyStatus(post.privacy)}
                 </span>
               </div>
             </div>

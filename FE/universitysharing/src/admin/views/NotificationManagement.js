@@ -1,37 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Layout, Table, Tag, Typography, Spin, Alert } from "antd";
-import axios from "axios";
 import moment from "moment";
 import AppHeader from "../components/HeaderBar";
 import AppSidebar from "../components/SideBarMenu";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchNotifications } from "../../stores/action/adminActions";
 
 const { Title } = Typography;
 const { Header, Content } = Layout;
 
 const NotificationAdmin = () => {
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const { notifications, loading, error } = useSelector(
+    (state) => state.reportAdmintSlice
+  );
 
   useEffect(() => {
-    const fetchNotifications = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.get(
-          "https://localhost:7053/api/report/admin/ride-reports"
-        );
-        setNotifications(response.data);
-        setError(null);
-      } catch (err) {
-        setError("Không thể tải thông báo. Vui lòng thử lại sau.");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNotifications();
-  }, []);
+    dispatch(fetchNotifications());
+  }, [dispatch]);
 
   const columns = [
     {
@@ -118,7 +104,7 @@ const NotificationAdmin = () => {
             padding: 24,
             background: "#fff",
             minHeight: 280,
-            marginLeft: 200, // Để tránh bị che bởi AppSidebar cố định
+            marginLeft: 200,
           }}
         >
           <Title level={2}>Thông báo chuyến đi</Title>

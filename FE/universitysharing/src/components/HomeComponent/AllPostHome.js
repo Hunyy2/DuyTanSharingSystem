@@ -17,7 +17,6 @@ import CommentModal from "../CommentModal";
 import ShareModal from "../shareModal";
 import SharedPost from "./SharingPost";
 
-
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { debounce } from "lodash";
@@ -416,8 +415,13 @@ const AllPosts = ({
                         )}
                       </span>
                       <span className="status-post">
-                        {" "}
-                        {post.scope === 0 ? "Công khai" : "Riêng tư"}
+                        {post.scope === 0
+                          ? "Công khai"
+                          : post.scope === 1
+                          ? "Riêng tư"
+                          : post.scope === 2
+                          ? "Bạn bè"
+                          : "Không xác định"}
                       </span>
                     </div>
                   </div>
