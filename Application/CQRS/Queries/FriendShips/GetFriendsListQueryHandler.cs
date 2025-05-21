@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.Queries.Friends
 {
-    public class GetFriendsListQueryHandle : IRequestHandler<GetFriendsListQuery, ResponseModel<FriendsListWithCountDto>>
+    public class GetFriendsListQueryHandler : IRequestHandler<GetFriendsListQuery, ResponseModel<FriendsListWithCountDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserContextService _userContext;
         private readonly IRedisService _redisService;
-        public GetFriendsListQueryHandle(IUnitOfWork unitOfWork, IUserContextService userContext, IRedisService redisService)
+        public GetFriendsListQueryHandler(IUnitOfWork unitOfWork, IUserContextService userContext, IRedisService redisService)
         {
             _unitOfWork = unitOfWork;
             _userContext = userContext;

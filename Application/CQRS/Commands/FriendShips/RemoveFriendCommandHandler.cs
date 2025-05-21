@@ -2,13 +2,13 @@
 
 namespace Application.CQRS.Commands.Friends
 {
-    public class RemoveFriendCommandHandle : IRequestHandler<RemoveFriendCommand, ResponseModel<string>>
+    public class RemoveFriendCommandHandler : IRequestHandler<RemoveFriendCommand, ResponseModel<string>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserContextService _userContextService;
         private readonly IRedisService _redisService;
 
-        public RemoveFriendCommandHandle(
+        public RemoveFriendCommandHandler(
             IUnitOfWork unitOfWork,
             IUserContextService userContextService,
             IRedisService redisService)

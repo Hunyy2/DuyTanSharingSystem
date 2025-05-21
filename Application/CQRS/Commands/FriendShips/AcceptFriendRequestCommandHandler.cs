@@ -1,12 +1,12 @@
 ﻿namespace Application.CQRS.Commands.Friends
 {
-    public class AcceptFriendRequestCommandHandle : IRequestHandler<AcceptFriendRequestCommand, ResponseModel<bool>>
+    public class AcceptFriendRequestCommandHandler : IRequestHandler<AcceptFriendRequestCommand, ResponseModel<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserContextService _userContext;
         private readonly INotificationService _notificationService;
         private readonly IRedisService _redisService;
-        public AcceptFriendRequestCommandHandle(IUnitOfWork unitOfWork, IUserContextService userContext, INotificationService notificationService, IRedisService redisService)
+        public AcceptFriendRequestCommandHandler(IUnitOfWork unitOfWork, IUserContextService userContext, INotificationService notificationService, IRedisService redisService)
         {
             _unitOfWork = unitOfWork;
             _userContext = userContext;

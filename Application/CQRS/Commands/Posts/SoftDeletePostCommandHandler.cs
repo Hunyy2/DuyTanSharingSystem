@@ -1,14 +1,14 @@
 ﻿
 namespace Application.CQRS.Commands.Posts
 {
-    public class SoftDeletePostCommandHandle : IRequestHandler<SoftDeletePostCommand, ResponseModel<bool>>
+    public class SoftDeletePostCommandHandler : IRequestHandler<SoftDeletePostCommand, ResponseModel<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserContextService _userContextService;
         private readonly IPostService _postService;
         private readonly IRedisService _redisService;
 
-        public SoftDeletePostCommandHandle(IUnitOfWork unitOfWork, IUserContextService userContextService, IPostService postService, IRedisService redisService)
+        public SoftDeletePostCommandHandler(IUnitOfWork unitOfWork, IUserContextService userContextService, IPostService postService, IRedisService redisService)
         {
             _unitOfWork = unitOfWork;
             _userContextService = userContextService;

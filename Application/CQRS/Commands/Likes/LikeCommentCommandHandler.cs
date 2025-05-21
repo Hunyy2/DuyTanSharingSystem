@@ -8,14 +8,14 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.Commands.Likes
 {
-    public class LikeCommentCommandHandle : IRequestHandler<LikeCommentCommand, ResponseModel<bool>>
+    public class LikeCommentCommandHandler : IRequestHandler<LikeCommentCommand, ResponseModel<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IRedisService _redisService;
         private readonly INotificationService _notificationService;
         private readonly IUserContextService _userContextService;
 
-        public LikeCommentCommandHandle(IUnitOfWork unitOfWork, IUserContextService userContextService, IRedisService redisService, INotificationService notificationService)
+        public LikeCommentCommandHandler(IUnitOfWork unitOfWork, IUserContextService userContextService, IRedisService redisService, INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _userContextService = userContextService;

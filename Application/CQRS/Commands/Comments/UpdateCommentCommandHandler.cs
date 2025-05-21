@@ -3,13 +3,13 @@
 
 namespace Application.CQRS.Commands.Comments
 {
-    public class UpdateCommentCommandHandle : IRequestHandler<UpdateCommentCommand, ResponseModel<CommentPostDto>>
+    public class UpdateCommentCommandHandler : IRequestHandler<UpdateCommentCommand, ResponseModel<CommentPostDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserContextService _userContextService;
         private readonly IGeminiService _geminiService;
         private readonly IRedisService _redisService;
-        public UpdateCommentCommandHandle(IUnitOfWork unitOfWork, IUserContextService userContextService, IGeminiService geminiService,IRedisService redisService)
+        public UpdateCommentCommandHandler(IUnitOfWork unitOfWork, IUserContextService userContextService, IGeminiService geminiService,IRedisService redisService)
         {
             _unitOfWork = unitOfWork;
             _userContextService = userContextService;

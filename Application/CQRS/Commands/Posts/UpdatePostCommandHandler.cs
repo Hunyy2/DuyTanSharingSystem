@@ -3,7 +3,7 @@
 
 namespace Application.CQRS.Commands.Posts
 {
-    public class UpdatePostCommandHandle : IRequestHandler<UpdatePostCommand, ResponseModel<UpdatePostDto>>
+    public class UpdatePostCommandHandler : IRequestHandler<UpdatePostCommand, ResponseModel<UpdatePostDto>>
     {
         private readonly IUserContextService _userContextService;
         private readonly IUnitOfWork _unitOfWork;
@@ -11,7 +11,7 @@ namespace Application.CQRS.Commands.Posts
         private readonly IFileService _fileService;
         private readonly IRedisService _redisService;
 
-        public UpdatePostCommandHandle(IUserContextService userContextService, IUnitOfWork unitOfWork, IGeminiService geminiService, IFileService fileService, IRedisService redisService)
+        public UpdatePostCommandHandler(IUserContextService userContextService, IUnitOfWork unitOfWork, IGeminiService geminiService, IFileService fileService, IRedisService redisService)
         {
             _userContextService = userContextService;
             _unitOfWork = unitOfWork;

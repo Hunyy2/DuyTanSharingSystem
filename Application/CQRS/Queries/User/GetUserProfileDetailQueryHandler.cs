@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.Queries.User
 {
-    public class GetUserProfileDetailQueryHandle : IRequestHandler<GetUserProfileDetailQuery, ResponseModel<UserProfileDetailDto>>
+    public class GetUserProfileDetailQueryHandler : IRequestHandler<GetUserProfileDetailQuery, ResponseModel<UserProfileDetailDto>>
     {
         private readonly IUserContextService _userContextService;
 
         private readonly IUnitOfWork _unitOfWork;
-        public GetUserProfileDetailQueryHandle(IUserContextService userContextService, IUnitOfWork unitOfWork)
+        public GetUserProfileDetailQueryHandler(IUserContextService userContextService, IUnitOfWork unitOfWork)
         {
             _userContextService = userContextService;
 

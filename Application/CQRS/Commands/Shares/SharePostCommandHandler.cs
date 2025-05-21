@@ -3,7 +3,7 @@ using Application.DTOs.Shares;
 
 namespace Application.CQRS.Commands.Shares
 {
-    public class SharePostCommandHandle : IRequestHandler<SharePostCommand, ResponseModel<ResultSharePostDto>>
+    public class SharePostCommandHandler : IRequestHandler<SharePostCommand, ResponseModel<ResultSharePostDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserContextService _userContextService;
@@ -11,7 +11,7 @@ namespace Application.CQRS.Commands.Shares
         private readonly IPostService _postService;
         private readonly INotificationService _notificationService;
         private readonly IRedisService _redisService;
-        public SharePostCommandHandle(IUnitOfWork unitOfWork, IUserContextService userContextService, IGeminiService geminiService, IPostService postService, INotificationService notificationService, IRedisService redisService)
+        public SharePostCommandHandler(IUnitOfWork unitOfWork, IUserContextService userContextService, IGeminiService geminiService, IPostService postService, INotificationService notificationService, IRedisService redisService)
         {
             _unitOfWork = unitOfWork;
             _userContextService = userContextService;

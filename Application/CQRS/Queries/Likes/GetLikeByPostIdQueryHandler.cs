@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.Queries.Likes
 {
-    public class GetLikeByPostIdQueryHandle : IRequestHandler<GetLikeByPostIdQuery, ResponseModel<GetLikeWithCursorResponse>>
+    public class GetLikeByPostIdQueryHandler : IRequestHandler<GetLikeByPostIdQuery, ResponseModel<GetLikeWithCursorResponse>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILikeService _likeService;
 
-        public GetLikeByPostIdQueryHandle(IUnitOfWork unitOfWork, ILikeService likeService)
+        public GetLikeByPostIdQueryHandler(IUnitOfWork unitOfWork, ILikeService likeService)
         {
             _unitOfWork = unitOfWork;
             _likeService = likeService;

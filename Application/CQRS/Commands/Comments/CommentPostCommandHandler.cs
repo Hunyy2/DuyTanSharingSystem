@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.Commands.Comments
 {
-    public class CommentPostCommandHandle : IRequestHandler<CommentPostCommand, ResponseModel<ResultCommentDto>>
+    public class CommentPostCommandHandler : IRequestHandler<CommentPostCommand, ResponseModel<ResultCommentDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserContextService _userContextService;
@@ -29,7 +29,7 @@ namespace Application.CQRS.Commands.Comments
         private readonly IRedisService _redisService;
         private readonly IPostService _postService;
 
-        public CommentPostCommandHandle(IUnitOfWork unitOfWork, IUserContextService userContextService, IGeminiService geminiService, INotificationService notificationService, IPublisher publisher,  IPostService postService, IRedisService redisService)
+        public CommentPostCommandHandler(IUnitOfWork unitOfWork, IUserContextService userContextService, IGeminiService geminiService, INotificationService notificationService, IPublisher publisher,  IPostService postService, IRedisService redisService)
         {
             _unitOfWork = unitOfWork;
             _userContextService = userContextService;
