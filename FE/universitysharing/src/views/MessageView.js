@@ -12,6 +12,7 @@ import { userProfile } from "../stores/action/profileActions";
 import {
   resetMessages,
   setSelectFriend,
+  formatFriendsToInboxRead,
 } from "../stores/reducers/messengerReducer";
 import "../styles/MessageView.scss";
 import "../styles/MoblieReponsive/MessageViewMobile/MessageViewMobile.scss";
@@ -59,9 +60,9 @@ const MessageView = () => {
   const [isUserTyping, setIsUserTyping] = useState(false); // gõ phím
 
   //Kiểm tra thử trạng thái kết nối
-  useEffect(() => {
-    // console.error("[SignalR] Trạng thái kết nối ✅ :", isConnected);
-  }, [isConnected]);
+  // useEffect(() => {
+  //   // console.error("[SignalR] Trạng thái kết nối ✅ :", isConnected);
+  // }, [isConnected]);
 
   //Gọi user lại nếu load lại trang
   useEffect(() => {
@@ -82,6 +83,14 @@ const MessageView = () => {
     // Gọi fetchFriends để lấy danh sách bạn bè
     dispatch(fetchFriends());
   }, [dispatch]);
+
+  // console.warn("Xem thử friend Có gì ???", friend);
+  // useEffect(() => {
+  //   if (friend.length > 0) {
+  //     console.warn("Đẩy vào inboxRead:", friend);
+  //     dispatch(formatFriendsToInboxRead(friend));
+  //   }
+  // }, [friend, dispatch]);
 
   useEffect(() => {
     // Gọi API check-online khi có danh sách bạn bè
@@ -196,9 +205,6 @@ const MessageView = () => {
   //Lấy inbox tin nhắn
   const inboxRead = messengerState.inboxRead || [];
   const countInbox = messengerState.unReadInbox || [];
-
-  // console.error("inbox >>>", inboxRead);
-  // console.error("inbox >>>", countInbox);
 
   useEffect(() => {
     const token = localStorage.getItem("token"); // hoặc lấy từ state

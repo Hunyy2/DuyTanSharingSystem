@@ -48,7 +48,7 @@ namespace Application.CQRS.Commands.Shares
             try
             {
                 // **Tạo bài Share**
-                var share = new Share(userId, request.PostId, request.Content);
+                var share = new Share(userId, request.PostId, request.Content, request.Privacy);
                 await _unitOfWork.ShareRepository.AddAsync(share);
 
                 // **Tạo bài Post mới có IsSharedPost = true**
@@ -85,7 +85,7 @@ namespace Application.CQRS.Commands.Shares
                 }
 
                 return ResponseFactory.Success(
-                    Mapping.MapToResultSharePostDto(sharedPost, originalPost, user), // ⚠️ Truyền `share` thay vì `sharedPost`
+                    Mapping.MapToResultSharePostDto(sharedPost, originalPost, user, share), 
                     "Chia sẻ bài viết thành công",
                     200
                 );

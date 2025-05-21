@@ -43,7 +43,10 @@ namespace Application
             services.AddHostedService<GpsMonitorService>();
             services.AddHostedService<LikeCommentEventProcessor>();
 
+
             services.AddHostedService<TrustScoreBackgroundService>();
+
+
             services.AddHostedService<MessageProcessingService>();
 
             //services.AddHostedService<RedisListenerService>();

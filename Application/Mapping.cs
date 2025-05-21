@@ -106,7 +106,7 @@ namespace Application
             };
         }
 
-        public static ResultSharePostDto MapToResultSharePostDto(Post share, Post originalPost, User user)
+        public static ResultSharePostDto MapToResultSharePostDto(Post share, Post originalPost, User user, Share  shared)
         {
             return new ResultSharePostDto
             {
@@ -123,7 +123,8 @@ namespace Application
                 HasLiked = 0,
                 IsSharedPost = true,
                 OriginalPostId = originalPost.Id,
-                OriginalPost = new OriginalPostDto(originalPost) // ✅ Đảm bảo bài viết gốc có đúng User
+                OriginalPost = new OriginalPostDto(originalPost),
+                Privacy = shared.Privacy,
             };
         }
 
