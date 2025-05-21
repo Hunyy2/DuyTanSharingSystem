@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-
+import axiosInstance from "../../Service/axiosClient";
 // Lấy danh sách bài viết có báo cáo
 export const fetchReportedPosts = createAsyncThunk(
   "report/fetchReportedPosts",
@@ -11,7 +11,7 @@ export const fetchReportedPosts = createAsyncThunk(
         return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
       }
       const response = await axios.get(
-        "https://localhost:7053/api/report/posts-report",
+        "/api/report/posts-report",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -46,7 +46,7 @@ export const fetchUserUserReports = createAsyncThunk(
         return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
       }
       const response = await axios.get(
-        "https://localhost:7053/api/report/user-user-report",
+        "/api/report/user-user-report",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -304,7 +304,7 @@ export const deletePost = createAsyncThunk(
 
     try {
       const response = await axios.patch(
-        `https://localhost:7053/api/report/delete-post-report/${postId}`,
+        `/api/report/delete-post-report/${postId}`,
         null,
         {
           headers: {
@@ -339,7 +339,7 @@ export const deleteAllReports = createAsyncThunk(
 
     try {
       const response = await axios.delete(
-        `https://localhost:7053/api/report/delete-all-report/${postId}`,
+        `/api/report/delete-all-report/${postId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -372,7 +372,7 @@ export const fetchPostsByAdmin = createAsyncThunk(
       }
 
       const response = await axios.get(
-        `https://localhost:7053/api/post/get-posts-by-admin?pageNumber=${pageNumber}&pageSize=${pageSize}`,
+        `/api/post/get-posts-by-admin?pageNumber=${pageNumber}&pageSize=${pageSize}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -415,7 +415,7 @@ export const approvePost = createAsyncThunk(
 
     try {
       const response = await axios.patch(
-        `https://localhost:7053/api/post/approve?PostId=${postId}`,
+        `/api/post/approve?PostId=${postId}`,
         null,
         {
           headers: {
@@ -446,8 +446,8 @@ export const adDeletePost = createAsyncThunk(
   async (postID, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.delete(
-        `https://localhost:7053/api/Post/ad-delete?PostId=${postID}`,
+      const response = await axiosInstance.delete(
+        `/api/Post/ad-delete?PostId=${postID}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
