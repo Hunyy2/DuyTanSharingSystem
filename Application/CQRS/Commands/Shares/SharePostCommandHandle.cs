@@ -48,11 +48,11 @@ namespace Application.CQRS.Commands.Shares
             try
             {
                 // **Tạo bài Share**
-                var share = new Share(userId, request.PostId, request.Content);
+                var share = new Share(userId, request.PostId,request.Privacy, request.Content);
                 await _unitOfWork.ShareRepository.AddAsync(share);
 
                 // **Tạo bài Post mới có IsSharedPost = true**
-                var sharedPost = Post.CreateShare(userId, originalPost, request.Content ?? "");
+                var sharedPost = Post.CreateShare(userId, originalPost, request.Privacy, request.Content ?? "");
                 // Kiểm tra nội dung bài viết có chứa từ ngữ không chấp nhận
                 //if (!await _geminiService.ValidatePostContentAsync(sharedPost.Content))
                 //{
@@ -85,7 +85,7 @@ namespace Application.CQRS.Commands.Shares
                 }
 
                 return ResponseFactory.Success(
-                    Mapping.MapToResultSharePostDto(sharedPost, originalPost, user), // ⚠️ Truyền `share` thay vì `sharedPost`
+                    Mapping.MapToResultSharePostDto(sharedPost, originalPost, user, share), 
                     "Chia sẻ bài viết thành công",
                     200
                 );

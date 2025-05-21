@@ -355,8 +355,10 @@ import { addRealTimeNotification } from "./stores/action/notificationAction";
 import Dashboard from "./admin/views/DashBoardView";
 import UserReport from "./admin/views/UserReportManagerView";
 
+
 import { DeeplinkCommentModal } from "./stores/action/deepLinkAction";
 import CommentModalDeepLink from "./components/CommentModalDeepLink";
+
 
 import TestDispatchAPI from "./views/TestDispatchAPI";
 
@@ -364,6 +366,7 @@ import UserManagement from "./admin/views/UserManagement";
 
 import Site404 from "./views/404Site";
 import NotificationAdmin from "./admin/views/NotificationManagement";
+
 
 function App() {
   const { isAuthenticated, userRole, isLoading } = useAuth();
@@ -378,6 +381,7 @@ function App() {
   );
   const selectedPost = useSelector((state) => state.posts.selectedPost);
   const error = useSelector((state) => state.deeplink.error);
+
 
   // useEffect(() => {
   //   if (isAuthenticated && location.pathname === "/login") {
@@ -402,6 +406,7 @@ function App() {
 
     if (selectedPost) {
       return;
+
     }
 
     const pathMatch = location.pathname.match(/^\/post\/(.+)$/);
@@ -436,6 +441,7 @@ function App() {
         <AxiosConfigProvider />
         <SignalRProvider>
           <Routes location={background || location}>
+
             {!isAuthenticated && (
               <>
                 {/* Route không cần xác thực */}
@@ -457,6 +463,7 @@ function App() {
             )}
             {/* Route dành cho admin */}
             {isAuthenticated && userRole.toLowerCase() === "admin" && (
+
               <>
                 <Route
                   path="/admin/tripnotifications"
@@ -566,6 +573,7 @@ export default App;
                   element={<FriendProfileView />}
                 />
 
+
                 <Route path="/friend" element={<FriendView />} />
 
                 <Route
@@ -580,6 +588,7 @@ export default App;
                 <Route path="/test" element={<TestDispatchAPI />} />
                 <Route path="/404Site" element={<Site404 />} />
                 <Route path="*" element={<Navigate to="/404Site" replace />} />
+
               </>
             ) : (
               <>
@@ -596,5 +605,7 @@ export default App;
                 <Route path="*" element={<Navigate to="/login" replace />} />
               </>
             )}
+
           </Routes> */
+
 }

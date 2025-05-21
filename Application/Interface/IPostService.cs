@@ -13,8 +13,8 @@ namespace Application.Interface
     public interface IPostService
     {
         Task<Guid> GetPostOwnerId(Guid postId);
-        Task<GetPostsResponse?> GetPostsWithCursorAsync(Guid? lastPostId, int pageSize, CancellationToken cancellationToken);
-        Task<GetPostsResponse> GetPostsByOwnerWithCursorAsync(Guid? lastPostId, int pageSize, CancellationToken cancellationToken);
+        Task<GetPostsResponse?> GetPostsWithCursorAsync(Guid currentUserId, Guid? lastPostId, int pageSize, CancellationToken cancellationToken);
+        Task<GetPostsResponse> GetPostsByOwnerWithCursorAsync(Guid currentUserId, Guid? lastPostId, int pageSize, CancellationToken cancellationToken);
         Task<GetPostsResponse> GetPostsByOwnerFriendWithCursorAsync(Guid userId, Guid? lastPostId, int pageSize, CancellationToken cancellationToken);
         Task<GetPostsResponse> GetPostByTypeWithCursorAsync(PostTypeEnum postTypeEnum, Guid? lastPostId, int pageSize, CancellationToken cancellationToken);
         Task<bool> IsUserSpammingSharesAsync(Guid userId, Guid postId);

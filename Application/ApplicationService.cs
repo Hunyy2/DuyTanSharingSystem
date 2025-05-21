@@ -38,13 +38,16 @@ namespace Application
             //nếu ko làm việc liên quan đến like và LocationUpdate thì comment lại
 
             services.AddHostedService<LikeEventProcessor>();
-            //services.AddHostedService<UpdateLocationProcessor>();
+            services.AddHostedService<UpdateLocationProcessor>();
 
             services.AddHostedService<GpsMonitorService>();
             services.AddHostedService<LikeCommentEventProcessor>();
 
-            //services.AddHostedService<TrustScoreBackgroundService>();
-            //services.AddHostedService<MessageProcessingService>();
+
+            services.AddHostedService<TrustScoreBackgroundService>();
+
+
+            services.AddHostedService<MessageProcessingService>();
 
             //services.AddHostedService<RedisListenerService>();
             //đăng kí hub
@@ -68,6 +71,16 @@ namespace Application
             services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
 
             var jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>();
+            var rawJwtSection = configuration.GetSection("Jwt");
+            var rawJwtKey = rawJwtSection["Key"]; // Lấy trực tiếp từ section
+            var isJwtSettingsNull = jwtSettings == null;
+            var isJwtKeyNullOrEmpty = string.IsNullOrWhiteSpace(jwtSettings?.Key);
+
+            // In ra console để xem trong Log Stream của Azure
+            Console.WriteLine($"DEBUG (AppService): Is jwtSettings object null? {isJwtSettingsNull}");
+            Console.WriteLine($"DEBUG (AppService): Is jwtSettings.Key null or empty? {isJwtKeyNullOrEmpty}");
+            Console.WriteLine($"DEBUG (AppService): Raw value from configuration for Jwt:Key: '{rawJwtKey}'");
+
             if (jwtSettings == null || string.IsNullOrWhiteSpace(jwtSettings.Key))
             {
                 throw new Exception("⚠️ Jwt:Key không được để trống! Kiểm tra user-secrets hoặc appsettings.json.");

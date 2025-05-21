@@ -222,7 +222,6 @@ namespace Infrastructure.Data.Repositories
 
             if (targetStatus == MessageStatus.Seen)
             {
-                query = query.Where(m => m.Status == MessageStatus.Sent || m.Status == MessageStatus.Delivered);
             }
             else if (targetStatus == MessageStatus.Delivered)
             {
@@ -239,8 +238,85 @@ namespace Infrastructure.Data.Repositories
 
             return messages;
         }
+        public async Task<List<(User Friend, DateTime CreatedAt)>> GetFriendsWithoutConversationAsync(Guid userId)
+        {
+            // Sử dụng FriendshipRepository để lấy danh sách bạn bè
+            var friendshipRepository = new FriendshipRepository(_context);
+            var friendships = await friendshipRepository.GetFriendsAsync(userId);
 
+            // Debug: In ra số lượng bạn bè
+            Console.WriteLine($"Total friends for user {userId}: {friendships.Count}");
 
+            // Tạo danh sách bạn bè với thời gian kết bạn
+            var friendData = friendships.Select(f => new
+            {
+                FriendId = f.UserId == userId ? f.FriendId : f.UserId,
+                CreatedAt = f.CreatedAt
+            }).ToList();
+
+            var friendIds = friendData.Select(f => f.FriendId).ToList();
+
+            // Debug: In ra danh sách friendIds
+            Console.WriteLine($"Friend IDs: {string.Join(", ", friendIds)}");
+
+            // Lấy danh sách hội thoại của userId
+            var conversations = await _context.Conversations
+                .Where(c => c.User1Id == userId || c.User2Id == userId)
+                .ToListAsync();
+
+            // Debug: In ra số lượng hội thoại
+            Console.WriteLine($"Total conversations for user {userId}: {conversations.Count}");
+
+            // Lấy danh sách hội thoại có ít nhất một tin nhắn
+            var conversationIdsWithMessages = await _context.Messages
+                .Where(m => conversations.Select(c => c.Id).Contains(m.ConversationId))
+                .Select(m => m.ConversationId)
+                .Distinct()
+                .ToListAsync();
+
+            // Debug: In ra số lượng hội thoại có tin nhắn
+            Console.WriteLine($"Conversations with messages: {conversationIdsWithMessages.Count}");
+
+            // Lọc các hội thoại có tin nhắn
+            var conversationsWithMessages = conversations
+                .Where(c => conversationIdsWithMessages.Contains(c.Id))
+                .ToList();
+
+            // Lấy danh sách userId từ các hội thoại có tin nhắn
+            var conversationUserIds = conversationsWithMessages
+                .Select(c => c.User1Id == userId ? c.User2Id : c.User1Id)
+                .ToList();
+
+            // Debug: In ra danh sách userId từ hội thoại có tin nhắn
+            Console.WriteLine($"Conversation user IDs: {string.Join(", ", conversationUserIds)}");
+
+            // Lọc danh sách bạn bè chưa có hội thoại chứa tin nhắn
+            var friendsWithoutConversation = friendData
+                .Where(f => !conversationUserIds.Contains(f.FriendId))
+                .ToList();
+
+            // Debug: In ra số lượng bạn bè chưa có hội thoại chứa tin nhắn
+            Console.WriteLine($"Friends without conversation (with messages): {friendsWithoutConversation.Count}");
+
+            // Truy vấn thông tin chi tiết của những người dùng này
+            var friendDetails = await _context.Users
+                .Where(u => friendsWithoutConversation.Select(f => f.FriendId).Contains(u.Id))
+                .ToListAsync();
+
+            // Debug: In ra số lượng friendDetails
+            Console.WriteLine($"Friend details fetched: {friendDetails.Count}");
+
+            // Kết hợp thông tin bạn bè với thời gian kết bạn
+            var result = friendsWithoutConversation
+                .Select(f => (Friend: friendDetails.FirstOrDefault(u => u.Id == f.FriendId), CreatedAt: f.CreatedAt))
+                .Where(f => f.Friend != null)
+                .ToList();
+
+            // Debug: In ra danh sách người dùng trả về
+            Console.WriteLine($"Users returned: {result.Count}");
+
+            return result;
+        }
     }
 
 }

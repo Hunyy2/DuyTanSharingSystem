@@ -53,7 +53,7 @@
     flex: 2;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    // align-items: center;
     position: relative;
     z-index: 5; // Giảm xuống thấp hơn nút chỉnh sửa
   }
@@ -81,6 +81,7 @@
   margin-bottom: 10px;
   z-index: 4; // Post input cần cao hơn các phần tử xung quanh
   background: white; // Thêm background để che phủ
+  place-self: center; /* Căn giữa theo cả trục ngang và dọc */
 }
 // .all-posts {
 //   z-index: 8;

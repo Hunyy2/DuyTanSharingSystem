@@ -18,7 +18,8 @@ namespace Domain.Common
         }
         public enum ScopeEnum
         {
-            Public, Private, FriendsOnly
+            Public=0, Private=1, Friends=2
+                
         }
         public enum FriendshipStatusEnum
         {
@@ -133,6 +134,10 @@ namespace Domain.Common
             Inactive,
             Suspended,
             Blocked
+        }
+        public enum SharePrivacy
+        {
+            Public=0, Private=1, Friends=2
         }
     }
 }

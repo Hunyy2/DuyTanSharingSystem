@@ -155,7 +155,14 @@ const listPostSlice = createSlice({
       .addCase(likePost.fulfilled, (state, action) => {
         const postId = action.payload;
         state.posts = state.posts.map((post) =>
-          post.id === postId ? { ...post, isLiking: false } : post
+
+          post.id === postId
+            ? {
+                ...post,
+                isLiking: false,
+              }
+            : post
+
         );
       })
       .addCase(likePost.rejected, (state, action) => {
@@ -175,6 +182,7 @@ const listPostSlice = createSlice({
       })
       .addCase(likeComment.fulfilled, (state, action) => {
         const commentId = action.payload;
+
         Object.keys(state.comments).forEach((postId) => {
           if (!Array.isArray(state.comments[postId])) {
             state.comments[postId] = [];
@@ -189,6 +197,7 @@ const listPostSlice = createSlice({
                   : comment.likeCountComment + 1,
               };
             }
+            
             const updatedReplies = Array.isArray(comment.replies)
               ? comment.replies.map((reply) =>
                   reply.id === commentId
@@ -216,6 +225,7 @@ const listPostSlice = createSlice({
             ...comments,
           ];
         }
+
         state.commentsHasMore = state.commentsHasMore || {};
         state.commentsHasMore[postId] = hasMore;
       })
@@ -237,8 +247,8 @@ const listPostSlice = createSlice({
           parentCommentId: null,
         };
 
-        // Kiểm tra và tránh thêm bình luận trùng lặp
-        if (!state.comments[postId]) {
+
+        if (!Array.isArray(state.comments[postId])) {
           state.comments[postId] = [];
         } else if (state.comments[postId].some((c) => c.id === newComment.id)) {
           return; // Không thêm nếu đã tồn tại
@@ -274,6 +284,7 @@ const listPostSlice = createSlice({
       .addCase(fetchLikes.fulfilled, (state, action) => {
         state.likesLoading = false;
         const { postId, data, hasReachedEnd } = action.payload;
+
         if (hasReachedEnd && state.postLikes[postId]?.nextCursor === null) {
           return;
         }
@@ -282,6 +293,7 @@ const listPostSlice = createSlice({
           likedUsers: [],
           nextCursor: null,
         };
+
         state.postLikes = {
           ...state.postLikes,
           [postId]: {
@@ -357,9 +369,12 @@ const listPostSlice = createSlice({
       })
       .addCase(getReplyComment.fulfilled, (state, action) => {
         const { commentId, data } = action.payload;
+
+
         let found = false;
         Object.keys(state.comments).forEach((postId) => {
           const commentsArray = state.comments[postId];
+
           const comment = commentsArray.find((c) => c.id === commentId);
           if (comment) {
             comment.replies = data;
@@ -377,6 +392,7 @@ const listPostSlice = createSlice({
         const { postId, commentId } = action.payload;
         if (state.comments[postId]) {
           let deletedCount = 0;
+
           const isRootComment = state.comments[postId].some(
             (comment) => comment.id === commentId
           );
@@ -387,6 +403,7 @@ const listPostSlice = createSlice({
             if (commentToDelete) {
               deletedCount = 1 + (commentToDelete.replies?.length || 0);
             }
+
             state.comments[postId] = state.comments[postId].filter(
               (comment) => comment.id !== commentId
             );
@@ -401,6 +418,7 @@ const listPostSlice = createSlice({
               return { ...comment, replies: newReplies };
             });
           }
+
           const postIndex = state.posts.findIndex((post) => post.id === postId);
           if (postIndex !== -1 && state.posts[postIndex].commentCount > 0) {
             state.posts[postIndex].commentCount = Math.max(
@@ -417,7 +435,8 @@ const listPostSlice = createSlice({
         if (!state.comments[postId]) return;
         const newReply = {
           id: data.commentId,
-          userId,
+          userId: userId,
+
           userName: data.fullName,
           profilePicture: data.profilePicture,
           content: data.content,
@@ -428,6 +447,7 @@ const listPostSlice = createSlice({
           hasMoreReplies: false,
           parentCommentId,
         };
+
         const postComment = state.comments[postId];
         const rootComment = postComment.find(
           (comment) => comment.id === parentCommentId
@@ -449,7 +469,9 @@ const listPostSlice = createSlice({
           shareCount: 0,
           postType: 1,
         };
+
         state.posts.unshift(newPost);
+
         if (newPost.originalPost?.postId) {
           const originalPost = state.posts.find(
             (p) => p.id === newPost.originalPost.postId

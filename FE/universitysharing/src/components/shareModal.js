@@ -9,6 +9,7 @@ import { sharePost } from "../stores/action/listPostActions";
 
 const ShareModal = ({ isOpen, onClose, usersProfile, post }) => {
   const [content, setContent] = useState("");
+  const [privacy, setPrivacy] = useState("Public"); // Mặc định là Công khai
   const [isSharing, setIsSharing] = useState(false); // Trạng thái chia sẻ
 
   const dispatch = useDispatch();
@@ -32,13 +33,16 @@ const ShareModal = ({ isOpen, onClose, usersProfile, post }) => {
         sharePost({
           postId: post.id,
           content: content,
+          fullName: usersProfile?.fullName,
+          profilePicture: usersProfile?.profilePicture,
+          privacy: privacy, // Truyền privacy vào action
         })
       );
       onClose(); // Đóng modal sau khi chia sẻ thành công
     } catch (error) {
       console.error("Lỗi chia sẻ:", error);
     } finally {
-      setIsSharing(false); // Cho phép chia sẻ lại (tuỳ mục đích bạn có thể bỏ)
+      setIsSharing(false); // Cho phép chia sẻ lại
     }
   };
 
@@ -77,6 +81,21 @@ const ShareModal = ({ isOpen, onClose, usersProfile, post }) => {
           value={content}
           onChange={(e) => setContent(e.target.value)}
         ></textarea>
+
+        <div className="privacy-select-container">
+          <label htmlFor="privacy-select">Chọn quyền riêng tư:</label>
+          <select
+            id="privacy-select"
+            value={privacy}
+            onChange={(e) => setPrivacy(e.target.value)}
+            className="privacy-select"
+          >
+            <option value="Public">Công khai</option>
+            <option value="Friends">Bạn bè</option>
+            <option value="Private">Riêng tư</option>
+          </select>
+        </div>
+
         <button
           onClick={handleSharePost}
           className="btn-share"

@@ -106,16 +106,16 @@ namespace Application
             };
         }
 
-        public static ResultSharePostDto MapToResultSharePostDto(Post share, Post originalPost, User user)
+        public static ResultSharePostDto MapToResultSharePostDto(Post post, Post originalPost, User user, Share  share)
         {
             return new ResultSharePostDto
             {
-                Id = share.Id,
+                Id = post.Id,
                 UserId = user.Id, // ✅ Người dùng đã chia sẻ bài viết
                 FullName = user.FullName,
                 ProfilePicture = user.ProfilePicture,
-                Content = share.Content,
-                CreatedAt = share.CreatedAt,
+                Content = post.Content,
+                CreatedAt = post.CreatedAt,
                 PostType = originalPost.PostType,
                 CommentCount =  0,
                 LikeCount =0,
@@ -123,7 +123,8 @@ namespace Application
                 HasLiked = 0,
                 IsSharedPost = true,
                 OriginalPostId = originalPost.Id,
-                OriginalPost = new OriginalPostDto(originalPost) // ✅ Đảm bảo bài viết gốc có đúng User
+                OriginalPost = new OriginalPostDto(originalPost),
+                Privacy = share.Privacy,
             };
         }
 

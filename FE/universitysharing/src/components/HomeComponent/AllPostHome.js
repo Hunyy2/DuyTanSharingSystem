@@ -415,8 +415,13 @@ const AllPosts = ({
                         )}
                       </span>
                       <span className="status-post">
-                        {" "}
-                        {post.scope === 0 ? "Công khai" : "Riêng tư"}
+                        {post.scope === 0
+                          ? "Công khai"
+                          : post.scope === 1
+                          ? "Riêng tư"
+                          : post.scope === 2
+                          ? "Bạn bè"
+                          : "Không xác định"}
                       </span>
                     </div>
                   </div>

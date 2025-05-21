@@ -38,6 +38,6 @@ namespace Application.DTOs.Shares
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public OriginalPostDto? OriginalPost { get; set; }
-
+        public ScopeEnum Privacy { get; set; }
     }
 }

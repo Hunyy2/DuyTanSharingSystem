@@ -10,7 +10,7 @@
   align-items: center;
   z-index: 1000;
   overflow: visible;
-  //animation: fadeIn 0.3s ease-in-out;
+  animation: fadeIn 0.3s ease-in-out;
 
   .share-Modal {
     background: white;
@@ -18,6 +18,7 @@
     padding: 15px;
     width: 400px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    animation: slideIn 0.3s ease-in-out;
   }
 
   .head-Share-Modal {
@@ -58,7 +59,7 @@
     width: 100%;
     height: 80px;
     margin-top: 10px;
-    //padding: 10px;
+    padding: 10px;
     font-size: 14px;
     border: 1px solid #ccc;
     border-radius: 8px;
@@ -67,6 +68,49 @@
 
     &:focus {
       border-color: #007bff;
+    }
+  }
+
+  .privacy-select-container {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+    }
+  }
+
+  .privacy-select {
+    flex: 1;
+    padding: 8px 30px 8px 10px; // Thêm padding phải để chừa chỗ cho mũi tên
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    outline: none;
+    cursor: pointer;
+    appearance: none; // Loại bỏ kiểu dropdown mặc định của trình duyệt
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E"); // Mũi tên dropdown
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    transition: border-color 0.3s, box-shadow 0.3s;
+
+    &:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 5px rgba(0, 123, 255, 0.3); // Hiệu ứng sáng khi focus
+    }
+
+    &:hover {
+      border-color: #42a5f5;
+    }
+
+    option {
+      font-size: 14px;
+      padding: 10px;
     }
   }
 
@@ -88,6 +132,7 @@
     }
   }
 }
+
 @keyframes fadeIn {
   from {
     opacity: 0;

@@ -16,6 +16,12 @@ const Login = () => {
 
   const handleLogin = async (e, formData) => {
     e.preventDefault();
+    // Kiểm tra định dạng email
+    // const emailPattern = /^[a-zA-Z0-9._%+-]+@dtu\.edu\.vn$/;
+    // if (!emailPattern.test(formData.email)) {
+    //   toast.error("Email sai định dạng");
+    //   return;
+    // }
     NProgress.start();
 
     try {

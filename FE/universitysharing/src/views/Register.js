@@ -1,15 +1,21 @@
-import React, { useState } from "react";
-import AuthForm from "../components/AuthForm";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import axios from "axios";
 import NProgress from "nprogress";
 import "nprogress/nprogress.css";
-
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import axiosClient from "../Service/axiosClient";
+import AuthForm from "../components/AuthForm";
 const Register = () => {
   const navigate = useNavigate();
   const handleRegister = async (e, formData) => {
     e.preventDefault();
+
+    // Kiểm tra định dạng email
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@dtu\.edu\.vn$/;
+    if (!emailPattern.test(formData.email)) {
+      toast.error("Email phải có định dạng đuôi là:@dtu.edu.vn");
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       toast.error("Mật khẩu nhập lại không khớp");
       return; // Dừng hàm tại đây, không gửi request lên API
@@ -21,8 +27,8 @@ const Register = () => {
     //console.log("Dữ liệu gửi lên API:", formData);
     NProgress.start(); // 🔥 Bắt đầu hiển thị loading bar
     try {
-      const response = await axios.post(
-        "https://localhost:7053/api/Auth/register",
+      const response = await axiosClient.post(
+        "/api/Auth/register",
         {
           fullName: formData.name,
           email: formData.email,
