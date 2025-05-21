@@ -11,12 +11,12 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.Queries.RIdePost
 {
-    public class GetRidePostsByPassengerIdQueryHandle : IRequestHandler<GetRidePostsByPassengerIdQuery, ResponseModel<GetAllRideResponseDto>>
+    public class GetRidePostsByPassengerIdQueryHandler : IRequestHandler<GetRidePostsByPassengerIdQuery, ResponseModel<GetAllRideResponseDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserContextService _userContextService;
         private readonly IRidePostService _ridePostService;
-        public GetRidePostsByPassengerIdQueryHandle(IUnitOfWork unitOfWork, IUserContextService userContextService, IRidePostService ridePostService)
+        public GetRidePostsByPassengerIdQueryHandler(IUnitOfWork unitOfWork, IUserContextService userContextService, IRidePostService ridePostService)
         {
             _unitOfWork = unitOfWork;
             _userContextService = userContextService;

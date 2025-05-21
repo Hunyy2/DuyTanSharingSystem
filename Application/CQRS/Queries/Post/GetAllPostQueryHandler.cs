@@ -14,12 +14,12 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.Queries.Posts
 {
-    public class GetAllPostQueryHandle : IRequestHandler<GetAllPostQuery, ResponseModel<GetPostsResponse>>
+    public class GetAllPostQueryHandler : IRequestHandler<GetAllPostQuery, ResponseModel<GetPostsResponse>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPostService _postService;
         private readonly IUserContextService _userContextService;
-        public GetAllPostQueryHandle(IUnitOfWork unitOfWork, IPostService postService, IUserContextService userContextService)
+        public GetAllPostQueryHandler(IUnitOfWork unitOfWork, IPostService postService, IUserContextService userContextService)
         {
             _unitOfWork = unitOfWork;
             _postService = postService;

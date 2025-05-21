@@ -9,7 +9,7 @@ export const fetchFriends = createAsyncThunk(
       const token = localStorage.getItem("token");
       const baseURL = process.env.REACT_APP_BASE_URL;
       const response = await axiosInstance.get(
-        `$/api/FriendShip/get-friends-list`,
+        `/api/FriendShip/get-friends-list`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -170,14 +170,11 @@ export const fetchSentFriendRequests = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "/api/FriendShip/get-friends-sent",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.get("/api/FriendShip/get-friends-sent", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       return response.data.data;
     } catch (error) {
       return rejectWithValue(

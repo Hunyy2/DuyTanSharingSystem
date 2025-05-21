@@ -3,7 +3,7 @@
 
 namespace Application.CQRS.Commands.Comments
 {
-    public class ReplyCommentCommandHandle : IRequestHandler<ReplyCommentCommand, ResponseModel<ResultCommentDto>>
+    public class ReplyCommentCommandHandler : IRequestHandler<ReplyCommentCommand, ResponseModel<ResultCommentDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserContextService _userContextService;
@@ -11,7 +11,7 @@ namespace Application.CQRS.Commands.Comments
         private readonly INotificationService _notificationService;
         private readonly IRedisService _redisService;
 
-        public ReplyCommentCommandHandle(IUnitOfWork unitOfWork, IUserContextService userContextService, IGeminiService geminiService, INotificationService notificationService,IRedisService redisService)
+        public ReplyCommentCommandHandler(IUnitOfWork unitOfWork, IUserContextService userContextService, IGeminiService geminiService, INotificationService notificationService,IRedisService redisService)
         {
             _unitOfWork = unitOfWork;
             _userContextService = userContextService;

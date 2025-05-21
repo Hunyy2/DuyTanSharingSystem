@@ -11,13 +11,13 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.Queries.Shares
 {
-    public class GetSharesByPostIdQueryHandle : IRequestHandler<GetSharesByPostIdQuery, ResponseModel<GetSharedUsersResponse>>
+    public class GetSharesByPostIdQueryHandler : IRequestHandler<GetSharesByPostIdQuery, ResponseModel<GetSharedUsersResponse>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IShareService _shareService;
         private readonly IUserContextService _userContextService;
 
-        public GetSharesByPostIdQueryHandle(IUnitOfWork unitOfWork, IShareService shareService, IUserContextService userContextService)
+        public GetSharesByPostIdQueryHandler(IUnitOfWork unitOfWork, IShareService shareService, IUserContextService userContextService)
         {
             _unitOfWork = unitOfWork;
             _shareService = shareService;

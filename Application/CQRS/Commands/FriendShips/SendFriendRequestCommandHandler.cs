@@ -16,13 +16,13 @@ using static Domain.Common.Helper;
 
 namespace Application.CQRS.Commands.Friends
 {
-    public class SendFriendRequestCommandHandle : IRequestHandler<SendFriendRequestCommand, ResponseModel<ResultSendFriendDto>>
+    public class SendFriendRequestCommandHandler : IRequestHandler<SendFriendRequestCommand, ResponseModel<ResultSendFriendDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserContextService _userContextService;
         private readonly INotificationService _notificationService;
         private readonly IRedisService _redisService;
-        public SendFriendRequestCommandHandle(IUnitOfWork unitOfWork, IUserContextService userContextService,
+        public SendFriendRequestCommandHandler(IUnitOfWork unitOfWork, IUserContextService userContextService,
             INotificationService notificationService,
             IRedisService redisService)
         {

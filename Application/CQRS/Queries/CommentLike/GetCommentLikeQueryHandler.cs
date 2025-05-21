@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.Queries.CommentLike
 {
-    public class GetCommentLikeQueryHandle : IRequestHandler<GetCommentLikeQuery, ResponseModel<GetCommentLikeWithCursorResponse>>
+    public class GetCommentLikeQueryHandler : IRequestHandler<GetCommentLikeQuery, ResponseModel<GetCommentLikeWithCursorResponse>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICommentLikeService _commentLikeService;
 
-        public GetCommentLikeQueryHandle(IUnitOfWork unitOfWork, ICommentLikeService commentLikeService)
+        public GetCommentLikeQueryHandler(IUnitOfWork unitOfWork, ICommentLikeService commentLikeService)
         {
             _unitOfWork = unitOfWork;
             _commentLikeService = commentLikeService;

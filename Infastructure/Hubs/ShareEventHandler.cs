@@ -1,5 +1,6 @@
 ﻿using Application.Interface.Hubs;
 using Application.Model.Events;
+using Infrastructure.Service;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -9,18 +10,17 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Hubs
 {
-    public class ReplyCommentEventHandle : INotificationHandler<ReplyCommentEvent>
+    public class ShareEventHandler : INotificationHandler<ShareEvent>
     {
         private readonly ISignalRNotificationService _signalRNotificationService;
-
-        public ReplyCommentEventHandle(ISignalRNotificationService signalRNotificationService)
+        public ShareEventHandler(ISignalRNotificationService signalRNotificationService)
         {
             _signalRNotificationService = signalRNotificationService;
         }
 
-        public async Task Handle(ReplyCommentEvent notification, CancellationToken cancellationToken)
+        public async Task Handle(ShareEvent notification, CancellationToken cancellationToken)
         {
-            await _signalRNotificationService.SendReplyNotificationSignalR(notification.ReceiverId, notification.Data);
+            await _signalRNotificationService.SendShareNotificationAsync(notification.UserId,notification.Data);
         }
     }
 }

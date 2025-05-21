@@ -14,12 +14,12 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.Queries.Search
 {
-    public class SearchQueryHandle : IRequestHandler<SearchQuery, ResponseModel<List<SearchResultDto>>>
+    public class SearchQueryHandler : IRequestHandler<SearchQuery, ResponseModel<List<SearchResultDto>>>
     {
 
         private readonly ISearchService _searchService;
 
-        public SearchQueryHandle(ISearchService searchService)
+        public SearchQueryHandler(ISearchService searchService)
         {
             _searchService = searchService;
         }

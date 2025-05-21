@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.Queries.Comment
 {
-    public class GetCommentByPostIdQueryHandle : IRequestHandler<GetCommentByPostIdQuery, ResponseModel<GetCommentsResponse>>
+    public class GetCommentByPostIdQueryHandler : IRequestHandler<GetCommentByPostIdQuery, ResponseModel<GetCommentsResponse>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserContextService _userContextService;
         private readonly IPostService _postService;
 
-        public GetCommentByPostIdQueryHandle(IUnitOfWork unitOfWork, IUserContextService userContextService, IPostService postService)
+        public GetCommentByPostIdQueryHandler(IUnitOfWork unitOfWork, IUserContextService userContextService, IPostService postService)
         {
             _unitOfWork = unitOfWork;
             _userContextService = userContextService;

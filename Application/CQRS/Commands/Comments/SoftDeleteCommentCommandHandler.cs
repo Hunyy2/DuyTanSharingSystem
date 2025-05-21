@@ -8,13 +8,13 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.Commands.Comments
 {
-    public class SoftDeleteCommentCommandHandle : IRequestHandler<SoftDeleteCommentCommand, ResponseModel<bool>>
+    public class SoftDeleteCommentCommandHandler : IRequestHandler<SoftDeleteCommentCommand, ResponseModel<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserContextService _userContextService;
         private readonly ICommentService _commentService;
         private readonly IRedisService _redisService;
-        public SoftDeleteCommentCommandHandle(IUnitOfWork unitOfWork, IUserContextService userContextService, ICommentService commentService, IRedisService redisService)
+        public SoftDeleteCommentCommandHandler(IUnitOfWork unitOfWork, IUserContextService userContextService, ICommentService commentService, IRedisService redisService)
         {
             _unitOfWork = unitOfWork;
             _userContextService = userContextService;

@@ -66,7 +66,7 @@ namespace Infrastructure.Data.Repositories
                  .Include(p => p.OriginalPost)
                      .ThenInclude(op => op.User)
                  .Where(p => !p.IsDeleted && p.Scope != ScopeEnum.Private && (p.IsApproved || p.ApprovalStatus == ApprovalStatusEnum.Approved));// Chỉ lấy bài chưa bị xóa
-                 .Where(p => 
+    
 
             // Nếu có LastPostId, chỉ lấy bài viết cũ hơn nó
             if (lastPostId.HasValue)

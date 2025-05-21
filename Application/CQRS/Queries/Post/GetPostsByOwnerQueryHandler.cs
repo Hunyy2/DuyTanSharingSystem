@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.Queries.Post
 {
-    public class GetPostsByOwnerQueryHandle : IRequestHandler<GetPostsByOwnerQuery, ResponseModel<GetPostsResponse>>
+    public class GetPostsByOwnerQueryHandler : IRequestHandler<GetPostsByOwnerQuery, ResponseModel<GetPostsResponse>>
     {
         private readonly IPostService _postService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserContextService _userContextService;
-        public GetPostsByOwnerQueryHandle(IPostService postService, IUnitOfWork unitOfWork, IUserContextService userContextService)
+        public GetPostsByOwnerQueryHandler(IPostService postService, IUnitOfWork unitOfWork, IUserContextService userContextService)
         {
             _postService = postService;
             _unitOfWork = unitOfWork;

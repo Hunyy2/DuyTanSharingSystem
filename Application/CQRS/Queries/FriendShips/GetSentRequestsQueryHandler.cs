@@ -8,45 +8,43 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.Queries.Friends
 {
-    public class GetReceivedRequestsQueryHandle : IRequestHandler<GetReceivedRequestsQuery, ResponseModel<List<FriendDto>>>
+    public class GetSentRequestsQueryHandler : IRequestHandler<GetSentRequestsQuery, ResponseModel<List<FriendDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IUserContextService _userContextService;
-
-        public GetReceivedRequestsQueryHandle(IUnitOfWork unitOfWork, IUserContextService userContextService)
+        private readonly IUserContextService _userContext;
+        public GetSentRequestsQueryHandler(IUnitOfWork unitOfWork, IUserContextService userContext)
         {
             _unitOfWork = unitOfWork;
-            _userContextService = userContextService;
+            _userContext = userContext;
         }
-
-        public async Task<ResponseModel<List<FriendDto>>> Handle(GetReceivedRequestsQuery request, CancellationToken cancellationToken)
+        public async Task<ResponseModel<List<FriendDto>>> Handle(GetSentRequestsQuery request, CancellationToken cancellationToken)
         {
-            var userId = _userContextService.UserId();
+            var userId = _userContext.UserId();
 
-            var requests = await _unitOfWork.FriendshipRepository.GetReceivedRequestsAsync(userId);
+            var requests = await _unitOfWork.FriendshipRepository.GetSentRequestsAsync(userId);
             if (!requests.Any())
-                return ResponseFactory.Success(new List<FriendDto>(), "Không có lời mời kết bạn đến", 200);
+                return ResponseFactory.Success(new List<FriendDto>(), "Không có lời mời kết bạn đi", 200);
 
-            var userIds = requests.Select(f => f.UserId).Distinct().ToList();
+            var userIds = requests.Select(f => f.FriendId).Distinct().ToList(); // Lấy người nhận
             var users = await _unitOfWork.UserRepository.GetUsersByIdsAsync(userIds);
 
             var result = requests.Select(f =>
             {
-                var user = users.FirstOrDefault(u => u.Id == f.UserId);
+                var user = users.FirstOrDefault(u => u.Id == f.FriendId); // Người nhận
                 return user != null ? Mapping.MapToFriendDto(f, user, userId) : null;
             })
-                .Select(dto => dto!)
-                .ToList();
+            .Select(dto => dto!)
+            .ToList();
 
-            return ResponseFactory.Success(result, "Lấy danh sách lời mời kết bạn đến thành công", 200);
-            //var userId = _userContextService.UserId();
+            return ResponseFactory.Success(result, "Lấy danh sách lời mời kết bạn đi thành công", 200);
+            //var userId = _userContext.UserId();
             //var fetchCount = request.PageSize + 1;
 
             //var requests = await _unitOfWork.FriendshipRepository
-            //    .GetReceivedRequestsCursorAsync(userId, request.Cursor, fetchCount, cancellationToken);
+            //    .GetSentRequestsCursorAsync(userId, request.Cursor, fetchCount, cancellationToken);
 
             //if (!requests.Any())
-            //    return ResponseFactory.Success<FriendsListWithCountDto>("Không có lời mời kết bạn đến", 200);
+            //    return ResponseFactory.Success<FriendsListWithCountDto>("Không có lời mời kết bạn đi", 200);
 
             //if (request.Cursor.HasValue)
             //{
@@ -57,12 +55,12 @@ namespace Application.CQRS.Queries.Friends
             //if (hasMore)
             //    requests = requests.Take(request.PageSize).ToList();
 
-            //var userIds = requests.Select(f => f.UserId).Distinct().ToList();
+            //var userIds = requests.Select(f => f.FriendId).Distinct().ToList();
             //var users = await _unitOfWork.UserRepository.GetUsersByIdsAsync(userIds);
 
             //var result = requests.Select(f =>
             //{
-            //    var user = users.FirstOrDefault(u => u.Id == f.UserId);
+            //    var user = users.FirstOrDefault(u => u.Id == f.FriendId);
             //    return user != null ? Mapping.MapToFriendDto(f, user, userId) : null;
             //}).Where(x => x != null).Select(x => x!).ToList();
 
@@ -70,7 +68,7 @@ namespace Application.CQRS.Queries.Friends
             //{
             //    Friends = result,
             //    NextCursor = hasMore ? result.Last().CreatedAt : null
-            //}, "Lấy danh sách lời mời kết bạn đến thành công", 200);
+            //}, "Lấy danh sách lời mời kết bạn đi thành công", 200);
         }
     }
 }

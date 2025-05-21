@@ -12,11 +12,11 @@ using static Domain.Common.Enums;
 
 namespace Application.CQRS.Queries.Posts
 {
-    public class GetPostsByTypeQueryHandle : IRequestHandler<GetPostsByTypeQuery, ResponseModel<GetPostsResponse>>
+    public class GetPostsByTypeQueryHandler : IRequestHandler<GetPostsByTypeQuery, ResponseModel<GetPostsResponse>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPostService _postService;
-        public GetPostsByTypeQueryHandle(IUnitOfWork unitOfWork, IPostService postService)
+        public GetPostsByTypeQueryHandler(IUnitOfWork unitOfWork, IPostService postService)
         {
             _unitOfWork = unitOfWork;
             _postService = postService;

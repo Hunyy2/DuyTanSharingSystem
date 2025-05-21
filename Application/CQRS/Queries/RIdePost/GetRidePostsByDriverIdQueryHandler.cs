@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.Queries.RIdePost
 {
-   public class GetRidePostsByDriverIdQueryHandle : IRequestHandler<GetRidePostsByDriverIdQuery, ResponseModel<GetAllRideResponseDto>>
+   public class GetRidePostsByDriverIdQueryHandler : IRequestHandler<GetRidePostsByDriverIdQuery, ResponseModel<GetAllRideResponseDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserContextService _userContextService;
         private readonly IRidePostService _ridePostService;
-        public GetRidePostsByDriverIdQueryHandle(IUnitOfWork unitOfWork, IUserContextService userContextService, IRidePostService ridePostService)
+        public GetRidePostsByDriverIdQueryHandler(IUnitOfWork unitOfWork, IUserContextService userContextService, IRidePostService ridePostService)
         {
             _unitOfWork = unitOfWork;
             _userContextService = userContextService;
