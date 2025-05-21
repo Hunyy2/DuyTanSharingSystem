@@ -1,10 +1,9 @@
-import React, { useState } from "react";
-import AuthForm from "../components/AuthForm";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 import axios from "axios";
 import NProgress from "nprogress";
 import "nprogress/nprogress.css";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import AuthForm from "../components/AuthForm";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -22,7 +21,7 @@ const Register = () => {
     NProgress.start(); // 🔥 Bắt đầu hiển thị loading bar
     try {
       const response = await axios.post(
-        "https://localhost:7053/api/Auth/register",
+        "https://university-sharing-webapp-d6bndpepfpbvfyhr.eastasia-01.azurewebsites.net/api/Auth/register",
         {
           fullName: formData.name,
           email: formData.email,

@@ -13,7 +13,7 @@ export const searchPost = createAsyncThunk(
     }
 
     try {
-      const response = await axios.get(`https://localhost:7053/api/Search`, {
+      const response = await axios.get(`https://university-sharing-webapp-d6bndpepfpbvfyhr.eastasia-01.azurewebsites.net/api/Search`, {
         params: { keyword },
         headers: {
           Authorization: `Bearer ${token}`,
@@ -52,7 +52,7 @@ export const fetchUserProfile = createAsyncThunk(
 
     try {
       const response = await axios.get(
-        `https://localhost:7053/api/UserProfile/user-profile?userid=${userId}`,
+        `https://university-sharing-webapp-d6bndpepfpbvfyhr.eastasia-01.azurewebsites.net/api/UserProfile/user-profile?userid=${userId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

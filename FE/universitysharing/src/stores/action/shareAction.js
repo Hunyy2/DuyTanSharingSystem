@@ -18,7 +18,7 @@ export const fetchShares = createAsyncThunk(
       }
 
       const response = await axios.get(
-        `https://localhost:7053/api/Share/get-shares`,
+        `https://university-sharing-webapp-d6bndpepfpbvfyhr.eastasia-01.azurewebsites.net/api/Share/get-shares`,
         {
           params,
           headers: {
