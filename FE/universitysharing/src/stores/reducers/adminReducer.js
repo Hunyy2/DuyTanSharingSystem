@@ -104,8 +104,8 @@ const reporAdmintSlice = createSlice({
       })
       .addCase(fetchPostsByAdmin.fulfilled, (state, action) => {
         state.loading = false;
-        state.posts = action.payload.posts;
-        state.totalCount = action.payload.totalCount;
+        state.posts = action.payload?.posts || [];
+        state.totalCount = action.payload?.totalCount || 0;
         state.success = true;
         state.error = null;
       })

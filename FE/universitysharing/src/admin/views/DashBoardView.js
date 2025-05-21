@@ -6,11 +6,15 @@ import {
   fetchUserStats,
   fetchReportStats,
   fetchRecentPosts,
+  fetchUserTrend,
+  fetchInteractionActivity,
+  fetchUserStatsScore,
 } from "../../stores/action/dashboardActions";
 import AppHeader from "../components/HeaderBar";
 import AppSidebar from "../components/SideBarMenu";
-import GrowthChart from "../components/DashBoard/GrowthChart";
-import UserPieChart from "../components/DashBoard/PieChart";
+import UserTrendChart from "../components/DashBoard/UserTrendChart";
+import InteractionActivityChart from "../components/DashBoard/InteractionActivityChart";
+import UserStatsScoreChart from "../components/DashBoard/UserStatsScoreChart";
 import { toast } from "react-toastify";
 
 const { Content } = Layout;
@@ -26,7 +30,7 @@ const columns = [
     title: "Nội dung bài viết",
     dataIndex: "content",
     key: "content",
-    render: (text) => <span>{text.replace(/\r\n/g, " ")}</span>, // Xử lý ký tự xuống dòng
+    render: (text) => <span>{text?.replace(/\r\n/g, " ") || ""}</span>,
   },
   {
     title: "Trạng thái",
@@ -47,12 +51,13 @@ const columns = [
     title: "Thời gian tạo",
     dataIndex: "createdAt",
     key: "createdAt",
-    render: (date) => new Date(date).toLocaleString("vi-VN"), // Định dạng ngày giờ
+    render: (date) => (date ? new Date(date).toLocaleString("vi-VN") : "-"),
   },
   {
     title: "Số báo cáo",
     dataIndex: "reportCount",
     key: "reportCount",
+    render: (count) => count ?? 0,
   },
 ];
 
@@ -62,15 +67,17 @@ const Dashboard = () => {
     (state) => state.dashboard
   );
 
-  // Gọi API khi component mount
   useEffect(() => {
     dispatch(fetchDashboardOverview());
     dispatch(fetchUserStats());
+
     dispatch(fetchReportStats());
     dispatch(fetchRecentPosts({ pageNumber: 1, pageSize: 5 }));
+    dispatch(fetchUserTrend({ timeRange: "month" }));
+    dispatch(fetchInteractionActivity());
+    dispatch(fetchUserStatsScore());
   }, [dispatch]);
 
-  // Hiển thị lỗi nếu có
   useEffect(() => {
     if (error) {
       toast.error(error);
@@ -83,39 +90,39 @@ const Dashboard = () => {
       <Layout style={{ marginLeft: 200 }}>
         <AppHeader />
         <Content style={{ margin: "20px" }}>
-          <Title level={3}>DashBoard</Title>
+          <Title level={3}>Dashboard</Title>
           {loading ? (
             <div style={{ textAlign: "center", margin: "50px 0" }}>
               <Spin size="large" />
             </div>
           ) : (
             <>
-              <Row gutter={16}>
+              <Row gutter={[16, 16]}>
                 <Col span={6}>
                   <Card title="Tổng số người dùng">
                     <Title level={4} style={{ color: "green" }}>
-                      {overview.totalUsers.toLocaleString()}
+                      {overview?.totalUsers?.toLocaleString() || 0}
                     </Title>
                   </Card>
                 </Col>
                 <Col span={6}>
                   <Card title="Người dùng bị khóa">
                     <Title level={4} style={{ color: "red" }}>
-                      {overview.totalLockedUsers.toLocaleString()}
+                      {overview?.totalLockedUsers?.toLocaleString() || 0}
                     </Title>
                   </Card>
                 </Col>
                 <Col span={6}>
                   <Card title="Báo cáo người dùng">
                     <Title level={4} style={{ color: "orange" }}>
-                      {overview.totalUserReports.toLocaleString()}
+                      {overview?.totalUserReports?.toLocaleString() || 0}
                     </Title>
                   </Card>
                 </Col>
                 <Col span={6}>
                   <Card title="Báo cáo bài viết">
                     <Title level={4} style={{ color: "orange" }}>
-                      {overview.totalPostReports.toLocaleString()}
+                      {overview?.totalPostReports?.toLocaleString() || 0}
                     </Title>
                   </Card>
                 </Col>
@@ -123,15 +130,25 @@ const Dashboard = () => {
 
               <Divider />
 
-              <Row gutter={16}>
+              <Row gutter={[16, 16]}>
                 <Col span={12}>
-                  <Card title="Thống kê báo cáo">
-                    <GrowthChart />
+                  <Card title="Xu hướng người dùng">
+                    <UserTrendChart />
                   </Card>
                 </Col>
                 <Col span={12}>
-                  <Card title="Phân bổ người dùng">
-                    <UserPieChart />
+                  <Card title="Hoạt động tương tác">
+                    <InteractionActivityChart />
+                  </Card>
+                </Col>
+              </Row>
+
+              <Divider />
+
+              <Row gutter={[16, 16]}>
+                <Col span={12}>
+                  <Card title="Phân bổ người dùng theo độ uy tín">
+                    <UserStatsScoreChart />
                   </Card>
                 </Col>
               </Row>
@@ -140,10 +157,12 @@ const Dashboard = () => {
 
               <Card title="Bài viết mới từ người dùng">
                 <Table
-                  dataSource={recentPosts.map((post) => ({
-                    ...post,
-                    key: post.id,
-                  }))}
+                  dataSource={
+                    recentPosts?.map((post) => ({
+                      ...post,
+                      key: post?.id || Math.random(),
+                    })) || []
+                  }
                   columns={columns}
                   pagination={{ pageSize: 5 }}
                 />

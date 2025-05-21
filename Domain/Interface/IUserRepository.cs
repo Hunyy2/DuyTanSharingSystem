@@ -20,5 +20,8 @@ namespace Domain.Interface
         Task<IEnumerable<User>> GetAdminsAsync();
         Task<User?> GetAdminByIdAsync(Guid adminId);
         Task<bool> ExistUsersAsync(Guid userId);
+        Task<IEnumerable<(DateTime Date, int Count)>> GetUserTrendAsync(string timeRange);
+        Task<IEnumerable<(string TrustCategory, int Count)>> GetUserTrustDistributionAsync();
+        Task<User?> GetByEmailAsync(string email);
     }
 }

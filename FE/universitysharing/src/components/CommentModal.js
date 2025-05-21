@@ -17,6 +17,15 @@ import getUserIdFromToken from "../utils/JwtDecode";
 import { FiSend, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { closeCommentModal } from "../stores/reducers/listPostReducers";
 
+// Debounce function to limit comment submission rate
+const debounce = (func, delay) => {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func.apply(null, args), delay);
+  };
+};
+
 const CommentModal = ({ post, onClose, usersProfile }) => {
   const userId = getUserIdFromToken();
   const navigate = useNavigate();
@@ -30,7 +39,7 @@ const CommentModal = ({ post, onClose, usersProfile }) => {
   const [loadingMoreComments, setLoadingMoreComments] = useState(false);
   const [hasMoreComments, setHasMoreComments] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(post.initialMediaIndex || 0);
-  const [hasFetchedComments, setHasFetchedComments] = useState(false); // Thêm state để kiểm tra
+  const [hasFetchedComments, setHasFetchedComments] = useState(false);
 
   const imageUrls = post.imageUrl ? post.imageUrl.split(",") : [];
   const hasVideo = !!post.videoUrl;
@@ -58,7 +67,7 @@ const CommentModal = ({ post, onClose, usersProfile }) => {
   useEffect(() => {
     if (post?.id && !hasFetchedComments) {
       dispatch(commentPost({ postId: post.id }));
-      setHasFetchedComments(true); // Đánh dấu đã gọi API
+      setHasFetchedComments(true);
     }
   }, [dispatch, post?.id, hasFetchedComments]);
 
@@ -114,33 +123,41 @@ const CommentModal = ({ post, onClose, usersProfile }) => {
     dispatch(likeComment(commentId));
   };
 
-  const handleAddComment = async () => {
-    const text = commentTextRef.current.trim();
-    if (!text || isSending) return;
+  // Debounced handleAddComment to prevent multiple submissions
+  const debouncedHandleAddComment = useCallback(
+    debounce(async () => {
+      const text = commentTextRef.current.trim();
+      if (!text || isSending) return;
 
-    setIsSending(true);
-    try {
-      await dispatch(
-        addCommentPost({
-          postId: post.id,
-          content: text,
-          userId: userId,
-        })
-      );
-      commentTextRef.current = "";
-      document.querySelector("textarea").value = "";
-      if (commentEndRef.current) {
-        setTimeout(() => {
-          commentEndRef.current.scrollIntoView({
-            behavior: "smooth",
-            block: "end",
-          });
-        }, 100);
+      setIsSending(true);
+      try {
+        const result = await dispatch(
+          addCommentPost({
+            postId: post.id,
+            content: text,
+            userId: userId,
+          })
+        ).unwrap();
+        if (result.success) {
+          commentTextRef.current = "";
+          document.querySelector("textarea").value = "";
+          if (commentEndRef.current) {
+            setTimeout(() => {
+              commentEndRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "end",
+              });
+            }, 100);
+          }
+        }
+      } catch (error) {
+        console.error("Error adding comment:", error);
+      } finally {
+        setIsSending(false);
       }
-    } finally {
-      setIsSending(false);
-    }
-  };
+    }, 500), // 500ms debounce delay
+    [dispatch, post.id, userId, isSending]
+  );
 
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : mediaItems.length - 1));
@@ -223,9 +240,13 @@ const CommentModal = ({ post, onClose, usersProfile }) => {
             type="text"
             placeholder="Viết bình luận..."
             onChange={handleInputChange}
-            onKeyPress={(e) => e.key === "Enter" && handleAddComment()}
+            onKeyPress={(e) => e.key === "Enter" && debouncedHandleAddComment()}
           />
-          <button type="submit" onClick={handleAddComment} disabled={isSending}>
+          <button
+            type="submit"
+            onClick={debouncedHandleAddComment}
+            disabled={isSending}
+          >
             {isSending ? <div className="spinner"></div> : <FiSend size={20} />}
           </button>
         </div>

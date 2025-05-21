@@ -139,7 +139,6 @@ export const deleteAllReports = createAsyncThunk(
     }
   }
 );
-// Action lấy danh sách bài post bởi admin
 export const fetchPostsByAdmin = createAsyncThunk(
   "adminPosts/fetchPostsByAdmin",
   async ({ pageNumber, pageSize }, { rejectWithValue }) => {
@@ -158,8 +157,8 @@ export const fetchPostsByAdmin = createAsyncThunk(
         }
       );
 
-      console.log("API Response:", response.data);
-      return response.data.data;
+      console.log("API Response:", response.data); // Log the full response
+      return response.data.data; // Ensure response.data.data contains { posts, totalCount }
     } catch (error) {
       console.error("API Error:", error);
       if (error.response) {

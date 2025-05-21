@@ -17,7 +17,6 @@ import CommentModal from "../CommentModal";
 import ShareModal from "../shareModal";
 import SharedPost from "./SharingPost";
 
-
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { debounce } from "lodash";

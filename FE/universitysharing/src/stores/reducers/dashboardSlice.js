@@ -4,6 +4,9 @@ import {
   fetchUserStats,
   fetchReportStats,
   fetchRecentPosts,
+  fetchUserTrend,
+  fetchInteractionActivity,
+  fetchUserStatsScore,
 } from "../action/dashboardActions";
 
 const dashboardSlice = createSlice({
@@ -26,6 +29,12 @@ const dashboardSlice = createSlice({
       rejectedReports: 0,
     },
     recentPosts: [],
+    userTrend: { labels: [], data: [] },
+    interactionActivity: {
+      labels: [],
+      datasets: { likes: [], comments: [], shares: [] },
+    },
+    userStatsScore: { labels: [], data: [] },
     loading: false,
     error: null,
   },
@@ -81,6 +90,45 @@ const dashboardSlice = createSlice({
         state.recentPosts = action.payload;
       })
       .addCase(fetchRecentPosts.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(fetchUserTrend.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchUserTrend.fulfilled, (state, action) => {
+        state.loading = false;
+        state.userTrend = action.payload;
+      })
+      .addCase(fetchUserTrend.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(fetchInteractionActivity.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchInteractionActivity.fulfilled, (state, action) => {
+        state.loading = false;
+        state.interactionActivity = action.payload;
+      })
+      .addCase(fetchInteractionActivity.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(fetchUserStatsScore.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchUserStatsScore.fulfilled, (state, action) => {
+        state.loading = false;
+        state.userStatsScore = action.payload;
+      })
+      .addCase(fetchUserStatsScore.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

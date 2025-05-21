@@ -340,7 +340,7 @@ import ChatBotAIView from "./views/ChatBotAIView";
 import AdminPostManagement from "./admin/views/AdminPostManagement";
 import FriendProfileView from "./views/FriendProfileView";
 import SettingsView from "./views/SettingsView";
-
+import ResendVerification from "./components/ResendVerification";
 import getUserIdFromToken from "./utils/JwtDecode";
 import FriendView from "./views/FriendView";
 import CommentModalBackGround from "./components/CommentModalBackgroud.";
@@ -447,6 +447,10 @@ function App() {
                   path="/reset-password"
                   element={<ResetForgotPassword />}
                 />
+                <Route
+                  path="/ResendVerification"
+                  element={<ResendVerification />}
+                />
                 <Route path="/AccountVerified" element={<AccountVerified />} />
                 <Route path="*" element={<Navigate to="/login" replace />} />
               </>
@@ -454,7 +458,7 @@ function App() {
             {/* Route dành cho admin */}
             {isAuthenticated && userRole.toLowerCase() === "admin" && (
               <>
-               <Route
+                <Route
                   path="/admin/tripnotifications"
                   element={<NotificationAdmin />}
                 />
