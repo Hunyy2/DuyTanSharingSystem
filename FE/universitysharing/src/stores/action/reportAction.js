@@ -1,6 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-
+import axiosInstance from "../../Service/axiosClient";
 // Action gửi báo cáo bài viết
 export const reportPost = createAsyncThunk(
   "report/reportPost",
@@ -12,8 +11,8 @@ export const reportPost = createAsyncThunk(
     }
 
     try {
-      const response = await axios.post(
-        "https://localhost:7053/api/report/report-post",
+      const response = await axiosInstance.post(
+        "/api/report/report-post",
         { postId, reason },
         {
           headers: {

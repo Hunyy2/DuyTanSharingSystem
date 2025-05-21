@@ -1,7 +1,6 @@
 // src/stores/action/notificationAction.js
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-
+import axiosInstance from "../../Service/axiosClient";
 export const fetchNotifications = createAsyncThunk(
   "notifications/fetchNotifications",
   async (cursor, { rejectWithValue }) => {
@@ -9,12 +8,12 @@ export const fetchNotifications = createAsyncThunk(
       const token = localStorage.getItem("token");
       const baseURL = process.env.REACT_APP_BASE_URL;
 
-      let url = `${baseURL}/api/Notification/get-all-notifications`;
+      let url = `/api/Notification/get-all-notifications`;
       if (cursor) {
         url += `?Cursor=${cursor}`;
       }
 
-      const response = await axios.get(url, {
+      const response = await axiosInstance.get(url, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -45,12 +44,12 @@ export const fetchNotificationsUnread = createAsyncThunk(
       const token = localStorage.getItem("token");
       const baseURL = process.env.REACT_APP_BASE_URL;
 
-      let url = `${baseURL}/api/Notification/get-notification-unread`;
+      let url = `/api/Notification/get-notification-unread`;
       if (cursor) {
         url += `?Cursor=${cursor}`;
       }
 
-      const response = await axios.get(url, {
+      const response = await axiosInstance.get(url, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -81,12 +80,12 @@ export const fetchNotificationsRead = createAsyncThunk(
       const token = localStorage.getItem("token");
       const baseURL = process.env.REACT_APP_BASE_URL;
 
-      let url = `${baseURL}/api/Notification/get-notification-read`;
+      let url = `/api/Notification/get-notification-read`;
       if (cursor) {
         url += `?Cursor=${cursor}`;
       }
 
-      const response = await axios.get(url, {
+      const response = await axiosInstance.get(url, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -117,8 +116,8 @@ export const markNotificationAsRead = createAsyncThunk(
       const token = localStorage.getItem("token");
       const baseURL = process.env.REACT_APP_BASE_URL;
 
-      const response = await axios.patch(
-        `${baseURL}/api/Notification/mark-as-read`,
+      const response = await axiosInstance.patch(
+        `/api/Notification/mark-as-read`,
         { NotificationId: notificationId },
         {
           headers: {
@@ -149,8 +148,8 @@ export const fetchUnreadNotificationCount = createAsyncThunk(
     try {
       const token = localStorage.getItem("token");
       const baseURL = process.env.REACT_APP_BASE_URL;
-      const response = await axios.get(
-        `${baseURL}/api/Notification/unread-count`,
+      const response = await axiosInstance.get(
+        `/api/Notification/unread-count`,
         {
           headers: {
             "Content-Type": "application/json",

@@ -48,7 +48,7 @@ namespace Application.Services
             {
                 var token = await GenerateTokenAsync(userId);
                 // Tạo link xác minh
-                var verificationLink = $"https://localhost:7053/api/auth/verify-email?token={token}";
+                var verificationLink = $"https://university-sharing-webapp-d6bndpepfpbvfyhr.eastasia-01.azurewebsites.net/api/auth/verify-email?token={token}";
 
                 // Tạo nội dung HTML đẹp mắt
                 var subject = "Xác nhận địa chỉ email của bạn";
