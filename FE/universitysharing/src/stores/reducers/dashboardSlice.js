@@ -78,11 +78,12 @@ const dashboardSlice = createSlice({
       })
       .addCase(fetchRecentPosts.fulfilled, (state, action) => {
         state.loading = false;
-        state.recentPosts = action.payload;
+        state.recentPosts = Array.isArray(action.payload) ? action.payload : []; // Đảm bảo là mảng
       })
       .addCase(fetchRecentPosts.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload?.message || "Lỗi không xác định";
+        state.recentPosts = []; // Đặt lại recentPosts để tránh lỗi
       });
   },
 });

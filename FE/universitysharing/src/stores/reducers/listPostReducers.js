@@ -3,7 +3,7 @@ import {
   addCommentPost,
   commentPost,
   fetchPosts,
-  fetchPostsByOwner, // Add this import
+  fetchPostsByOwner,
   fetchPostsByOtherUser,
   likePost,
   likeComment,
@@ -28,23 +28,19 @@ const listPostSlice = createSlice({
     comments: {},
     selectedPost: null,
     isShareModalOpen: false,
-    //chúp
     isInteractorModalOpen: false,
     isInteractorShareModalOpen: false,
     selectedPostForInteractions: null,
-    //chúp
     selectedPostToShare: null,
     selectedPostToOption: null,
-    isPostOptionsOpen: false, // 🆕 Thêm trạng thái modal options
+    isPostOptionsOpen: false,
     loading: false,
     loadingCreatePost: false,
-    // selectedCommentTOption: null,
-    // isCommentOptionOpen: false,
-    openCommentOptionId: null, // ID comment nào đang mở option
+    openCommentOptionId: null,
     likesLoading: false,
     likesError: null,
-    postLikes: {}, // Stores likes data by postId
-    postShares: {}, // Thêm state mới cho shares
+    postLikes: {},
+    postShares: {},
     sharesLoading: false,
     sharesError: null,
   },
@@ -53,10 +49,9 @@ const listPostSlice = createSlice({
       state.posts = state.posts.filter((post) => post.id !== action.payload);
     },
     openCommentModal: (state, action) => {
-      // action.payload giờ chứa cả post và initialMediaIndex
       state.selectedPost = {
-        ...action.payload, // Sao chép toàn bộ thông tin post
-        initialMediaIndex: action.payload.initialMediaIndex || 0, // Lưu index media được chọn
+        ...action.payload,
+        initialMediaIndex: action.payload.initialMediaIndex || 0,
       };
     },
     closeCommentModal: (state) => {
@@ -71,22 +66,17 @@ const listPostSlice = createSlice({
       state.selectedPostToShare = null;
     },
     openPostOptionModal: (state, action) => {
-      state.selectedPostToOption = action.payload; // Lưu bài viết đang chọn
-      state.isPostOptionsOpen = true; // Mở modal
+      state.selectedPostToOption = action.payload;
+      state.isPostOptionsOpen = true;
     },
     closePostOptionModal: (state) => {
       state.isPostOptionsOpen = false;
       state.selectedPostToOption = null;
     },
-    //Mở CommentOption
     openCommentOption: (state, action) => {
-      // state.selectedCommentTOption = action.payload;
-      // state.isCommentOptionOpen = true;
       state.openCommentOptionId = action.payload;
     },
     closeCommentOption: (state) => {
-      // state.isCommentOptionOpen = false;
-      // state.selectedCommentTOption = null;
       state.openCommentOptionId = null;
     },
     openInteractorModal: (state, action) => {
@@ -105,7 +95,6 @@ const listPostSlice = createSlice({
       state.isInteractorShareModalOpen = false;
       state.selectedPostForInteractions = null;
     },
-    // Add new reducer to clear likes error
     clearLikesError: (state) => {
       state.likesError = null;
     },
@@ -119,10 +108,8 @@ const listPostSlice = createSlice({
       .addCase(fetchPosts.fulfilled, (state, action) => {
         state.loading = false;
         if (action.meta.arg) {
-          // Append for pagination
           state.posts = [...state.posts, ...action.payload.posts];
         } else {
-          // Replace for initial load
           state.posts = action.payload.posts;
         }
         state.hasMoreAllPosts = action.payload.hasMore;
@@ -145,27 +132,24 @@ const listPostSlice = createSlice({
         const { posts, hasMore } = action.payload;
 
         if (action.meta.arg?.lastPostId) {
-          // Append for pagination
           state.posts = [...state.posts, ...posts];
         } else {
-          // Replace for initial load
           state.posts = posts;
         }
 
         state.hasMoreOwnerPosts = hasMore;
       })
-      // Sửa phần likePost để hỗ trợ optimistic update
       .addCase(likePost.pending, (state, action) => {
-        const postId = action.meta.arg; // Lấy postId từ argument của action
+        const postId = action.meta.arg;
         state.posts = state.posts.map((post) =>
           post.id === postId
             ? {
                 ...post,
-                hasLiked: !post.hasLiked, // Cập nhật ngay lập tức (optimistic)
+                hasLiked: !post.hasLiked,
                 likeCount: post.hasLiked
                   ? post.likeCount - 1
                   : post.likeCount + 1,
-                isLiking: true, // Thêm trạng thái để disable nút khi đang gửi request
+                isLiking: true,
               }
             : post
         );
@@ -176,7 +160,7 @@ const listPostSlice = createSlice({
           post.id === postId
             ? {
                 ...post,
-                isLiking: false, // Reset trạng thái sau khi request thành công
+                isLiking: false,
               }
             : post
         );
@@ -187,28 +171,24 @@ const listPostSlice = createSlice({
           post.id === postId
             ? {
                 ...post,
-                hasLiked: !post.hasLiked, // Hoàn nguyên nếu request thất bại
+                hasLiked: !post.hasLiked,
                 likeCount: post.hasLiked
                   ? post.likeCount - 1
                   : post.likeCount + 1,
-                isLiking: false, // Reset trạng thái
+                isLiking: false,
               }
             : post
         );
       })
-
       .addCase(likeComment.fulfilled, (state, action) => {
         const commentId = action.payload;
 
-        // Duyệt qua từng bài post trong danh sách
         Object.keys(state.comments).forEach((postId) => {
           if (!Array.isArray(state.comments[postId])) {
-            state.comments[postId] = []; // Đảm bảo luôn có một mảng hợp lệ
+            state.comments[postId] = [];
           }
 
-          // Duyệt qua danh sách comment của post đó
           state.comments[postId] = state.comments[postId].map((comment) => {
-            // Nếu comment chính được like
             if (comment.id === commentId) {
               return {
                 ...comment,
@@ -219,7 +199,6 @@ const listPostSlice = createSlice({
               };
             }
 
-            // Nếu là một comment có replies, kiểm tra trong replies
             const updatedReplies = Array.isArray(comment.replies)
               ? comment.replies.map((reply) =>
                   reply.id === commentId
@@ -241,28 +220,22 @@ const listPostSlice = createSlice({
           });
         });
       })
-
       .addCase(commentPost.fulfilled, (state, action) => {
         const { postId, comments, hasMore, isInitialLoad } = action.payload;
 
         if (isInitialLoad) {
-          // Replace comments for initial load
           state.comments[postId] = comments;
         } else {
-          // Append comments for pagination
           state.comments[postId] = [
             ...(state.comments[postId] || []),
             ...comments,
           ];
         }
 
-        // Store hasMore status for each post's comments
         state.commentsHasMore = state.commentsHasMore || {};
         state.commentsHasMore[postId] = hasMore;
       })
-
       .addCase(addCommentPost.fulfilled, (state, action) => {
-        // console.log("🔥 Payload nhận được:", action.payload);
         const { postId, data, userId } = action.payload;
         if (!postId || !data) return;
 
@@ -280,15 +253,12 @@ const listPostSlice = createSlice({
           parentCommentId: null,
         };
 
-        // Nếu `state.comments[postId]` chưa tồn tại, khởi tạo nó là một mảng rỗng
         if (!Array.isArray(state.comments[postId])) {
           state.comments[postId] = [];
         }
 
-        // Thêm comment mới vào mảng
         state.comments[postId].push(newComment);
 
-        // Cập nhật số lượng bình luận trong bài post
         const postIndex = state.posts.findIndex((post) => post.id === postId);
         if (postIndex !== -1) {
           state.posts[postIndex].commentCount += 1;
@@ -332,7 +302,6 @@ const listPostSlice = createSlice({
         state.likesLoading = false;
         const { postId, data, hasReachedEnd } = action.payload;
 
-        // Nếu đã tải hết thì không cần cập nhật state nữa
         if (hasReachedEnd && state.postLikes[postId]?.nextCursor === null) {
           return;
         }
@@ -343,7 +312,6 @@ const listPostSlice = createSlice({
           nextCursor: null,
         };
 
-        // Cập nhật state
         state.postLikes = {
           ...state.postLikes,
           [postId]: {
@@ -360,7 +328,6 @@ const listPostSlice = createSlice({
         state.likesLoading = false;
         state.likesError = action.payload;
       })
-
       .addCase(fetchShares.pending, (state) => {
         state.sharesLoading = true;
         state.sharesError = null;
@@ -382,7 +349,6 @@ const listPostSlice = createSlice({
         state.sharesLoading = false;
         state.sharesError = action.payload;
       })
-
       .addCase(createPost.pending, (state) => {
         state.loadingCreatePost = true;
         state.error = null;
@@ -411,33 +377,27 @@ const listPostSlice = createSlice({
           hasLiked: 0,
           isSharedPost: false,
         };
-        // Tìm vị trí bài viết trong danh sách posts
         const index = state.posts.findIndex((post) => post.id === data.id);
         if (index !== -1) {
-          // Cập nhật bài viết trong mảng posts
           state.posts[index] = update;
         }
       })
-
       .addCase(deletePost.fulfilled, (state, action) => {
         state.loading = false;
         state.posts = state.posts.filter((post) => post.id !== action.payload);
       })
-
       .addCase(getReplyComment.fulfilled, (state, action) => {
         console.log("🔥 Payload getReplyComment:", action.payload);
         const { commentId, data } = action.payload;
 
-        let found = false; // Cờ kiểm tra có tìm thấy comment không
+        let found = false;
 
-        // Duyệt qua tất cả postId
         Object.keys(state.comments).forEach((postId) => {
-          const commentsArray = state.comments[postId]; // Lấy danh sách comment của bài post
+          const commentsArray = state.comments[postId];
 
-          // Tìm comment có id trùng với commentId
           const comment = commentsArray.find((c) => c.id === commentId);
           if (comment) {
-            comment.replies = data; // Gán replies vào comment tương ứng
+            comment.replies = data;
             comment.hasMoreReplies = false;
             found = true;
           }
@@ -449,48 +409,42 @@ const listPostSlice = createSlice({
           );
         }
       })
-
-      //Xóa comment
       .addCase(deleteComments.fulfilled, (state, action) => {
         const { postId, commentId } = action.payload;
 
         if (state.comments[postId]) {
-          let deletedCount = 0; // Đếm số comment bị xóa
+          let deletedCount = 0;
 
           const isRootComment = state.comments[postId].some(
             (comment) => comment.id === commentId
           );
 
           if (isRootComment) {
-            // Tìm comment gốc
             const commentToDelete = state.comments[postId].find(
               (comment) => comment.id === commentId
             );
 
             if (commentToDelete) {
-              deletedCount = 1 + (commentToDelete.replies?.length || 0); // Tính tổng số comment bị xóa
+              deletedCount = 1 + (commentToDelete.replies?.length || 0);
             }
 
-            // Xóa comment gốc
             state.comments[postId] = state.comments[postId].filter(
               (comment) => comment.id !== commentId
             );
           } else {
-            // Nếu là reply, tìm trong tất cả comments
             state.comments[postId] = state.comments[postId].map((comment) => {
               const newReplies = comment.replies.filter(
                 (reply) => reply.id !== commentId
               );
 
               if (newReplies.length < comment.replies.length) {
-                deletedCount = 1; // Chỉ xóa 1 reply
+                deletedCount = 1;
               }
 
               return { ...comment, replies: newReplies };
             });
           }
 
-          // ✅ Cập nhật chính xác số lượng comment trong posts
           const postIndex = state.posts.findIndex((post) => post.id === postId);
           if (postIndex !== -1 && state.posts[postIndex].commentCount > 0) {
             state.posts[postIndex].commentCount = Math.max(
@@ -500,7 +454,6 @@ const listPostSlice = createSlice({
           }
         }
       })
-
       .addCase(replyComments.fulfilled, (state, action) => {
         const { postId, data, userId } = action.payload;
         if (!data) return;
@@ -510,7 +463,7 @@ const listPostSlice = createSlice({
 
         const newReply = {
           id: data.commentId,
-          userId: userId, // Thay bằng user hiện tại
+          userId: userId,
           userName: data.fullName,
           profilePicture: data.profilePicture,
           content: data.content,
@@ -522,7 +475,6 @@ const listPostSlice = createSlice({
           parentCommentId: parentCommentId,
         };
 
-        // Tìm comment gốc
         const postComment = state.comments[postId];
         const rootComment = postComment.find(
           (comment) => comment.id === parentCommentId
@@ -531,29 +483,24 @@ const listPostSlice = createSlice({
         if (rootComment) {
           rootComment.replies.push(newReply);
         }
-        // Cập nhật số lượng bình luận trong bài post
         const postIndex = state.posts.findIndex((post) => post.id === postId);
         if (postIndex !== -1) {
           state.posts[postIndex].commentCount += 1;
         }
       })
-      //listpostReduucers
       .addCase(sharePost.fulfilled, (state, action) => {
         console.log("chia se");
         const newPost = {
           ...action.payload,
-          // Đảm bảo cấu trúc phù hợp với hệ thống hiện tại
           hasLiked: false,
           likeCount: 0,
           commentCount: 0,
           shareCount: 0,
-          postType: 1, // Loại shared post
+          postType: 1,
         };
 
-        // Thêm vào đầu danh sách
         state.posts.unshift(newPost);
 
-        // Tăng shareCount cho bài gốc nếu có
         if (newPost.originalPost?.postId) {
           const originalPost = state.posts.find(
             (p) => p.id === newPost.originalPost.postId

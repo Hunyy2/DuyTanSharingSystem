@@ -1,9 +1,8 @@
 import React from "react";
 import avatarWeb from "../../assets/AvatarDefault.png";
 import "../../styles/SharingPost.scss";
-// import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
-import { vi } from "date-fns/locale"; // Tiếng Việt
+import { vi } from "date-fns/locale";
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { openCommentModal } from "../../stores/reducers/listPostReducers";
@@ -14,11 +13,12 @@ const SharedPost = ({ post }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const userId = getUserIdFromToken();
-  //mở comment modal
+
+  // Mở comment modal
   const handleOpenCommentModal = (post, index = 0) => {
-    // dispatch(openCommentModal({ ...post, initialMediaIndex: index }));
     navigate(`/post/${post.postId}`, { state: { background: location } });
   };
+
   const navigateUser = (userId) => {
     if (userId === userId) {
       navigate("/ProfileUserView");
@@ -27,7 +27,7 @@ const SharedPost = ({ post }) => {
     }
   };
 
-  //lấy thông hình ảnh và video set lên post nhiều hay 1 ảnh và 1 video
+  // Lấy thông hình ảnh và video set lên post nhiều hay 1 ảnh và 1 video
   const getMediaContainerClass = (post) => {
     const imageCount = post.imageUrl ? post.imageUrl.split(",").length : 0;
     const hasVideo = !!post.videoUrl;
@@ -51,25 +51,24 @@ const SharedPost = ({ post }) => {
     return className;
   };
 
-  // Trong AllPosts
+  // Render media items
   const renderMediaItems = (post) => {
     const imageUrls = post.imageUrl ? post.imageUrl.split(",") : [];
     const hasVideo = !!post.videoUrl;
     const totalMedia = imageUrls.length + (hasVideo ? 1 : 0);
-    // Nếu không có ảnh lẫn video, không render media-container
+
     if (totalMedia === 0) return null;
+
     return (
       <div className={getMediaContainerClass(post)}>
         {imageUrls.map((url, index) => {
           const fullUrl = url.startsWith("http")
             ? url.trim()
             : `https://localhost:7053${url.trim()}`;
-          // Hiển thị overlay trên ảnh thứ 2 nếu có > 2 media, hoặc trên ảnh đầu tiên nếu có video và > 1 ảnh
           const showOverlay = totalMedia > 2 && index === (hasVideo ? 0 : 1);
 
-          // Hiển thị tối đa 1 ảnh nếu có video, hoặc 2 ảnh nếu không có video
           if (totalMedia > 2 && index > (hasVideo ? 0 : 1)) return null;
-          if (hasVideo && index > 0) return null; // Chỉ hiển thị 1 ảnh nếu có video
+          if (hasVideo && index > 0) return null;
 
           return (
             <div className="media-item" key={index}>
@@ -79,10 +78,7 @@ const SharedPost = ({ post }) => {
                 onClick={() => handleOpenCommentModal(post, index)}
               />
               {showOverlay && (
-                <div
-                  className="media-overlay"
-                  // onClick={() => handleOpenCommentModal(post, index)}
-                >
+                <div className="media-overlay">
                   +{totalMedia - (hasVideo ? 1 : 2)}
                 </div>
               )}
@@ -91,10 +87,7 @@ const SharedPost = ({ post }) => {
         })}
         {hasVideo && (
           <div className="media-item video-item">
-            <video
-              controls
-              // onClick={() => handleOpenCommentModal(post, imageUrls.length)}
-            >
+            <video controls>
               <source src={post.videoUrl} type="video/mp4" />
             </video>
           </div>
@@ -102,6 +95,21 @@ const SharedPost = ({ post }) => {
       </div>
     );
   };
+
+  // Xác định trạng thái quyền riêng tư
+  const getPrivacyStatus = (privacy) => {
+    switch (privacy) {
+      case 0:
+        return "Công khai";
+      case 1:
+        return "Bạn bè";
+      case 2:
+        return "Riêng tư";
+      default:
+        return "Công khai"; // Mặc định nếu không có giá trị
+    }
+  };
+
   return (
     <div className="shared-post-container">
       <div className="post-share" key={post.id}>
@@ -113,22 +121,25 @@ const SharedPost = ({ post }) => {
               src={post.originalPost.author.profilePicture || avatarWeb}
               alt="Avatar"
             />
-            <strong
-              onClick={() => navigateUser(post.originalPost.author.userId)}
-            >
-              {post.originalPost.author.userName || "University Sharing"}
-            </strong>
-            <span className="timePost-share">
-              {formatDistanceToNow(new Date(post.originalPost.createAt), {
-                addSuffix: true,
-                locale: vi,
-              })}
-            </span>
+            <div className="user-info-share">
+              <strong
+                onClick={() => navigateUser(post.originalPost.author.userId)}
+              >
+                {post.originalPost.author.userName || "University Sharing"}
+              </strong>
+              <div className="status-time-post-share">
+                <span className="timePost-share">
+                  {formatDistanceToNow(new Date(post.originalPost.createAt), {
+                    addSuffix: true,
+                    locale: vi,
+                  })}
+                </span>
+                <span className="status-post-share">
+                  {getPrivacyStatus(post.originalPost.scope)}
+                </span>
+              </div>
+            </div>
           </p>
-          {/* <p className="closemore">
-            <img className="btn-edit" src={moreIcon} alt="More" />
-            <img className="btn-close" src={closeIcon} alt="Close" />
-          </p> */}
         </div>
 
         {/* Nội dung bài viết */}
