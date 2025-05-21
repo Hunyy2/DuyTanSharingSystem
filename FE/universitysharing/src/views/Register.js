@@ -10,6 +10,14 @@ const Register = () => {
   const navigate = useNavigate();
   const handleRegister = async (e, formData) => {
     e.preventDefault();
+
+    // Kiểm tra định dạng email
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@dtu\.edu\.vn$/;
+    if (!emailPattern.test(formData.email)) {
+      toast.error("Email phải có định dạng đuôi là:@dtu.edu.vn");
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       toast.error("Mật khẩu nhập lại không khớp");
       return; // Dừng hàm tại đây, không gửi request lên API

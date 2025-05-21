@@ -1,26 +1,27 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { toast } from "react-toastify";
+import Picker from "emoji-picker-react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  FaTimes,
   FaEllipsisV,
-  FaVideo,
+  FaMicrophone,
+  FaPaperclip,
   FaPhone,
   FaSearch,
-  FaPaperclip,
   FaSmile,
-  FaMicrophone,
+  FaTimes,
+  FaVideo,
 } from "react-icons/fa";
-import "../../styles/MessageView/ChatBox.scss";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import avatarDefault from "../../assets/AvatarDefault.png";
-import { useSignalR } from "../../Service/SignalRProvider";
 import { useAuth } from "../../contexts/AuthContext";
+import { NotificationContext } from "../../contexts/NotificationContext";
+import { useSignalR } from "../../Service/SignalRProvider";
 import {
   getConversation,
   getMessages,
   sendMessage,
 } from "../../stores/action/messageAction";
-import { NotificationContext } from "../../contexts/NotificationContext";
+import "../../styles/MessageView/ChatBox.scss";
 
 const ChatBox = ({ friendId, onClose }) => {
   //console.log("ChatBox render", { friendId });
@@ -51,7 +52,33 @@ const ChatBox = ({ friendId, onClose }) => {
   const activeFriend = friends.find((friend) => friend.friendId === friendId);
   const [isSending, setIsSending] = useState(false);
   const TYPING_INTERVAL = 5000; // 5 giây
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojiPickerRef = useRef(null);
+  // Thêm hàm xử lý khi chọn emoji
+const onEmojiClick = (emojiObject) => {
+  if (emojiObject?.emoji) {
+    setNewMessage((prev) => prev + emojiObject.emoji);
+  }
+  setShowEmojiPicker(false);
+};
 
+  // Đóng emoji picker khi click ra ngoài
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target) &&
+        !event.target.closest(".emoji-btn")
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   /**
    * Hàm scrollToBottom: Cuộn khung tin nhắn xuống cuối.
    * - Mục đích: Đảm bảo người dùng luôn thấy tin nhắn mới nhất.
@@ -575,7 +602,7 @@ const ChatBox = ({ friendId, onClose }) => {
                 }`}
               >
                 <div className="message-content">
-                  <p>{message.content}</p>
+                  <p dangerouslySetInnerHTML={{ __html: message.content.replace(/:([a-zA-Z0-9+_]+):/g, (match, emoji) => `<span class="emoji">${emoji}</span>`) }} />
                   <span className="message-time">
                     {new Date(message.sentAt).toLocaleTimeString([], {
                       hour: "2-digit",
@@ -619,10 +646,32 @@ const ChatBox = ({ friendId, onClose }) => {
               <button type="button" className="tool-btn">
                 <FaPaperclip />
               </button>
-              <button type="button" className="tool-btn">
+              <button
+                type="button"
+                className="tool-btn emoji-btn"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              >
                 <FaSmile />
               </button>
             </div>
+            {showEmojiPicker && (
+              <div className="emoji-picker-container" ref={emojiPickerRef}>
+                <Picker
+                  onEmojiClick={onEmojiClick}
+                  pickerStyle={{
+                    width: "100%",
+                    boxShadow: "none",
+                    border: "1px solid #ddd",
+                    borderRadius: "8px",
+                  }}
+                  groupVisibility={{
+                    flags: false,
+                    symbols: false,
+                  }}
+                  native
+                />
+              </div>
+            )}
             <textarea
               value={newMessage}
               onChange={handleTyping}
