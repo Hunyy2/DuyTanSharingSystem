@@ -10,8 +10,8 @@ namespace DuyTanSharingSystem.Controllers
     [Authorize(Policy = "Admin")]
     public class AdminDashboardController : ControllerBase
     {
-        private readonly IDasbroadAdminService _adminDashboardService;
-        public AdminDashboardController(IDasbroadAdminService adminDashboardService)
+        private readonly IDashboardAdminService _adminDashboardService;
+        public AdminDashboardController(IDashboardAdminService adminDashboardService)
         {
             _adminDashboardService = adminDashboardService;
         }
@@ -31,6 +31,26 @@ namespace DuyTanSharingSystem.Controllers
         public async Task<IActionResult> GetReportStats()
         {
             var result = await _adminDashboardService.GetReportStatsAsync();
+            return Ok(result);
+        }
+        [HttpGet("user-trend")]
+        public async Task<IActionResult> GetUserTrend([FromQuery] string timeRange = "month")
+        {
+            var result = await _adminDashboardService.GetUserTrendAsync(timeRange);
+            return Ok(result);
+        }
+
+        [HttpGet("interaction-activity")]
+        public async Task<IActionResult> GetInteractionActivity([FromQuery] string timeRange = "month")
+        {
+            var result = await _adminDashboardService.GetInteractionActivityAsync(timeRange);
+            return Ok(result);
+        }
+
+        [HttpGet("user-stats-score")]
+        public async Task<IActionResult> GetUserTrustDistribution()
+        {
+            var result = await _adminDashboardService.GetUserTrustDistributionAsync();
             return Ok(result);
         }
     }

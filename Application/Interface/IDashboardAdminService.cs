@@ -7,13 +7,15 @@ using System.Threading.Tasks;
 
 namespace Application.Interface
 {
-    public interface IDasbroadAdminService
+    public interface IDashboardAdminService
     {
         Task<DashboardOverviewDto> GetOverviewAsync();
         Task<DashboardReportStatsDto> GetReportStatsAsync();
         Task<DashboardUserStatsDto> GetUserStatsAsync();
         Task<DashboardTrustScoreStatsDto> GetTrustScoreDistributionAsync();
-
+        Task<UserTrendDto> GetUserTrendAsync(string timeRange);
+        Task<InteractionActivityDto> GetInteractionActivityAsync(string timeRange);
+        Task<UserTrustDto> GetUserTrustDistributionAsync();
 
     }
 }

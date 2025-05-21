@@ -84,6 +84,52 @@ namespace Infrastructure.Data.Repositories
             return (likes.Take(pageSize).ToList(), nextCursor);
         }
 
+        public async Task<IEnumerable<(DateTime Date, int Count)>> GetLikesOverTimeAsync(string timeRange)
+        {
+            var likes = await _context.Likes
+         .Where(l => l.IsLike && !l.IsDeleted)
+         .Select(l => new { l.CreatedAt })
+         .ToListAsync();
 
+            var groupedData = timeRange switch
+            {
+                "day" => likes
+                    .GroupBy(l => l.CreatedAt.Date)
+                    .Select(g => new { Date = g.Key, Count = g.Count() }),
+                "week" => likes
+                    .GroupBy(l => new { l.CreatedAt.Year, Week = GetIsoWeekOfYear(l.CreatedAt) })
+                    .Select(g => new { Date = GetFirstDayOfWeek(g.Key.Year, g.Key.Week), Count = g.Count() }),
+                _ => likes
+                    .GroupBy(l => new { l.CreatedAt.Year, l.CreatedAt.Month })
+                    .Select(g => new { Date = new DateTime(g.Key.Year, g.Key.Month, 1), Count = g.Count() }),
+            };
+
+            var result = groupedData
+                .OrderBy(g => g.Date)
+                .Select(g => (g.Date, g.Count))
+                .ToList();
+
+            return result;
+        }
+        private int GetIsoWeekOfYear(DateTime date)
+        {
+            var dayOfWeek = (int)date.DayOfWeek;
+            var firstDayOfYear = new DateTime(date.Year, 1, 1);
+            var daysOffset = DayOfWeek.Thursday - firstDayOfYear.DayOfWeek;
+
+            var firstThursday = firstDayOfYear.AddDays(daysOffset);
+            var calendarWeek = (int)Math.Floor((date - firstThursday).TotalDays / 7) + 1;
+            return calendarWeek;
+        }
+
+        private DateTime GetFirstDayOfWeek(int year, int weekOfYear)
+        {
+            var jan1 = new DateTime(year, 1, 1);
+            var daysOffset = DayOfWeek.Thursday - jan1.DayOfWeek;
+
+            var firstThursday = jan1.AddDays(daysOffset);
+            var firstDayOfWeek = firstThursday.AddDays((weekOfYear - 1) * 7);
+            return firstDayOfWeek;
+        }
     }
 }

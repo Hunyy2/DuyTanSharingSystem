@@ -177,7 +177,7 @@ namespace Application.Services
                 Id = x.Id,
                 UserId = x.UserId,
                 UserName = x.User?.FullName ?? "unknown",
-                UserAvatar = $"{Constaint.baseUrl}{x.User?.ProfilePicture}" ?? "unknown",
+                UserAvatar = x.User?.ProfilePicture != null ? $"{Constaint.baseUrl}{x.User?.ProfilePicture}" : null,
                 Content = x.Content,
                 StartLocation = x.StartLocation,
                 EndLocation = x.EndLocation,

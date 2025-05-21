@@ -26,6 +26,6 @@ namespace Domain.Interface
         Task<Guid> GetCommentOwnerIdAsync(Guid commentId);
         Task<List<Comment>> GetRepliesByCommentIdWithCursorAsync(Guid parentCommentId, Guid? lastReplyId, int pageSize, CancellationToken cancellationToken);
         Task<List<Comment>> GetCommentsByPostIdWithCursorAsync(Guid postId, Guid? lastCommentId, int pageSize, CancellationToken cancellationToken);
-
+        Task<IEnumerable<(DateTime Date, int Count)>> GetCommentsOverTimeAsync(string timeRange);
     }
 }
