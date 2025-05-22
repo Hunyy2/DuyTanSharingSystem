@@ -70,3 +70,52 @@ export const changePassword = createAsyncThunk(
     }
   }
 );
+export const resendVerificationEmail = createAsyncThunk(
+  "auth/resendVerificationEmail",
+  async (email, { rejectWithValue }) => {
+    try {
+      console.log("Sending resend verification email request for:", email);
+      const response = await axiosInstance.post(
+        "/api/Auth/resend-verification-email",
+        {
+          Email: email,
+        }
+      );
+      console.log("Resend verification email response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Resend verification email error:", {
+        message: error.message,
+        response: error.response?.data,
+        config: error.config,
+      });
+      return rejectWithValue(
+        error.response?.data?.message || "Không thể gửi lại email xác minh"
+      );
+    }
+  }
+);
+export const validateResetToken = createAsyncThunk(
+  "auth/validateResetToken",
+  async (token, { rejectWithValue }) => {
+    try {
+      console.log("Validating reset token:", token);
+      const response = await axiosInstance.get(
+        "/api/auth/validate-reset-token",
+        {
+          params: { token },
+        }
+      );
+      console.log("Validate token response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Validate token error:",
+        error.response?.data || error.message
+      );
+      return rejectWithValue(
+        error.response?.data?.message || "Không thể xác minh token"
+      );
+    }
+  }
+);

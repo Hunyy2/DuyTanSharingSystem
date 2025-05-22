@@ -1,18 +1,17 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import axiosInstance from "../../Service/axiosClient";
 export const fetchPosts = createAsyncThunk(
   "posts/fetchPosts",
   async (lastPostId = null, { rejectWithValue }) => {
     try {
       const tokens = localStorage.getItem("token");
       const url = lastPostId
-        ? `https://localhost:7053/api/Post/getallpost?lastPostId=${lastPostId}`
-        : "https://localhost:7053/api/Post/getallpost";
+        ? `/api/Post/getallpost?lastPostId=${lastPostId}`
+        : "/api/Post/getallpost";
       // console.log("Đang chạy", url);
-      const response = await axios.get(url, {
+      const response = await axiosInstance.get(url, {
         headers: { Authorization: `Bearer ${tokens}` },
       });
 
@@ -37,8 +36,8 @@ export const fetchPosts = createAsyncThunk(
 //Like bài viết
 export const likePost = createAsyncThunk("posts/likePosts", async (postId) => {
   const token = localStorage.getItem("token");
-  await axios.post(
-    "https://localhost:7053/api/Like/like",
+  await axiosInstance.post(
+    "/api/Like/like",
     { postId: postId },
     {
       headers: { Authorization: `Bearer ${token}` },
@@ -54,10 +53,10 @@ export const commentPost = createAsyncThunk(
     const token = localStorage.getItem("token");
     try {
       const url = lastCommentId
-        ? `https://localhost:7053/api/Comment/GetCommentByPost?PostId=${postId}&lastCommentId=${lastCommentId}`
-        : `https://localhost:7053/api/Comment/GetCommentByPost?PostId=${postId}`;
+        ? `/api/Comment/GetCommentByPost?PostId=${postId}&lastCommentId=${lastCommentId}`
+        : `/api/Comment/GetCommentByPost?PostId=${postId}`;
 
-      const response = await axios.get(url, {
+      const response = await axiosInstance.get(url, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -80,8 +79,8 @@ export const addCommentPost = createAsyncThunk(
   async ({ postId, content, userId }, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post(
-        "https://localhost:7053/api/Comment/CommentPost",
+      const response = await axiosInstance.post(
+        "/api/Comment/CommentPost",
         {
           postId: postId,
           content: content,
@@ -109,8 +108,8 @@ export const likeComment = createAsyncThunk(
   async (commentId, { rejectWithValue }) => {
     const token = localStorage.getItem("token");
     try {
-      const response = await axios.post(
-        `https://localhost:7053/api/CommentLike/like/${commentId}`,
+      const response = await axiosInstance.post(
+        `/api/CommentLike/like/${commentId}`,
         {},
         {
           headers: {
@@ -133,8 +132,8 @@ export const createPost = createAsyncThunk(
     const toastId = toast.loading("Đang đăng bài...");
 
     try {
-      const response = await axios.post(
-        "https://localhost:7053/api/Post/create",
+      const response = await axiosInstance.post(
+        "/api/Post/create",
         formData,
         {
           headers: {
@@ -198,8 +197,8 @@ export const updatePost = createAsyncThunk(
         console.log(pair[0], pair[1]); // In key và value của FormData
       }
 
-      const response = await axios.patch(
-        "https://localhost:7053/api/Post/update-post",
+      const response = await axiosInstance.patch(
+        "/api/Post/update-post",
         formData,
         {
           headers: {
@@ -234,8 +233,8 @@ export const deletePost = createAsyncThunk(
     // console.log("postID nhận được:", postID, "Loại:", typeof postID);
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.delete(
-        `https://localhost:7053/api/Post/delete?PostId=${postID}`,
+      const response = await axiosInstance.delete(
+        `/api/Post/delete?PostId=${postID}`,
         {
           headers: {
             Authorization: `Bearer ${token}`, // Gửi token trong header
@@ -256,8 +255,8 @@ export const getReplyComment = createAsyncThunk(
   async (commentId, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `https://localhost:7053/api/Comment/replies?ParentCommentId=${commentId}`,
+      const response = await axiosInstance.get(
+        `/api/Comment/replies?ParentCommentId=${commentId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`, // Gửi token trong header
@@ -278,8 +277,8 @@ export const deleteComments = createAsyncThunk(
   async ({ postId, commentId }, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.patch(
-        `https://localhost:7053/api/Comment/DeleteComment/${commentId}`,
+      const response = await axiosInstance.patch(
+        `/api/Comment/DeleteComment/${commentId}`,
         {},
         {
           headers: {
@@ -304,8 +303,8 @@ export const replyComments = createAsyncThunk(
     // console.log("Id content>>", parentId);
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post(
-        "https://localhost:7053/api/Comment/ReplyComment",
+      const response = await axiosInstance.post(
+        "/api/Comment/ReplyComment",
         {
           postId: postId,
           parentCommentId: parentId,
@@ -331,15 +330,18 @@ export const replyComments = createAsyncThunk(
 //listpostaction
 export const sharePost = createAsyncThunk(
   "post/sharePost",
-
-  async ({ postId, content }, { rejectWithValue }) => {
-    console.log("sharePost action started", { postId, content }); // Thêm dòng này
+  async (
+    { postId, content, fullName, profilePicture },
+    { rejectWithValue }
+  ) => {
+    const toastId = toast.loading("Đang chia sẻ bài viết...");
     try {
       const token = localStorage.getItem("token");
       // if (!token) throw new Error('Vui lòng đăng nhập');
 
-      const response = await axios.post(
-        "https://localhost:7053/api/Share/SharePost",
+      const response = await axiosInstance.post(
+        "/api/Share/SharePost",
+
         { postId, content },
         {
           headers: {
@@ -352,34 +354,49 @@ export const sharePost = createAsyncThunk(
       if (!response.data.success) {
         throw new Error(response.data.message || "Chia sẻ thất bại");
       }
-      console.log("chia se");
-      // Format dữ liệu theo chuẩn BE trả về
-      const formatSharedPost = (apiData) => ({
-        id: apiData.id,
-        userId: apiData.userId,
-        fullName: apiData.fullName,
-        profilePicture: apiData.profilePicture,
-        content: apiData.content,
-        createdAt: apiData.createdAt,
-        isSharedPost: true,
-        originalPost: {
-          postId: apiData.originalPostId,
-          content: apiData.originalPost.content,
-          author: apiData.originalPost.author,
-          createAt: apiData.originalPost.createAt,
-        },
-        stats: {
-          likes: 0,
-          comments: 0,
-          shares: 0,
-        },
+
+      toast.update(toastId, {
+        render: response.data.message || "Chia sẻ bài viết thành công!",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
       });
 
-      toast.success(response.data.message);
-      return formatSharedPost(response.data.data);
+      const apiData = response.data.data;
+
+      return {
+        id: apiData.id,
+        userId: apiData.userId,
+        fullName: fullName || apiData.fullName,
+        profilePicture: profilePicture || apiData.profilePicture,
+        content: apiData.content,
+        imageUrl: apiData.imageUrl || null,
+        videoUrl: apiData.videoUrl || null,
+        createdAt: apiData.createdAt,
+        updateAt: null,
+        commentCount: 0,
+        likeCount: 0,
+        shareCount: 0,
+        hasLiked: false,
+        isSharedPost: true,
+        postType: 1,
+        originalPost: {
+          postId: apiData.originalPost.postId,
+          content: apiData.originalPost.content,
+          author: apiData.originalPost.author.userName,
+          createAt: apiData.originalPost.createAt,
+          imageUrl: apiData.originalPost.imageUrl || null,
+          videoUrl: apiData.originalPost.videoUrl || null,
+        },
+      };
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message;
-      toast.error(errorMsg);
+      toast.update(toastId, {
+        render: errorMsg || "Chia sẻ bài viết thất bại!",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
       return rejectWithValue({
         message: errorMsg,
         code: error.response?.status,
@@ -395,10 +412,10 @@ export const fetchPostsByOwner = createAsyncThunk(
     try {
       const tokens = localStorage.getItem("token");
       const url = lastPostId
-        ? `https://localhost:7053/api/Post/GetPostsByOwner?lastPostId=${lastPostId}`
-        : "https://localhost:7053/api/Post/GetPostsByOwner";
+        ? `/api/Post/GetPostsByOwner?lastPostId=${lastPostId}`
+        : "/api/Post/GetPostsByOwner";
 
-      const response = await axios.get(url, {
+      const response = await axiosInstance.get(url, {
         headers: { Authorization: `Bearer ${tokens}` },
       });
       // Handle case when no more posts are available
@@ -426,10 +443,10 @@ export const fetchPostsByOtherUser = createAsyncThunk(
     try {
       const tokens = localStorage.getItem("token");
       const url = lastPostId
-        ? `https://localhost:7053/api/Post/GetPostsByOwnerFriend?userId=${userId}&lastPostId=${lastPostId}`
-        : `https://localhost:7053/api/Post/GetPostsByOwnerFriend?userId=${userId}`;
+        ? `/api/Post/GetPostsByOwnerFriend?userId=${userId}&lastPostId=${lastPostId}`
+        : `/api/Post/GetPostsByOwnerFriend?userId=${userId}`;
 
-      const response = await axios.get(url, {
+      const response = await axiosInstance.get(url, {
         headers: { Authorization: `Bearer ${tokens}` },
       });
 
@@ -456,8 +473,8 @@ export const updateComment = createAsyncThunk(
   async ({ postId, commentId, content }, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.patch(
-        "https://localhost:7053/api/Comment/UpdateComment",
+      const response = await axiosInstance.patch(
+        "/api/Comment/UpdateComment",
         {
           PostId: postId,
           CommentId: commentId,

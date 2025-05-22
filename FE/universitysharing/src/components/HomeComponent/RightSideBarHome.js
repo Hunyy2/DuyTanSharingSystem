@@ -25,11 +25,11 @@ const RightSidebar = () => {
 
   const [openChats, setOpenChats] = useState([]);
   const [activeFriend, setActiveFriendLocal] = useState(null);
+  const [searchQuery, setSearchQuery] = useState(""); // Thêm state cho từ khóa tìm kiếm
 
   useEffect(() => {
     dispatch(fetchFriends());
 
-    // Đăng ký sự kiện từ SignalR
     signalRService.onUserOnline((userId) => {
       console.log("Nhận sự kiện userOnline:", userId);
       dispatch(updateOnlineStatus(userId, true));
@@ -42,10 +42,11 @@ const RightSidebar = () => {
 
     signalRService.onInitialOnlineUsers((onlineUsers) => {
       console.log("Nhận initialOnlineUsers:", onlineUsers);
-      onlineUsers.forEach((userId) => dispatch(updateOnlineStatus(userId, true)));
+      onlineUsers.forEach((userId) =>
+        dispatch(updateOnlineStatus(userId, true))
+      );
     });
 
-    // Cleanup khi component unmount
     return () => {
       signalRService.off("userOnline", signalRService.chatConnection);
       signalRService.off("userOffline", signalRService.chatConnection);
@@ -105,6 +106,18 @@ const RightSidebar = () => {
     });
   }, [friends, onlineStatus]);
 
+  // Lọc danh sách bạn bè theo searchQuery
+  const filteredFriends = useMemo(() => {
+    return sortedFriends.filter((friend) =>
+      friend.fullName.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [sortedFriends, searchQuery]);
+
+  // Xử lý thay đổi giá trị tìm kiếm
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
   if (friendsLoading || onlineLoading) {
     return (
       <aside className="right-sidebar">
@@ -128,7 +141,12 @@ const RightSidebar = () => {
           <h3>Bạn Bè</h3>
           <div className="search-box">
             <FiSearch className="search-icon" />
-            <input type="text" placeholder="Tìm kiếm bạn bè..." />
+            <input
+              type="text"
+              placeholder="Tìm kiếm bạn bè..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
           </div>
         </div>
         {onlineError && (
@@ -138,7 +156,7 @@ const RightSidebar = () => {
         )}
         <div className="friends-list">
           <ul>
-            {sortedFriends.map((friend) => {
+            {filteredFriends.map((friend) => {
               const isOnline = onlineStatus[friend.friendId] ?? false;
               return (
                 <li
@@ -172,7 +190,7 @@ const RightSidebar = () => {
                 </li>
               );
             })}
-            {sortedFriends.length === 0 && (
+            {filteredFriends.length === 0 && (
               <div className="loading-error">Không tìm thấy bạn bè.</div>
             )}
           </ul>

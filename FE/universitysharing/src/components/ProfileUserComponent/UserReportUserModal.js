@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { toast } from "react-toastify";
 import "../../styles/ProfileUserView/UserReportUserModal.scss";
 
@@ -28,7 +28,7 @@ const UserReportUserModal = ({ isOpen, onClose, reportedUserId }) => {
     setIsSubmitting(true);
     try {
       const response = await fetch(
-        "https://localhost:7053/api/UserProfile/user-report-user",
+        "https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net/api/UserProfile/user-report-user",
         {
           method: "POST",
           headers: {

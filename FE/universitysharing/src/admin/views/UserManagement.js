@@ -12,84 +12,47 @@ import {
 } from "react-icons/fa";
 import { message } from "antd";
 import BlockUserModal from "../components/UserManager/BlockUserModal";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchUsers,
+  blockUser,
+  suspendUser,
+  activateUser,
+} from "../../stores/action/adminActions";
 
 const UserManagement = () => {
-  const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showPhoneNumbers, setShowPhoneNumbers] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [blockModalVisible, setBlockModalVisible] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
-  const [modalAction, setModalAction] = useState(null); // "block" hoặc "suspend"
-  const [modalTitle, setModalTitle] = useState(""); // Tiêu đề modal
+  const [modalAction, setModalAction] = useState(null);
+  const [modalTitle, setModalTitle] = useState("");
 
-  // Lấy danh sách người dùng từ API
+  const dispatch = useDispatch();
+  const { users, loading, error } = useSelector(
+    (state) => state.reportAdmintSlice
+  );
+
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem("token"); // Lấy token từ localStorage
-        if (!token) {
-          throw new Error("No auth token found");
-        }
-        const response = await fetch(
-          `https://localhost:7053/api/Admin/GetallUser`, // Thêm dấu phẩy
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        const result = await response.json();
+    dispatch(fetchUsers());
+  }, [dispatch]);
 
-        if (result.success && result.data) {
-          const mappedUsers = result.data.map((user) => ({
-            id: user.id,
-            fullName: user.fullName,
-            email: user.email,
-            createdAt: user.createdAt,
-            isVerifiedEmail: user.isVerifiedEmail,
-            trustScore: user.trustScore,
-            role: user.role === 0 ? "User" : "Admin",
-            phone: user.phone || "N/A",
-            relativePhone: user.relativePhone || "N/A",
-            status: user.status,
-            totalReports: user.totalReports,
-            lastLoginDate: user.lastActive,
-          }));
-          setUsers(mappedUsers);
-        } else {
-          setError("Không thể tải danh sách người dùng.");
-        }
-      } catch (err) {
-        setError("Đã xảy ra lỗi khi lấy danh sách người dùng.");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, []);
-
-  // Tự động xóa thông báo lỗi sau 5 giây
   useEffect(() => {
     if (error) {
-      const timer = setTimeout(() => setError(null), 5000);
+      const timer = setTimeout(
+        () => dispatch({ type: "reportAdmintSlice/clearReportState" }),
+        5000
+      );
       return () => clearTimeout(timer);
     }
-  }, [error]);
+  }, [error, dispatch]);
 
-  // Lọc người dùng dựa trên từ khóa tìm kiếm
   const filteredUsers = users.filter(
     (user) =>
       user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Mở modal cho hành động chặn hoặc tạm ngưng
   const showBlockModal = (id, action) => {
     console.log(`Opening modal for action: ${action}, user ID: ${id}`);
     setSelectedUserId(id);
@@ -102,136 +65,48 @@ const UserManagement = () => {
     setBlockModalVisible(true);
   };
 
-  // Xử lý xác nhận chặn hoặc tạm ngưng
   const handleModalConfirm = async (untilISO) => {
     if (!untilISO) {
-      setError("Vui lòng chọn thời gian hết hạn.");
+      dispatch({ type: "reportAdmintSlice/clearReportState" });
+      message.error("Vui lòng chọn thời gian hết hạn.");
       return;
     }
 
     try {
-      const endpoint =
-        modalAction === "block"
-          ? `https://localhost:7053/api/Admin/${selectedUserId}/block?blockUntil=${encodeURIComponent(
-              untilISO
-            )}`
-          : `https://localhost:7053/api/Admin/${selectedUserId}/suspend?suspendUntil=${encodeURIComponent(
-              untilISO
-            )}`;
-
-      console.log(`Sending ${modalAction} request to: ${endpoint}`);
-
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-        },
-      });
-
-      console.log(`Response status: ${response.status}`);
-
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
-      }
-
-      const result = await response.json();
-
-      if (result.success) {
-        setUsers(
-          users.map((user) =>
-            user.id === selectedUserId
-              ? {
-                  ...user,
-                  status: modalAction === "block" ? "Blocked" : "Suspended",
-                  [modalAction === "block" ? "blockedUntil" : "suspendedUntil"]:
-                    untilISO,
-                }
-              : user
-          )
-        );
-        setBlockModalVisible(false);
-        setSelectedUserId(null);
-        setModalAction(null);
-        message.success(
-          modalAction === "block"
-            ? "Chặn người dùng thành công!"
-            : "Tạm ngưng người dùng thành công!"
-        );
+      if (modalAction === "block") {
+        await dispatch(
+          blockUser({ userId: selectedUserId, untilISO })
+        ).unwrap();
+        message.success("Chặn người dùng thành công!");
       } else {
-        setError(
-          `Không thể ${
-            modalAction === "block" ? "chặn" : "tạm ngưng"
-          } người dùng: ${result.message || "Lỗi không xác định"}`
-        );
+        await dispatch(
+          suspendUser({ userId: selectedUserId, untilISO })
+        ).unwrap();
+        message.success("Tạm ngưng người dùng thành công!");
       }
+      setBlockModalVisible(false);
+      setSelectedUserId(null);
+      setModalAction(null);
     } catch (err) {
-      setError(
-        `Đã xảy ra lỗi khi ${
-          modalAction === "block" ? "chặn" : "tạm ngưng"
-        } người dùng: ${err.message}`
-      );
-      console.error("Error details:", err);
+      message.error(err.message || "Đã xảy ra lỗi!");
     }
   };
 
-  // Xử lý kích hoạt (unblock) người dùng
   const handleActivate = async (id) => {
     try {
-      const endpoint = `https://localhost:7053/api/Admin/${id}/unblock`;
-      console.log(`Sending unblock request to: ${endpoint}`);
-
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-        },
-      });
-
-      console.log(`Unblock response status: ${response.status}`);
-
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
-      }
-
-      const result = await response.json();
-
-      if (result.success) {
-        setUsers(
-          users.map((user) =>
-            user.id === id
-              ? {
-                  ...user,
-                  status: "Active",
-                  blockedUntil: null,
-                  suspendedUntil: null,
-                }
-              : user
-          )
-        );
-        message.success("Kích hoạt người dùng thành công!");
-      } else {
-        setError(
-          `Không thể kích hoạt người dùng: ${
-            result.message || "Lỗi không xác định"
-          }`
-        );
-      }
+      await dispatch(activateUser(id)).unwrap();
+      message.success("Kích hoạt người dùng thành công!");
     } catch (err) {
-      setError(`Đã xảy ra lỗi khi kích hoạt người dùng: ${err.message}`);
-      console.error("Unblock error details:", err);
+      message.error(err.message || "Đã xảy ra lỗi!");
     }
   };
 
-  // Đóng modal
   const handleModalCancel = () => {
     setBlockModalVisible(false);
     setSelectedUserId(null);
     setModalAction(null);
   };
 
-  // Ẩn/hiện số điện thoại
   const togglePhoneVisibility = (id, type) => {
     setShowPhoneNumbers((prev) => ({
       ...prev,
@@ -239,7 +114,6 @@ const UserManagement = () => {
     }));
   };
 
-  // Che số điện thoại, chỉ hiển thị 3 số cuối
   const maskPhoneNumber = (phone, id, type) => {
     if (!phone || phone === "N/A") return "N/A";
     if (showPhoneNumbers[`${id}-${type}`]) return phone;
@@ -252,13 +126,10 @@ const UserManagement = () => {
       <AppSidebar />
       <h1>Quản lý người dùng</h1>
 
-      {/* Thông báo lỗi */}
       {error && <div className="error-message">{error}</div>}
 
-      {/* Trạng thái tải */}
       {loading && <div className="loading">Đang tải dữ liệu...</div>}
 
-      {/* Thanh tìm kiếm */}
       {!loading && (
         <div className="search-bar">
           <FaSearch className="search-icon" />
@@ -271,7 +142,6 @@ const UserManagement = () => {
         </div>
       )}
 
-      {/* Modal chọn thời gian */}
       <BlockUserModal
         visible={blockModalVisible}
         onConfirm={handleModalConfirm}
@@ -280,7 +150,6 @@ const UserManagement = () => {
         title={modalTitle}
       />
 
-      {/* Bảng người dùng */}
       {!loading && (
         <div className="users-table">
           <table>

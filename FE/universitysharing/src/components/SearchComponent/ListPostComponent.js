@@ -45,7 +45,6 @@ const ListPost = ({ posts = [], usersProfile }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-
   const {
     selectedPost,
     isShareModalOpen,
@@ -151,6 +150,14 @@ const ListPost = ({ posts = [], usersProfile }) => {
     return className;
   };
 
+  const navigateUser = (userId) => {
+    if (userId === getUserIdFromToken()) {
+      navigate("/ProfileUserView");
+    } else {
+      navigate(`/profile/${userId}`);
+    }
+  };
+
   const renderMediaItems = (post) => {
     const imageUrls = post.imageUrl ? post.imageUrl.split(",") : [];
     const hasVideo = !!post.videoUrl;
@@ -235,7 +242,9 @@ const ListPost = ({ posts = [], usersProfile }) => {
                     alt="Avatar"
                   />
                   <div className="user-info">
-                    <strong>{post.fullName}</strong>
+                    <strong onClick={() => navigateUser(post.userId)}>
+                      {post.fullName}
+                    </strong>
                     <span className="timePost">
                       <FiClock size={12} style={{ marginRight: 4 }} />
                       {formatDistanceToNow(convertUTCToVNTime(post.createdAt), {

@@ -15,7 +15,7 @@ namespace Infrastructure.Data.Repositories
         public async Task<List<User>> GetAllUsersAsync()
         {
             return await _context.Users
-                //.Where(u => u.IsVerifiedEmail)
+                .Where(u => u.Role == RoleEnum.User)
                 .ToListAsync();
         }
      
@@ -39,6 +39,10 @@ namespace Infrastructure.Data.Repositories
         public async Task<User?> GetUserByIdAsync(Guid userId)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        }
+        public async Task<User?> GetByEmailAsync(string email)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
         public async Task<List<User>> SearchUsersAsync(string keyword)
@@ -112,6 +116,72 @@ namespace Infrastructure.Data.Repositories
         {
             return await _context.Users
                 .FirstOrDefaultAsync(u => u.Id == adminId && u.Role == RoleEnum.Admin);
+        }
+
+        public async Task<IEnumerable<(DateTime Date, int Count)>> GetUserTrendAsync(string timeRange)
+        {
+            var users = await _context.Users
+         .Select(u => new { u.CreatedAt })
+         .ToListAsync();
+
+            var groupedData = timeRange switch
+            {
+                "day" => users
+                    .GroupBy(u => u.CreatedAt.Date)
+                    .Select(g => new { Date = g.Key, Count = g.Count() }),
+                "week" => users
+                    .GroupBy(u => new { u.CreatedAt.Year, Week = GetIsoWeekOfYear(u.CreatedAt) })
+                    .Select(g => new { Date = GetFirstDayOfWeek(g.Key.Year, g.Key.Week), Count = g.Count() }),
+                _ => users
+                    .GroupBy(u => new { u.CreatedAt.Year, u.CreatedAt.Month })
+                    .Select(g => new { Date = new DateTime(g.Key.Year, g.Key.Month, 1), Count = g.Count() }),
+            };
+
+            var result = groupedData
+                .OrderBy(g => g.Date)
+                .Select(g => (g.Date, g.Count))
+                .ToList();
+
+            return result;
+        }
+
+        public async Task<IEnumerable<(string TrustCategory, int Count)>> GetUserTrustDistributionAsync()
+        {
+            var users = await _context.Users
+                 .Where(u => u.Role == RoleEnum.User)
+                 .Select(u => new { u.TrustScore })
+                 .ToListAsync();
+
+            var trustedCount = users.Count(u => u.TrustScore >= 50);
+            var untrustedCount = users.Count(u => u.TrustScore < 50);
+
+            var result = new List<(string TrustCategory, int Count)>
+            {
+                ("Người dùng uy tín", trustedCount),
+                ("Người dùng chưa uy tín", untrustedCount)
+            };
+
+            return result;
+        }
+        private int GetIsoWeekOfYear(DateTime date)
+        {
+            var dayOfWeek = (int)date.DayOfWeek;
+            var firstDayOfYear = new DateTime(date.Year, 1, 1);
+            var daysOffset = DayOfWeek.Thursday - firstDayOfYear.DayOfWeek;
+
+            var firstThursday = firstDayOfYear.AddDays(daysOffset);
+            var calendarWeek = (int)Math.Floor((date - firstThursday).TotalDays / 7) + 1;
+            return calendarWeek;
+        }
+
+        private DateTime GetFirstDayOfWeek(int year, int weekOfYear)
+        {
+            var jan1 = new DateTime(year, 1, 1);
+            var daysOffset = DayOfWeek.Thursday - jan1.DayOfWeek;
+
+            var firstThursday = jan1.AddDays(daysOffset);
+            var firstDayOfWeek = firstThursday.AddDays((weekOfYear - 1) * 7);
+            return firstDayOfWeek;
         }
     }
 }

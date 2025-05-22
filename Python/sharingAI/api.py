@@ -4,6 +4,7 @@ from decimal import Decimal
 import decimal
 import json
 import logging
+import os
 import re
 import uuid
 from fastapi import FastAPI, HTTPException, Depends, Header
@@ -20,18 +21,14 @@ from redis import asyncio as aioredis
 from data_loader import DataLoader
 from vector_store import VectorStore
 from answer_generator import AnswerGenerator
-from config import SQL_SERVER_CONNECTION, JWT_SECRET_KEY, GOOGLE_API_KEY_LLM
+from config import SQL_SERVER_CONNECTION, JWT_SECRET_KEY, GOOGLE_API_KEY_LLM, REDIS_HOST
 from typing import AsyncIterator, List, Dict, Optional
 from langchain_google_genai import ChatGoogleGenerativeAI
 from create_service import CreateQueryProcessor
 from update_service import UpdateQueryProcessor
 from delete_service import DeleteQueryProcessor
 from public_service import PublicQueryProcessor
-from state_manager import (
-    load_conversation_state,
-    update_state_after_intent_analysis,
-    save_conversation_state,
-)
+
 
 redis = None
 logging.basicConfig(
@@ -140,10 +137,15 @@ async def lifespan(app: FastAPI):
         update_service = UpdateQueryProcessor()
         delete_service = DeleteQueryProcessor()
         public_service = PublicQueryProcessor()
+        # redis = aioredis.from_url(
+        #     "redis://localhost", decode_responses=False
+        # )  # hoặc True nếu muốn auto decode bytes
         redis = aioredis.from_url(
-            "redis://localhost", decode_responses=False
-        )  # hoặc True nếu muốn auto decode bytes
-
+            f"rediss://{os.getenv('REDIS_HOST')}",
+            password=os.getenv("REDIS_PASSWORD"),
+            ssl=True,
+            decode_responses=False,
+        )
         logger.info("Initialized DataLoader, VectorStore")
     except Exception as e:
         logger.error(f"Lifespan error: {str(e)}", exc_info=True)

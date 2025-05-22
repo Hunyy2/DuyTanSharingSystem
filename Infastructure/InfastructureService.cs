@@ -9,9 +9,17 @@ namespace Infrastructure
         public static IServiceCollection AddInfastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
             // Đăng ký DbContext với SQL Server
+            var defaultConnectionString = configuration.GetConnectionString("DefaultConnection");
+
+            Console.WriteLine($"DEBUG: Attempting to use Connection String: '{defaultConnectionString ?? "NULL or NOT FOUND"}'");
+            if (string.IsNullOrWhiteSpace(defaultConnectionString))
+            {
+                // Ném ngoại lệ nếu chuỗi kết nối trống rỗng
+                throw new Exception("⚠️ DefaultConnection string không được để trống! Kiểm tra App Settings hoặc appsettings.json.");
+            }
             services.AddDbContext<AppDbContext>(options =>
             {
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+                options.UseSqlServer(defaultConnectionString);
             });
             // Đăng ký Redis ConnectionMultiplexer
             services.AddSingleton<IConnectionMultiplexer>(

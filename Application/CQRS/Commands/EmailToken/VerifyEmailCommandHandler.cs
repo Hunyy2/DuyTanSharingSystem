@@ -1,11 +1,4 @@
-﻿using Domain.Interface;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Application.CQRS.Commands.EmailToken
+﻿namespace Application.CQRS.Commands.EmailToken
 {
     public class VerifyEmailCommandHandler : IRequestHandler<VerifyEmailCommand, ResponseModel<bool>>
     {
@@ -24,12 +17,24 @@ namespace Application.CQRS.Commands.EmailToken
             {
                 // 🔍 Kiểm tra token có hợp lệ không
                 var emailToken = await _unitOfWork.EmailTokenRepository.GetByTokenAsync(request.Token);
-                if (emailToken == null || emailToken.IsUsed || emailToken.ExpiryDate < DateTime.UtcNow)
+                if (emailToken == null)
                 {
                     await _unitOfWork.RollbackTransactionAsync();
-                    return ResponseFactory.Fail<bool>("Invalid token",400);
+                    return ResponseFactory.Fail<bool>("Invalid token", 400);
+                }
+                // 🔎 Check if token is already used
+                if (emailToken.IsUsed)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    return ResponseFactory.Fail<bool>("This email verification token has already been used.", 400);
                 }
 
+                // ⏰ Check if token is expired
+                if (emailToken.ExpiryDate < DateTime.UtcNow)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    return ResponseFactory.Fail<bool>("The verification token has expired. Please request a new verification email.", 400);
+                }
                 // 📌 Xác minh thành công -> Cập nhật trạng thái user
                 var user = await _unitOfWork.UserRepository.GetByIdAsync(emailToken.UserId);
                 if (user == null)
@@ -49,8 +54,7 @@ namespace Application.CQRS.Commands.EmailToken
                 }
 
                 user.VerifyEmail(); // 🛠 Cập nhật trạng thái đã xác minh
-                emailToken.MarkAsUsed(); // 🔄 Đánh dấu token đã sử dụng
-                emailToken.IsUsedToken(); // 🔄 Đánh dấu token đã sử dụng
+                emailToken.MarkAsUsed(); // 🔄 Đánh dấu token đã sử dụng 
                 // ❌ Xóa token sau khi xác minh thành công
                 await _unitOfWork.EmailTokenRepository.DeleteAsync(emailToken.Id);
                 await _unitOfWork.SaveChangesAsync();
