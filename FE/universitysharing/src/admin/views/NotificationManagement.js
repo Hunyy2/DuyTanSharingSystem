@@ -87,17 +87,7 @@ const NotificationAdmin = () => {
     <Layout style={{ minHeight: "100vh" }}>
       <AppSidebar />
       <Layout>
-        <Header
-          style={{
-            background: "#fff",
-            padding: "0 24px",
-            borderBottom: "1px solid #f0f0f0",
-            height: 64,
-            lineHeight: "64px",
-          }}
-        >
-          <AppHeader />
-        </Header>
+        <AppHeader />
         <Content
           style={{
             margin: "24px 16px",

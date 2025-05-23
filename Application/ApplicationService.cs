@@ -17,13 +17,13 @@ namespace Application
             services.AddScoped<ICommentLikeService, CommentLikeService>();
 
             //services.AddScoped<IPostService, PostService>();
-            //services.AddHostedService<LikeEventProcessor>();
+            services.AddHostedService<LikeEventProcessor>();
 
             services.AddScoped<MLService>();
             services.AddScoped<IRidePostService, RidePostService>();
             services.AddScoped<IRedisService, RedisService>();
             services.AddScoped<IPostService, PostService>();
-            services.AddScoped<IDasbroadAdminService, DasbroadAdminService>();
+            services.AddScoped<IDashboardAdminService, DashboardAdminService>();
             services.AddScoped<IRideReportService, RideReportService>();
 
             services.AddScoped<ITrustScoreService, TrustScoreService>();

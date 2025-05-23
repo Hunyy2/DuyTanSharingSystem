@@ -1,28 +1,32 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import {
   removeFriend,
   fetchListFriend,
 } from "../../stores/action/friendAction";
 import "../../styles/FriendViews/FriendViewComponent.scss";
+import "../../styles/FriendViews/SearchBox.scss";
 import AvatarDefault from "../../assets/AvatarDefaultFill.png";
 import { toast } from "react-toastify";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
 import { useNavigate } from "react-router-dom";
 import getUserIdFromToken from "../../utils/JwtDecode";
+import { FiSearch } from "react-icons/fi";
 
 const Friendly = ({ friends, onLoadMore, hasMore, loading, error }) => {
   const dispatch = useDispatch();
-  const [localFriends, setLocalFriends] = useState(friends); // Local state for immediate UI updates
-  const [isRemoving, setIsRemoving] = useState({}); // Track removing state per friend
+  const [localFriends, setLocalFriends] = useState(friends);
+  const [isRemoving, setIsRemoving] = useState({});
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Sync localFriends with props.friends when it changes
-  React.useEffect(() => {
+  useEffect(() => {
     setLocalFriends(friends);
   }, [friends]);
+
   const navigate = useNavigate();
   const userId = getUserIdFromToken();
+
   const navigateUser = (userId) => {
     if (userId === getUserIdFromToken()) {
       navigate("/ProfileUserView");
@@ -32,7 +36,7 @@ const Friendly = ({ friends, onLoadMore, hasMore, loading, error }) => {
   };
 
   const handleRemove = (friendId, fullName) => {
-    if (isRemoving[friendId]) return; // Prevent multiple clicks
+    if (isRemoving[friendId]) return;
 
     confirmAlert({
       title: "Xác nhận hủy kết bạn",
@@ -43,10 +47,8 @@ const Friendly = ({ friends, onLoadMore, hasMore, loading, error }) => {
           onClick: async () => {
             setIsRemoving((prev) => ({ ...prev, [friendId]: true }));
             try {
-              // Dispatch removeFriend action
               const result = await dispatch(removeFriend(friendId)).unwrap();
 
-              // Show success toast
               toast.success("Đã hủy kết bạn thành công", {
                 position: "top-right",
                 autoClose: 3000,
@@ -56,17 +58,14 @@ const Friendly = ({ friends, onLoadMore, hasMore, loading, error }) => {
                 draggable: true,
               });
 
-              // Update UI immediately by removing the friend from local state
               setLocalFriends((prev) =>
                 prev.filter((friend) => friend.friendId !== friendId)
               );
 
-              // Fetch updated friend list in the background
               dispatch(fetchListFriend()).catch((error) => {
                 console.error("Failed to fetch updated friend list:", error);
               });
             } catch (error) {
-              // Show error toast
               toast.error(error.message || "Hủy kết bạn thất bại", {
                 position: "top-right",
                 autoClose: 3000,
@@ -75,8 +74,6 @@ const Friendly = ({ friends, onLoadMore, hasMore, loading, error }) => {
                 pauseOnHover: true,
                 draggable: true,
               });
-
-              // Optional: Revert UI if needed (not implemented here)
             } finally {
               setIsRemoving((prev) => ({ ...prev, [friendId]: false }));
             }
@@ -84,7 +81,7 @@ const Friendly = ({ friends, onLoadMore, hasMore, loading, error }) => {
         },
         {
           label: "Hủy",
-          onClick: () => {}, // Do nothing
+          onClick: () => {},
         },
       ],
       closeOnEscape: true,
@@ -92,21 +89,42 @@ const Friendly = ({ friends, onLoadMore, hasMore, loading, error }) => {
     });
   };
 
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const filteredFriends = localFriends.filter((friend) =>
+    friend.fullName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="friend-request-container">
       <h3 className="friend-request-title">Bạn bè</h3>
+      <div className="search-box-friend">
+        <FiSearch className="search-icon" />
+        <input
+          type="text"
+          placeholder="Tìm kiếm bạn bè theo tên..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+        />
+      </div>
 
       {error && <div className="error-message">Lỗi: {error}</div>}
-      {loading && localFriends.length === 0 && (
+      {loading && filteredFriends.length === 0 && (
         <div className="loading-message">Đang tải...</div>
       )}
-      {!loading && localFriends.length === 0 && !error && (
-        <div className="no-requests-message">Không có bạn bè nào</div>
+      {!loading && filteredFriends.length === 0 && !error && (
+        <div className="no-requests-message">
+          {searchQuery
+            ? "Không tìm thấy bạn bè nào khớp với từ khóa"
+            : "Không có bạn bè nào"}
+        </div>
       )}
 
-      {localFriends.length > 0 && (
+      {filteredFriends.length > 0 && (
         <div className="friend-request-grid">
-          {localFriends.map((friend, index) => (
+          {filteredFriends.map((friend, index) => (
             <div key={friend.friendId || index} className="friend-request-card">
               <div className="friend-info">
                 <div className="Avatar-Friend">
