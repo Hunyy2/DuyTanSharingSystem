@@ -173,7 +173,7 @@ export const confirmAction = createAsyncThunk(
         });
         formData.append('redis_key', redis_key);
         dataToSend = formData;
-        config.headers = { 'Content-Type': 'multipart/form-data' };
+        config.headers = { 'Content-Type': 'multipart/form-data','Authorization': `Bearer ${token}`, };
       } else if (method === 'delete' || (method === 'patch' && !endpoint.includes('/Post/update-post'))) {
         dataToSend = null;
         const queryParams = Object.entries(jsonParams).reduce((acc, [key, value]) => {
@@ -185,7 +185,7 @@ export const confirmAction = createAsyncThunk(
         config.params = { ...queryParams, redis_key };
       } else {
         dataToSend = jsonParams;
-        config.headers = { 'Content-Type': 'application/json' };
+        config.headers = { 'Content-Type': 'application/json','Authorization': `Bearer ${token}`, };
       }
 
       console.log('[confirmAction] Sending dataToSend:', JSON.stringify(dataToSend, null, 2));
