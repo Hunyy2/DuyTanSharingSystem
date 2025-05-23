@@ -72,32 +72,28 @@ const ConfirmationModal = ({ results, streamId, onConfirm, onEdit, onCancel, con
   const firstResult = results[0] || {};
   const { endpoint, params: rawParams, redis_key } = firstResult;
 
-  const [params, setParams] = useState(() => {
-    if (!rawParams) return [{}];
-    if (Array.isArray(rawParams)) {
-      if (rawParams.length === 0) return [{}];
-      return [
-        rawParams.reduce((acc, item) => {
-          if (item && typeof item === 'object') {
-            Object.entries(item).forEach(([key, value]) => {
-              acc[key] = value === 'null' || value === undefined ? null : value;
-            });
-          }
-          return acc;
-        }, {})
-      ];
-    }
-    if (typeof rawParams === 'object' && rawParams !== null) {
-      return [
-        Object.entries(rawParams).reduce((acc, [key, value]) => {
-          acc[key] = value === 'null' || value === undefined ? null : value;
-          return acc;
-        }, {})
-      ];
-    }
-    console.warn('Invalid rawParams format:', rawParams);
-    return [{}];
-  });
+ const [params, setParams] = useState(() => {
+  if (!rawParams) return [{}];
+  if (Array.isArray(rawParams)) {
+    if (rawParams.length === 0) return [{}];
+    return rawParams.map(item => ({
+      ...item,
+      ...Object.fromEntries(
+        Object.entries(item).map(([key, value]) => [key, value === 'null' || value === undefined ? null : value])
+      )
+    }));
+  }
+  if (typeof rawParams === 'object' && rawParams !== null) {
+    return [{
+      ...rawParams,
+      ...Object.fromEntries(
+        Object.entries(rawParams).map(([key, value]) => [key, value === 'null' || value === undefined ? null : value])
+      )
+    }];
+  }
+  console.warn('Invalid rawParams format:', rawParams);
+  return [{}];
+});
 
   const [newImages, setNewImages] = useState([]);
   const [newVideo, setNewVideo] = useState(null);
