@@ -70,30 +70,33 @@ const isSafeOptions = [
 
 const ConfirmationModal = ({ results, streamId, onConfirm, onEdit, onCancel, conversationId, isEditing }) => {
   const firstResult = results[0] || {};
-  const { endpoint, params: rawParams, redis_key } = firstResult;
+  const { endpoint: fullEndpoint, params: rawParams, redis_key } = firstResult; // Đổi tên 'endpoint' thành 'fullEndpoint'
+  
+  // Trích xuất phần đường dẫn từ URL đầy đủ của endpoint
+  const endpoint = new URL(fullEndpoint).pathname; 
 
- const [params, setParams] = useState(() => {
-  if (!rawParams) return [{}];
-  if (Array.isArray(rawParams)) {
-    if (rawParams.length === 0) return [{}];
-    return rawParams.map(item => ({
-      ...item,
-      ...Object.fromEntries(
-        Object.entries(item).map(([key, value]) => [key, value === 'null' || value === undefined ? null : value])
-      )
-    }));
-  }
-  if (typeof rawParams === 'object' && rawParams !== null) {
-    return [{
-      ...rawParams,
-      ...Object.fromEntries(
-        Object.entries(rawParams).map(([key, value]) => [key, value === 'null' || value === undefined ? null : value])
-      )
-    }];
-  }
-  console.warn('Invalid rawParams format:', rawParams);
-  return [{}];
-});
+  const [params, setParams] = useState(() => {
+    if (!rawParams) return [{}];
+    if (Array.isArray(rawParams)) {
+      if (rawParams.length === 0) return [{}];
+      return rawParams.map(item => ({
+        ...item,
+        ...Object.fromEntries(
+          Object.entries(item).map(([key, value]) => [key, value === 'null' || value === undefined ? null : value])
+        )
+      }));
+    }
+    if (typeof rawParams === 'object' && rawParams !== null) {
+      return [{
+        ...rawParams,
+        ...Object.fromEntries(
+          Object.entries(rawParams).map(([key, value]) => [key, value === 'null' || value === undefined ? null : value])
+        )
+      }];
+    }
+    console.warn('Invalid rawParams format:', rawParams);
+    return [{}];
+  });
 
   const [newImages, setNewImages] = useState([]);
   const [newVideo, setNewVideo] = useState(null);
@@ -101,7 +104,8 @@ const ConfirmationModal = ({ results, streamId, onConfirm, onEdit, onCancel, con
   const [newBackgroundImage, setNewBackgroundImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false); // Thêm trạng thái isLoading
 
-  const displayMap = paramDisplayMap[endpoint.replace('https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net', '')] || {};
+  // Sử dụng endpoint đã được xử lý
+  const displayMap = paramDisplayMap[endpoint] || {}; 
 
   const handleConfirm = async () => {
     setIsLoading(true); // Bật trạng thái loading
@@ -132,10 +136,9 @@ const ConfirmationModal = ({ results, streamId, onConfirm, onEdit, onCancel, con
     }
 
     console.log('[ConfirmationModal] Sending updatedParams:', JSON.stringify(updatedParams, null, 2));
-    await onConfirm(endpoint, updatedParams, redis_key, streamId, setIsLoading); // Truyền setIsLoading
+    await onConfirm(fullEndpoint, updatedParams, redis_key, streamId, setIsLoading); // Vẫn truyền fullEndpoint khi gửi đi
     // setIsLoading sẽ được tắt trong handleModalConfirm
   };
-
   const handleEdit = () => {
     if (!isLoading) onEdit(streamId); // Chỉ cho phép chỉnh sửa nếu không đang loading
   };
