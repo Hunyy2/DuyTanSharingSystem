@@ -137,53 +137,55 @@ const YourRide = () => {
     useSelector((state) => state.rides);
   // Lấy authData từ useAuth
   const { userId: authUserId, isAuthenticated, isLoading } = useAuth();
-const checkLocationPermission = (callback) => {
-  if (!navigator.geolocation) {
-    toast.error("Thiết bị không hỗ trợ định vị!", { toastId: "location-error" });
-    return callback(false);
-  }
-
-  navigator.permissions
-    .query({ name: "geolocation" })
-    .then((result) => {
-      if (result.state === "denied") {
-        toast.error(
-          "Vui lòng bật tính năng định vị trong trình duyệt để sử dụng chức năng này!",
-          { toastId: "location-denied" }
-        );
-        return callback(false);
-      } else if (result.state === "prompt") {
-        toast.info("Vui lòng cho phép truy cập vị trí khi được yêu cầu!", {
-          toastId: "location-prompt",
-        });
-        navigator.geolocation.getCurrentPosition(
-          () => {
-            callback(true); // Quyền được cấp
-          },
-          (err) => {
-            // Chỉ hiển thị lỗi nếu không phải lỗi người dùng hủy prompt
-            if (err.code !== err.PERMISSION_DENIED) {
-              toast.error(
-                `Không thể truy cập vị trí: ${err.message}. Vui lòng bật định vị!`,
-                { toastId: "location-error" }
-              );
-            }
-            callback(false);
-          }
-        );
-      } else {
-        callback(true); // Quyền đã được cấp
-      }
-    })
-    .catch((err) => {
-      console.error("Lỗi kiểm tra quyền định vị:", err);
-      toast.error("Không thể kiểm tra quyền định vị!", {
+  const checkLocationPermission = (callback) => {
+    if (!navigator.geolocation) {
+      toast.error("Thiết bị không hỗ trợ định vị!", {
         toastId: "location-error",
       });
-      callback(false);
-    });
-};
-useEffect(() => {
+      return callback(false);
+    }
+
+    navigator.permissions
+      .query({ name: "geolocation" })
+      .then((result) => {
+        if (result.state === "denied") {
+          toast.error(
+            "Vui lòng bật tính năng định vị trong trình duyệt để sử dụng chức năng này!",
+            { toastId: "location-denied" }
+          );
+          return callback(false);
+        } else if (result.state === "prompt") {
+          toast.info("Vui lòng cho phép truy cập vị trí khi được yêu cầu!", {
+            toastId: "location-prompt",
+          });
+          navigator.geolocation.getCurrentPosition(
+            () => {
+              callback(true); // Quyền được cấp
+            },
+            (err) => {
+              // Chỉ hiển thị lỗi nếu không phải lỗi người dùng hủy prompt
+              if (err.code !== err.PERMISSION_DENIED) {
+                toast.error(
+                  `Không thể truy cập vị trí: ${err.message}. Vui lòng bật định vị!`,
+                  { toastId: "location-error" }
+                );
+              }
+              callback(false);
+            }
+          );
+        } else {
+          callback(true); // Quyền đã được cấp
+        }
+      })
+      .catch((err) => {
+        console.error("Lỗi kiểm tra quyền định vị:", err);
+        toast.error("Không thể kiểm tra quyền định vị!", {
+          toastId: "location-error",
+        });
+        callback(false);
+      });
+  };
+  useEffect(() => {
     // Kiểm tra quyền vị trí khi component mount
     checkLocationPermission((hasPermission) => {
       if (hasPermission) {
@@ -268,7 +270,6 @@ useEffect(() => {
     }
   }, [currentPosition, isFollowing]);
 
-
   // Calculate distance between two points using Haversine formula (in km)
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371e3;
@@ -297,7 +298,7 @@ useEffect(() => {
       return `${lat}, ${lon}`;
     }
   };
-useEffect(() => {
+  useEffect(() => {
     // Kiểm tra trạng thái hoàn thành trong localStorage
     const rideCompleted = localStorage.getItem("rideCompleted");
     if (rideCompleted === "true") {
@@ -307,153 +308,161 @@ useEffect(() => {
     }
   }, []); // Chỉ chạy khi component mount
   // Send current location to server
-const sendLocationToServer = async (
-  rideId,
-  latitude,
-  longitude,
-  isNearDestination = false
-) => {
-  try {
-    const location = await getAddressFromCoordinates(latitude, longitude);
-    const cleanLocation = location.split(", ").slice(0, -2).join(", ");
-    const token = localStorage.getItem("token");
+  const sendLocationToServer = async (
+    rideId,
+    latitude,
+    longitude,
+    isNearDestination = false
+  ) => {
+    try {
+      const location = await getAddressFromCoordinates(latitude, longitude);
+      const cleanLocation = location.split(", ").slice(0, -2).join(", ");
+      const token = localStorage.getItem("token");
 
-    // Log giá trị isNearDestination trước khi gửi
-    console.log("[sendLocationToServer] isNearDestination:", isNearDestination);
+      // Log giá trị isNearDestination trước khi gửi
+      console.log(
+        "[sendLocationToServer] isNearDestination:",
+        isNearDestination
+      );
 
-    const payload = {
-      rideId,
-      latitude,
-      longitude,
-      isNearDestination,
-      location: cleanLocation,
-    };
-    console.log("[sendLocationToServer] Payload:", payload);
+      const payload = {
+        rideId,
+        latitude,
+        longitude,
+        isNearDestination,
+        location: cleanLocation,
+      };
+      console.log("[sendLocationToServer] Payload:", payload);
 
-    const response = await axios.post(
-      "https://localhost:7053/api/updatelocation/update",
-      payload,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+      const response = await axios.post(
+        "https://localhost:7053/api/updatelocation/update",
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    setLastSentPosition({ lat: latitude, lon: longitude });
+      setLastSentPosition({ lat: latitude, lon: longitude });
 
-    // Thêm vị trí hiện tại vào notifications
-    const newNotification = {
-      id: `location-${Date.now()}`,
-      message: `Bạn đã cập nhật vị trí tại: ${cleanLocation}`,
-      timestamp: new Date().toISOString(),
-      isNew: true,
-    };
-    setNotifications((prev) => [...prev, newNotification]);
+      // Thêm vị trí hiện tại vào notifications
+      const newNotification = {
+        id: `location-${Date.now()}`,
+        message: `Bạn đã cập nhật vị trí tại: ${cleanLocation}`,
+        timestamp: new Date().toISOString(),
+        isNew: true,
+      };
+      setNotifications((prev) => [...prev, newNotification]);
 
-    // Kiểm tra rideStatus từ server
-    const { rideStatus } = response.data?.data || {};
-    if (rideStatus === "Completed") {
-      console.log("[YourRide] Ride completed, setting localStorage...");
-      // Lưu trạng thái hoàn thành vào localStorage
-      localStorage.setItem("rideCompleted", "true");
-      window.location.reload();
+      // Kiểm tra rideStatus từ server
+      const { rideStatus } = response.data?.data || {};
+      if (rideStatus === "Completed") {
+        console.log("[YourRide] Ride completed, setting localStorage...");
+        // Lưu trạng thái hoàn thành vào localStorage
+        localStorage.setItem("rideCompleted", "true");
+        window.location.reload();
+      }
+
+      console.log(
+        `Location sent: ${latitude}, ${longitude} - Address: ${cleanLocation}`
+      );
+    } catch (error) {
+      console.error("Error sending location:", error);
     }
-
-    console.log(
-      `Location sent: ${latitude}, ${longitude} - Address: ${cleanLocation}`
-    );
-  } catch (error) {
-    console.error("Error sending location:", error);
-  }
-};
-
-  // Track current position using geolocation
-useEffect(() => {
-  if (!navigator.geolocation) {
-    console.error("Device does not support geolocation!");
-    return;
-  }
-
-  const handlePositionError = (err) => {
-    console.error(`Geolocation error: ${err.message}`);
   };
 
-  watchIdRef.current = navigator.geolocation.watchPosition(
-    ({ coords: { latitude, longitude } }) => {
-      const newPosition = { lat: latitude, lon: longitude };
-      // Chỉ cập nhật nếu vị trí thay đổi > 10m để tránh re-render quá nhiều
-      if (
-        !currentPosition ||
-        calculateDistance(
-          currentPosition.lat,
-          currentPosition.lon,
-          latitude,
-          longitude
-        ) > 0.01
-      ) {
-        setCurrentPosition(newPosition);
-        console.log(`New position received: ${latitude}, ${longitude}`);
+  // Track current position using geolocation
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      console.error("Device does not support geolocation!");
+      return;
+    }
+
+    const handlePositionError = (err) => {
+      console.error(`Geolocation error: ${err.message}`);
+    };
+
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      ({ coords: { latitude, longitude } }) => {
+        const newPosition = { lat: latitude, lon: longitude };
+        // Chỉ cập nhật nếu vị trí thay đổi > 10m để tránh re-render quá nhiều
         if (
-          !lastNotifiedPosition ||
+          !currentPosition ||
           calculateDistance(
-            lastNotifiedPosition.lat,
-            lastNotifiedPosition.lon,
+            currentPosition.lat,
+            currentPosition.lon,
             latitude,
             longitude
           ) > 0.01
         ) {
-          setLastNotifiedPosition(newPosition);
+          setCurrentPosition(newPosition);
+          console.log(`New position received: ${latitude}, ${longitude}`);
+          if (
+            !lastNotifiedPosition ||
+            calculateDistance(
+              lastNotifiedPosition.lat,
+              lastNotifiedPosition.lon,
+              latitude,
+              longitude
+            ) > 0.01
+          ) {
+            setLastNotifiedPosition(newPosition);
+          }
         }
-      }
-    },
-    handlePositionError,
-    { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
-  );
+      },
+      handlePositionError,
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+    );
 
-  return () => {
-    if (watchIdRef.current)
-      navigator.geolocation.clearWatch(watchIdRef.current);
-  };
-}, [currentPosition, lastNotifiedPosition]);
+    return () => {
+      if (watchIdRef.current)
+        navigator.geolocation.clearWatch(watchIdRef.current);
+    };
+  }, [currentPosition, lastNotifiedPosition]);
 
   // Periodically send location for current ride
-useEffect(() => {
-  const currentRide = getCurrentRide();
-  if (!currentPosition || !currentRide || !userId) return;
+  useEffect(() => {
+    const currentRide = getCurrentRide();
+    if (!currentPosition || !currentRide || !userId) return;
 
-  const rideId = currentRide.rideId;
-  const endLatLon = parseLatLon(currentRide.latLonEnd);
-  const { lat, lon } = currentPosition;
-  const isDriver = currentRide.driverId === userId;
+    const rideId = currentRide.rideId;
+    const endLatLon = parseLatLon(currentRide.latLonEnd);
+    const { lat, lon } = currentPosition;
+    const isDriver = currentRide.driverId === userId;
 
-  // Log tọa độ điểm đến để kiểm tra
-  console.log("[YourRide] endLatLon:", endLatLon);
+    // Log tọa độ điểm đến để kiểm tra
+    console.log("[YourRide] endLatLon:", endLatLon);
 
-  intervalRef.current = setInterval(() => {
-    // Kiểm tra khoảng cách với vị trí đã gửi trước đó
-    if (
-      lastSentPosition &&
-      calculateDistance(
-        lastSentPosition.lat,
-        lastSentPosition.lon,
-        lat,
-        lon
-      ) < 0.05 // 50m
-    ) {
-      console.log("Position unchanged (< 50m), skipping send...");
-      return;
-    }
+    intervalRef.current = setInterval(() => {
+      // Kiểm tra khoảng cách với vị trí đã gửi trước đó
+      if (
+        lastSentPosition &&
+        calculateDistance(
+          lastSentPosition.lat,
+          lastSentPosition.lon,
+          lat,
+          lon
+        ) < 0.05 // 50m
+      ) {
+        console.log("Position unchanged (< 50m), skipping send...");
+        return;
+      }
 
-    const distanceToEnd = endLatLon
-      ? calculateDistance(lat, lon, endLatLon[0], endLatLon[1])
-      : Infinity;
-    const isNearDestination = distanceToEnd <= 5;
-    console.log("[YourRide] distanceToEnd:", distanceToEnd, "isNearDestination:", isNearDestination);
+      const distanceToEnd = endLatLon
+        ? calculateDistance(lat, lon, endLatLon[0], endLatLon[1])
+        : Infinity;
+      const isNearDestination = distanceToEnd <= 1;
+      console.log(
+        "[YourRide] distanceToEnd:",
+        distanceToEnd,
+        "isNearDestination:",
+        isNearDestination
+      );
 
-    if (isDriver || currentRide.isSafetyTrackingEnabled) {
-      sendLocationToServer(rideId, lat, lon, isNearDestination);
-    }
-  }, 20000);
+      if (isDriver || currentRide.isSafetyTrackingEnabled) {
+        sendLocationToServer(rideId, lat, lon, isNearDestination);
+      }
+    }, 20000);
 
-  return () => clearInterval(intervalRef.current);
-}, [currentPosition, driverRides, passengerRides, lastSentPosition, userId]);
+    return () => clearInterval(intervalRef.current);
+  }, [currentPosition, driverRides, passengerRides, lastSentPosition, userId]);
 
   // Fetch route from GraphHopper API
   const fetchRoute = async (rideId, startLatLon, endLatLon) => {
@@ -574,7 +583,7 @@ useEffect(() => {
   };
 
   // Center map on current location
-const handleBackToCurrentLocation = () => {
+  const handleBackToCurrentLocation = () => {
     checkLocationPermission((hasPermission) => {
       if (hasPermission && mapRef.current && currentPosition) {
         const newBounds = L.latLngBounds(

@@ -16,6 +16,7 @@ namespace Application.Interface
         Task<bool> VerifyPasswordAsync(string hashedPassword, string providedPassword);
       
         Task<ResponseModel<UserDto>> BlockUserAsync(Guid userId, DateTime blockUntil);
+
         Task<ResponseModel<UserDto>> SuspendUserAsync(Guid userId, DateTime suspendUntil);
         Task<ResponseModel<UserDto>> UnblockUserAsync(Guid userId);
         Task<ResponseModel<List<UserDto>>> GetUsersAsync(string? status = null, string? search = null);

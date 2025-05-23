@@ -130,13 +130,11 @@ const listPostSlice = createSlice({
       })
       .addCase(fetchPostsByOtherUser.fulfilled, (state, action) => {
         const { posts, hasMore } = action.payload;
-
         if (action.meta.arg?.lastPostId) {
           state.posts = [...state.posts, ...posts];
         } else {
           state.posts = posts;
         }
-
         state.hasMoreOwnerPosts = hasMore;
       })
       .addCase(likePost.pending, (state, action) => {
@@ -157,12 +155,14 @@ const listPostSlice = createSlice({
       .addCase(likePost.fulfilled, (state, action) => {
         const postId = action.payload;
         state.posts = state.posts.map((post) =>
+
           post.id === postId
             ? {
                 ...post,
                 isLiking: false,
               }
             : post
+
         );
       })
       .addCase(likePost.rejected, (state, action) => {
@@ -187,24 +187,23 @@ const listPostSlice = createSlice({
           if (!Array.isArray(state.comments[postId])) {
             state.comments[postId] = [];
           }
-
           state.comments[postId] = state.comments[postId].map((comment) => {
             if (comment.id === commentId) {
               return {
                 ...comment,
-                hasLiked: comment.hasLiked ? 0 : 1,
+                hasLiked: !comment.hasLiked,
                 likeCountComment: comment.hasLiked
                   ? comment.likeCountComment - 1
                   : comment.likeCountComment + 1,
               };
             }
-
+            
             const updatedReplies = Array.isArray(comment.replies)
               ? comment.replies.map((reply) =>
                   reply.id === commentId
                     ? {
                         ...reply,
-                        hasLiked: reply.hasLiked ? 0 : 1,
+                        hasLiked: !reply.hasLiked,
                         likeCountComment: reply.hasLiked
                           ? reply.likeCountComment - 1
                           : reply.likeCountComment + 1,
@@ -212,17 +211,12 @@ const listPostSlice = createSlice({
                     : reply
                 )
               : [];
-
-            return {
-              ...comment,
-              replies: updatedReplies,
-            };
+            return { ...comment, replies: updatedReplies };
           });
         });
       })
       .addCase(commentPost.fulfilled, (state, action) => {
         const { postId, comments, hasMore, isInitialLoad } = action.payload;
-
         if (isInitialLoad) {
           state.comments[postId] = comments;
         } else {
@@ -253,8 +247,11 @@ const listPostSlice = createSlice({
           parentCommentId: null,
         };
 
+
         if (!Array.isArray(state.comments[postId])) {
           state.comments[postId] = [];
+        } else if (state.comments[postId].some((c) => c.id === newComment.id)) {
+          return; // Không thêm nếu đã tồn tại
         }
 
         state.comments[postId].push(newComment);
@@ -266,31 +263,17 @@ const listPostSlice = createSlice({
       })
       .addCase(updateComment.fulfilled, (state, action) => {
         const { postId, commentId, content } = action.payload;
-
         if (state.comments[postId]) {
           state.comments[postId] = state.comments[postId].map((comment) => {
             if (comment.id === commentId) {
-              return {
-                ...comment,
-                content: content,
-              };
+              return { ...comment, content };
             }
-
             const updatedReplies = Array.isArray(comment.replies)
               ? comment.replies.map((reply) =>
-                  reply.id === commentId
-                    ? {
-                        ...reply,
-                        content: content,
-                      }
-                    : reply
+                  reply.id === commentId ? { ...reply, content } : reply
                 )
               : [];
-
-            return {
-              ...comment,
-              replies: updatedReplies,
-            };
+            return { ...comment, replies: updatedReplies };
           });
         }
       })
@@ -305,7 +288,6 @@ const listPostSlice = createSlice({
         if (hasReachedEnd && state.postLikes[postId]?.nextCursor === null) {
           return;
         }
-
         const existingLikes = state.postLikes[postId] || {
           likeCount: 0,
           likedUsers: [],
@@ -335,7 +317,6 @@ const listPostSlice = createSlice({
       .addCase(fetchShares.fulfilled, (state, action) => {
         state.sharesLoading = false;
         const { postId, data } = action.payload;
-
         state.postShares = {
           ...state.postShares,
           [postId]: {
@@ -363,12 +344,12 @@ const listPostSlice = createSlice({
         const update = {
           id: data.id,
           userId: data.userId,
-          fullName: fullName,
-          profilePicture: profilePicture,
+          fullName,
+          profilePicture,
           content: data.content,
           imageUrl: data.imageUrl,
           videoUrl: data.videoUrl,
-          createdAt: createdAt,
+          createdAt,
           updateAt: data.updateAt,
           postType: 4,
           commentCount: 0,
@@ -387,11 +368,10 @@ const listPostSlice = createSlice({
         state.posts = state.posts.filter((post) => post.id !== action.payload);
       })
       .addCase(getReplyComment.fulfilled, (state, action) => {
-        console.log("🔥 Payload getReplyComment:", action.payload);
         const { commentId, data } = action.payload;
 
-        let found = false;
 
+        let found = false;
         Object.keys(state.comments).forEach((postId) => {
           const commentsArray = state.comments[postId];
 
@@ -402,7 +382,6 @@ const listPostSlice = createSlice({
             found = true;
           }
         });
-
         if (!found) {
           console.error(
             `⚠️ Không tìm thấy commentId: ${commentId} trong state`
@@ -411,19 +390,16 @@ const listPostSlice = createSlice({
       })
       .addCase(deleteComments.fulfilled, (state, action) => {
         const { postId, commentId } = action.payload;
-
         if (state.comments[postId]) {
           let deletedCount = 0;
 
           const isRootComment = state.comments[postId].some(
             (comment) => comment.id === commentId
           );
-
           if (isRootComment) {
             const commentToDelete = state.comments[postId].find(
               (comment) => comment.id === commentId
             );
-
             if (commentToDelete) {
               deletedCount = 1 + (commentToDelete.replies?.length || 0);
             }
@@ -436,11 +412,9 @@ const listPostSlice = createSlice({
               const newReplies = comment.replies.filter(
                 (reply) => reply.id !== commentId
               );
-
               if (newReplies.length < comment.replies.length) {
                 deletedCount = 1;
               }
-
               return { ...comment, replies: newReplies };
             });
           }
@@ -458,12 +432,11 @@ const listPostSlice = createSlice({
         const { postId, data, userId } = action.payload;
         if (!data) return;
         const { parentCommentId } = data;
-
         if (!state.comments[postId]) return;
-
         const newReply = {
           id: data.commentId,
           userId: userId,
+
           userName: data.fullName,
           profilePicture: data.profilePicture,
           content: data.content,
@@ -472,14 +445,13 @@ const listPostSlice = createSlice({
           likeCountComment: 0,
           replies: [],
           hasMoreReplies: false,
-          parentCommentId: parentCommentId,
+          parentCommentId,
         };
 
         const postComment = state.comments[postId];
         const rootComment = postComment.find(
           (comment) => comment.id === parentCommentId
         );
-
         if (rootComment) {
           rootComment.replies.push(newReply);
         }
@@ -489,7 +461,6 @@ const listPostSlice = createSlice({
         }
       })
       .addCase(sharePost.fulfilled, (state, action) => {
-        console.log("chia se");
         const newPost = {
           ...action.payload,
           hasLiked: false,

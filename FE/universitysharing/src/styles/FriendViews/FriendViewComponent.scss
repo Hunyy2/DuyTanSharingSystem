@@ -149,3 +149,26 @@
     }
   }
 }
+.search-box {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+
+  .search-icon {
+    margin-right: 10px;
+    color: #666;
+  }
+
+  input {
+    padding: 8px;
+    width: 100%;
+    max-width: 300px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    outline: none;
+
+    &:focus {
+      border-color: #007bff;
+    }
+  }
+}

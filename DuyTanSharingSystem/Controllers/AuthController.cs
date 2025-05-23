@@ -34,15 +34,46 @@ namespace DuyTanSharingSystem.Controllers
         {
             if (string.IsNullOrEmpty(token))
             {
-                return BadRequest(new { message = "Token is required." });
+                return Redirect("http://localhost:3000/Home");
             }
+
             var response = await _mediator.Send(new VerifyEmailCommand(token));
-            if (!response.Success)
+            if (response.Success)
             {
-                return BadRequest(new { message = response.Message });
+                return Redirect("http://localhost:3000/AccountVerified");
             }
-            return Redirect("http://localhost:3000/AccountVerified");
+
+            // Kiểm tra thông điệp lỗi để redirect
+            if (response.Message.Contains("The verification token has expired. Please request a new verification email."))
+            {
+                return Redirect("http://localhost:3000/ResendVerification");
+            }
+            if (response.Message.Contains("This email verification token has already been used.") ||
+                response.Message.Contains("Email already verified"))
+            {
+                return Redirect("http://localhost:3000//404Site");
+            }
+
+            // Các trường hợp lỗi khác (ví dụ: token không hợp lệ, không tìm thấy người dùng)
+            return Redirect("http://localhost:3000/404Site");
         }
+        [HttpPost("resend-verification-email")]
+        public async Task<IActionResult> ResendVerificationEmail([FromBody] ResendVerificationEmailCommand command)
+        {
+            var response = await _mediator.Send(command);
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+            if (response.Message == "Email already verified")
+            {
+                return Redirect("http://localhost:3000/Home");
+            }
+            return BadRequest(new { message = response.Message });
+        }
+
+        // Các endpoint khác (Register, ResendVerificationEmail, v.v.) giữ nguyên
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginDto user)
         {
@@ -97,6 +128,21 @@ namespace DuyTanSharingSystem.Controllers
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordCommand command)
         {
             var response = await _mediator.Send(command);
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+        [HttpGet("validate-reset-token")]
+        public async Task<IActionResult> ValidateResetToken([FromQuery] string token)
+        {
+            if (string.IsNullOrEmpty(token))
+            {
+                return BadRequest(new { success = false, message = "Token is required" });
+            }
+
+            var response = await _mediator.Send(new ValidateResetTokenCommand(token));
             if (response.Success)
             {
                 return Ok(response);

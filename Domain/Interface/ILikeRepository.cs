@@ -14,6 +14,7 @@ namespace Domain.Interface
 
         Task<(List<Like>, Guid?)> GetLikesByPostIdWithCursorAsync(Guid postId, Guid? lastUserId, int pageSize);
         Task<int> CountLikesByPostIdAsync(Guid postId);
+        Task<IEnumerable<(DateTime Date, int Count)>> GetLikesOverTimeAsync(string timeRange);
 
     }
 }

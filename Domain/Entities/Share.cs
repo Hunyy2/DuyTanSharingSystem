@@ -15,7 +15,7 @@ namespace Domain.Entities
         public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
         public string? Content { get; private set; } // Tin nhắn hoặc ghi chú khi chia sẻ
         public bool IsDeleted { get; private set; } // Hỗ trợ xóa mềm
-        public SharePrivacy Privacy { get; set; }
+        public ScopeEnum Privacy { get; set; } = ScopeEnum.Public;// Quyền riêng tư của lượt chia sẻ
         public void SoftDelete()
         {
             IsDeleted = true;
@@ -27,7 +27,7 @@ namespace Domain.Entities
 
         // Constructor không tham số cho EF Core
         private Share() { }
-        public Share(Guid userId, Guid postId, string? message = null, SharePrivacy sharePrivacy = SharePrivacy.Public)
+        public Share(Guid userId, Guid postId, ScopeEnum sharePrivacy ,string? message = null )
         {
             if (userId == Guid.Empty) throw new ArgumentException("UserId cannot be empty.");
             if (postId == Guid.Empty) throw new ArgumentException("PostId cannot be empty.");
