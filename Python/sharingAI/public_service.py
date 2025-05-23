@@ -44,6 +44,7 @@ class PublicQueryProcessor:
         - Luôn luôn kết hợp với các Icon trong câu trả lời.
         - Nếu câu hỏi nào khó quá hoặc không có trong dữ liệu của bạn,bãn có thể trả lời "Xin lỗi nha,nhưng tôi không được huấn luyện để trả lời câu hỏi này của bạn  + icon thân thiện".
         ** Nếu câu hỏi {{question}} liên quan đến hướng dẫn hệ thống:
+        **ví dụ**: liên quan dến việc hướng dẫn, ý nghĩa của trang web này, cách sử dụng trang web này, chức năng Sharing AI có tác dụng gì,..etc thì bạn hãy trả lời cho thật tốt nha.
             **ví dụ:** Cập nhật hồ sơ ở đâu,đăng bài về xe ở đâu, đổi mật khẩu ở đâu, cách tăng điểm uy tín, cách kết bạn,...etc...
         ** Vui lòng trả lời theo hướng dẫn phía dưới bằng ngôn ngữ tự nhiên kèm các icon và mũi tên hướng dẫn sao cho phù hợp với sinh viên nhất,loại bỏ các bước "Sau khi đăng nhập" loại bỏ các chữ không cần thiết hoặc không liên quan:
         - Đăng kí:
