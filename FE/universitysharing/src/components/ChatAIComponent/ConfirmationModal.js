@@ -105,7 +105,7 @@ const ConfirmationModal = ({ results, streamId, onConfirm, onEdit, onCancel, con
   const [newBackgroundImage, setNewBackgroundImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false); // Thêm trạng thái isLoading
 
-  const displayMap = paramDisplayMap[endpoint.replace('https://localhost:7053', '')] || {};
+  const displayMap = paramDisplayMap[endpoint.replace('https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net', '')] || {};
 
   const handleConfirm = async () => {
     setIsLoading(true); // Bật trạng thái loading
