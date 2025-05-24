@@ -100,9 +100,9 @@ const baseUrl = process.env.REACT_APP_BASE_URL;
       case 0:
         return "Công khai";
       case 1:
-        return "Bạn bè";
+        return "riêng tư";
       case 2:
-        return "Riêng tư";
+        return "bạn bè";
       default:
         return "Công khai"; // Mặc định nếu không có giá trị
     }
@@ -133,7 +133,7 @@ const baseUrl = process.env.REACT_APP_BASE_URL;
                   })}
                 </span>
                 <span className="status-post-share">
-                  {getPrivacyStatus(post.privacy)}
+                  {getPrivacyStatus(post.originalPost.scope)}
                 </span>
               </div>
             </div>
