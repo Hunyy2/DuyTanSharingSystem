@@ -6,14 +6,11 @@ export const userProfile = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axiosInstance.get(
-        "/api/UserProfile/profile",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axiosInstance.get("/api/UserProfile/profile", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       return response.data.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Có lỗi xảy ra!");
@@ -46,14 +43,11 @@ export const getPostOwner = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axiosInstance.get(
-        "/api/Post/GetPostsByOwner",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axiosInstance.get("/api/Post/GetPostsByOwner", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       return response.data.data.posts;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Có lỗi xảy ra!");
@@ -169,9 +163,9 @@ export const updateUserInformation = createAsyncThunk(
       const response = await axiosInstance.put(
         "/api/UserProfile/upInformation",
         {
-          PhoneNumber: data.phoneNumber,
-          PhoneRelative: data.phoneRelative,
-          Gender: data.gender,
+          PhoneNumber: data.Phone,
+          PhoneRelativeNumber: data.PhoneRelative,
+          Gender: data.Gender,
         },
         {
           headers: {
@@ -208,6 +202,41 @@ export const fetchTrustScoreHistories = createAsyncThunk(
         error.response?.data?.message ||
           "Có lỗi xảy ra khi lấy lịch sử điểm uy tín!"
       );
+    }
+  }
+);
+
+export const fetchUserInformationDetail = createAsyncThunk(
+  "profile/fetchUserInformationDetail",
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return rejectWithValue("Không tìm thấy token xác thực!");
+      }
+
+      const response = await axiosInstance.get(
+        "/api/UserProfile/user-information-detail",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.data.success) {
+        return rejectWithValue(response.data.message || "Lỗi từ server");
+      }
+
+      return response.data.data;
+    } catch (error) {
+      console.error("Error in fetchUserInformationDetail:", error.response);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Có lỗi xảy ra khi lấy thông tin chi tiết tài khoản!";
+      return rejectWithValue(errorMessage);
     }
   }
 );

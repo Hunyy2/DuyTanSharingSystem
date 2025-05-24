@@ -23,5 +23,8 @@ namespace Domain.Interface
         Task<IEnumerable<(DateTime Date, int Count)>> GetUserTrendAsync(string timeRange);
         Task<IEnumerable<(string TrustCategory, int Count)>> GetUserTrustDistributionAsync();
         Task<User?> GetByEmailAsync(string email);
+        Task<User?> GetUserBySuggestFriendAsync(Guid userId);
+        Task<List<User>> GetAllActiveUsersAsync();
+        Task<List<User>> GetUsersWithDetailsAsync();
     }
 }

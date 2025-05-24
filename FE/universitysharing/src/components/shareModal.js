@@ -9,7 +9,7 @@ import { sharePost } from "../stores/action/listPostActions";
 
 const ShareModal = ({ isOpen, onClose, usersProfile, post }) => {
   const [content, setContent] = useState("");
-  const [privacy, setPrivacy] = useState("Public"); // Mặc định là Công khai
+  const [privacy, setPrivacy] = useState(0); // Mặc định là Công khai
   const [isSharing, setIsSharing] = useState(false); // Trạng thái chia sẻ
 
   const dispatch = useDispatch();
@@ -35,7 +35,7 @@ const ShareModal = ({ isOpen, onClose, usersProfile, post }) => {
           content: content,
           fullName: usersProfile?.fullName,
           profilePicture: usersProfile?.profilePicture,
-          privacy: privacy, // Truyền privacy vào action
+          privacy: Number(privacy), // Truyền privacy vào action
         })
       );
       onClose(); // Đóng modal sau khi chia sẻ thành công
@@ -87,12 +87,12 @@ const ShareModal = ({ isOpen, onClose, usersProfile, post }) => {
           <select
             id="privacy-select"
             value={privacy}
-            onChange={(e) => setPrivacy(e.target.value)}
+            onChange={(e) => setPrivacy(Number(e.target.value))} // Chuyển thành số
             className="privacy-select"
           >
-            <option value="Public">Công khai</option>
-            <option value="Friends">Bạn bè</option>
-            <option value="Private">Riêng tư</option>
+            <option value={0}>Công khai</option>
+            <option value={1}>Riêng tư</option>
+            <option value={2}>Bạn bè</option>
           </select>
         </div>
 

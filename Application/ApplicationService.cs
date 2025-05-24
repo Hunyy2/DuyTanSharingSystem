@@ -29,7 +29,7 @@ namespace Application
             services.AddScoped<ITrustScoreService, TrustScoreService>();
 
             services.AddScoped<ICommentService, CommentService>();
-
+            services.AddScoped<IFriendshipService, FriendshipService>();
 
             // Đăng ký File Service để lưu ảnh và video
             services.AddScoped<IFileService, FileService>();

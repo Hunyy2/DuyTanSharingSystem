@@ -4,6 +4,7 @@ import LeftSidebar from "../components/HomeComponent/LeftSideBarHome";
 import YourAccount from "../components/SettingComponent/YourAccount";
 import ChangePassword from "../components/SettingComponent/ChangePassword";
 import UpdateProfileInfo from "../components/SettingComponent/UpdateProfileInfo";
+import AccountInformation from "../components/SettingComponent/AccountInformation";
 import "../styles/SettingView.scss";
 import { FcNext } from "react-icons/fc";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,6 +19,7 @@ const SettingsView = () => {
   const [activeSection, setActiveSection] = useState("Tài khoản của bạn");
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showUpdateProfileInfo, setShowUpdateProfileInfo] = useState(false);
+  const [showAccountInfo, setShowAccountInfo] = useState(false);
 
   useEffect(() => {
     dispatch(userProfile());
@@ -28,7 +30,8 @@ const SettingsView = () => {
   const handleMenuClick = (item) => {
     setActiveSection(item);
     setShowChangePassword(false);
-    setShowUpdateProfileInfo(false); // Reset showUpdateProfileInfo khi nhấp vào menu item
+    setShowUpdateProfileInfo(false);
+    setShowAccountInfo(false);
   };
 
   const renderContent = () => {
@@ -40,12 +43,16 @@ const SettingsView = () => {
         <UpdateProfileInfo onBack={() => setShowUpdateProfileInfo(false)} />
       );
     }
+    if (showAccountInfo) {
+      return <AccountInformation onBack={() => setShowAccountInfo(false)} />;
+    }
     switch (activeSection) {
       case "Tài khoản của bạn":
         return (
           <YourAccount
             onChangePassword={() => setShowChangePassword(true)}
             onUpdateProfileInfo={() => setShowUpdateProfileInfo(true)}
+            onShowAccountInfo={() => setShowAccountInfo(true)}
           />
         );
       default:

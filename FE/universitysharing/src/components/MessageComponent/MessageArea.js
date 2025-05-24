@@ -29,28 +29,6 @@ const MessageArea = ({
     <>
       <div className="message-area" ref={scrollContainerRef}>
         {/* Hiển thị typing */}
-        {/* {(isSelfTyping || isFriendTyping) && (
-          <div
-            className={`message-area__item ${isSelfTyping ? "self" : "other"}`}
-          >
-            
-            {!isSelfTyping && (
-              <div className="message-area__avatar">
-                <img
-                  src={selectedFriend?.pictureProfile || avatartDefault}
-                  alt="Avatar"
-                />
-              </div>
-            )}
-            <div
-              className={`message-area__message typing-indicator ${
-                isSelfTyping ? "self" : "other"
-              }`}
-            >
-              Đang nhập...
-            </div>
-          </div>
-        )} */}
 
         {(isSelfTyping || isFriendTyping) && (
           <div

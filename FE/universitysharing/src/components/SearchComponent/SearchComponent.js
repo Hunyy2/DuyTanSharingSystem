@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { searchPost } from "../../stores/action/searchAction";
 import "../../styles/headerHome.scss";
-import Spinner from "../../utils/Spinner";
 import searchIcon from "../../assets/iconweb/searchIcon.svg";
 import ListUser from "./ListUserComponent";
 import ListPost from "./ListPostComponent";
@@ -29,11 +28,11 @@ const SearchComponent = () => {
     return () => clearTimeout(timer);
   }, [keyword, dispatch]);
 
-  // Tách dữ liệu thành users và posts
+  // Split data into users and posts
   const users = search?.data?.filter((item) => item.type === "User") || [];
   const posts = search?.data?.filter((item) => item.type === "Post") || [];
 
-  // Xử lý khi nhấp vào bài viết
+  // Handle post click
   const handlePostClick = (postId) => {
     navigate(`/post/${postId}`);
     setShowResults(false);
@@ -50,30 +49,33 @@ const SearchComponent = () => {
           onChange={(e) => setKeyword(e.target.value)}
           onFocus={() => keyword && setShowResults(true)}
           onBlur={() => setTimeout(() => setShowResults(false), 200)}
+          className="search-input"
         />
         <img
           src={searchIcon}
           alt="Search"
           onClick={() => keyword && dispatch(searchPost(keyword))}
+          className="search-icon cursor-pointer"
         />
       </div>
 
       {showResults && (
         <div className="search-results">
           {loading ? (
-            <div className="search-loading">
-              <Spinner size={20} />
+            <div className="search-loading-spinner">
+              <div className="spinner" />
+              <div className="loading-text">Đang tìm kiếm...</div>
             </div>
           ) : search?.data?.length > 0 ? (
             <>
-              {/* Hiển thị danh sách người dùng */}
+              {/* Display user list */}
               {users.length > 0 && (
                 <div className="search-users">
                   <ListUser users={users} />
                 </div>
               )}
 
-              {/* Hiển thị danh sách bài viết */}
+              {/* Display post list */}
               {posts.length > 0 && (
                 <div className="search-posts">
                   <h3 className="search-posts-title">Bài viết</h3>

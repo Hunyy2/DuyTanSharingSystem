@@ -24,16 +24,26 @@ export const createPost = createAsyncThunk(
         {
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`, // Add token if required
           },
         }
       );
-      toast.success(response.data.data.message || "Tạo bài đăng thành công!");
-      console.log("response.data.data", response.data.data.message);
+
+      if (!response.data.success) {
+        return rejectWithValue(response.data.message || "Lỗi từ server");
+      }
+
+      toast.success(response.data.message || "Tạo bài đăng thành công!");
+      console.log("response.data", response.data);
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.data?.message || "Có lỗi xảy ra"
-      );
+      console.error("Error in createPost:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.data?.message ||
+        error.message ||
+        "Có lỗi xảy ra khi tạo bài đăng";
+      return rejectWithValue(errorMessage);
     }
   }
 );
