@@ -19,9 +19,13 @@ const messenger = createSlice({
     selectFriend: null,
     inboxRead: null,
     unReadInbox: null,
+    isLoadingInbox: false,
+    isLoadingMessages: false,
+    openChatBox: false,
   },
   reducers: {
     resetMessages: (state) => {
+      state.selectFriend = null;
       state.messages = [];
       state.nextCursor = null;
     },
@@ -141,6 +145,12 @@ const messenger = createSlice({
 
       //   state.nextCursor = action.payload.nextCursor || null;
       // })
+      .addCase(getMessagess.pending, (state) => {
+        state.isLoadingMessages = true;
+      })
+      .addCase(getMessagess.rejected, (state) => {
+        state.isLoadingMessages = false;
+      })
       .addCase(getMessagess.fulfilled, (state, action) => {
         const newMessages = action.payload.data || [];
         const isLoadMore = !!action.payload.append;
@@ -167,19 +177,28 @@ const messenger = createSlice({
         }
 
         state.nextCursor = action.payload.nextCursor || null;
+        state.isLoadingMessages = false;
       })
 
       .addCase(getConversationss.fulfilled, (state, action) => {
         // state.conversation = action.payload;
         state.conversationId = action.payload.id;
       })
+      .addCase(getInbox.pending, (state) => {
+        state.isLoadingInbox = true;
+      })
+      .addCase(getInbox.rejected, (state) => {
+        state.isLoadingInbox = false;
+      })
       .addCase(getInbox.fulfilled, (state, action) => {
         // state.inboxRead = action.payload.conversations;
-        state.inboxRead = action.payload.conversations.map((conversation) => ({
-          ...conversation,
-          id: null, // Thêm id từ user hoặc để null
-        }));
+        // state.inboxRead = action.payload.conversations.map((conversation) => ({
+        //   ...conversation,
+        //   id: null, // Thêm id từ user hoặc để null
+        // }));
+        state.inboxRead = action.payload.conversations;
         state.unReadInbox = action.payload.unreadCounts;
+        state.isLoadingInbox = false;
       });
   },
 });
