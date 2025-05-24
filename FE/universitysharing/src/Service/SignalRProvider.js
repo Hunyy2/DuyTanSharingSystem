@@ -1,26 +1,26 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
-  useState,
   useRef,
-  useCallback,
+  useState,
 } from "react";
-import signalRService from "../Service/signalRService";
-import { useAuth } from "../contexts/AuthContext";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  setOnlineStatus,
-  setUserOnline,
-  setUserOffline,
-  setLoading,
-  setError,
-  resetOnlineStatus,
-} from "../stores/reducers/onlineSlice";
 import { toast } from "react-toastify";
-import { notificationHandlers } from "../utils/notificationHandlers";
-import { addRealTimeNotification } from "../stores/action/notificationAction";
+import signalRService from "../Service/signalRService";
 import { NOTIFICATION_TYPES } from "../constants/notificationTypes"; // Import NOTIFICATION_TYPES
+import { useAuth } from "../contexts/AuthContext";
+import { addRealTimeNotification } from "../stores/action/notificationAction";
+import {
+  resetOnlineStatus,
+  setError,
+  setLoading,
+  setOnlineStatus,
+  setUserOffline,
+  setUserOnline,
+} from "../stores/reducers/onlineSlice";
+import { notificationHandlers } from "../utils/notificationHandlers";
 
 const SignalRContext = createContext();
 
@@ -94,6 +94,7 @@ export const SignalRProvider = ({ children }) => {
         console.log("[SignalRProvider] Khởi tạo SignalR...");
         dispatch(setLoading());
         connectionAttemptRef.current += 1;
+        console.log("[SignalRProvider]",token)
         await signalRService.startConnections(token, userId);
         // Kiểm tra tất cả các kết nối
         if (

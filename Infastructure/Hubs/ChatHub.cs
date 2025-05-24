@@ -16,6 +16,15 @@ namespace Infrastructure.Hubs
             _messageStatusService = messageStatusService;
             Console.OutputEncoding = System.Text.Encoding.UTF8;
         }
+        public override async Task OnConnectedAsync()
+        {
+            await base.OnConnectedAsync(); // Rất quan trọng để SignalR xử lý nội bộ
+        }
+
+        public override async Task OnDisconnectedAsync(Exception? exception)
+        {
+            await base.OnDisconnectedAsync(exception); // Rất quan trọng để SignalR xử lý nội bộ
+        }
         //public override async Task OnConnectedAsync()
         //{
         //    var userIdString = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;

@@ -225,7 +225,7 @@ class SignalRService {
 
             this.isConnected = true;
             console.log("[SignalRService] Kết nối SignalR thành công");
-            this.startKeepAlive();
+            //this.startKeepAlive();
             this.setupWindowEvents(); // Thêm sự kiện window
 
             this.eventQueue.notificationHub.forEach(({ event, callback }) => {
@@ -279,22 +279,22 @@ class SignalRService {
     }
 }
 
-startKeepAlive() {
-    if (this.keepAliveInterval) {
-        clearInterval(this.keepAliveInterval);
-    }
+// startKeepAlive() {
+//     if (this.keepAliveInterval) {
+//         clearInterval(this.keepAliveInterval);
+//     }
 
-    this.keepAliveInterval = setInterval(async () => {
-        if (this.chatConnection?.state === signalR.HubConnectionState.Connected) {
-            try {
-                await this.chatConnection.invoke("KeepAlive");
-                console.log("Gửi KeepAlive thành công");
-            } catch (err) {
-                console.error("Lỗi khi gửi KeepAlive:", err.message);
-            }
-        }
-    }, 10000); // Giảm từ 15s xuống 10s
-}
+//     this.keepAliveInterval = setInterval(async () => {
+//         if (this.chatConnection?.state === signalR.HubConnectionState.Connected) {
+//             try {
+//                 await this.chatConnection.invoke("KeepAlive");
+//                 console.log("Gửi KeepAlive thành công");
+//             } catch (err) {
+//                 console.error("Lỗi khi gửi KeepAlive:", err.message);
+//             }
+//         }
+//     }, 10000); // Giảm từ 15s xuống 10s
+// }
 setupWindowEvents() {
     window.addEventListener("beforeunload", async (e) => {
         //e.preventDefault(); // Đảm bảo sự kiện được xử lý
