@@ -351,17 +351,15 @@ import YourRideView from "./views/YourRideView";
 import Dashboard from "./admin/views/DashBoardView";
 import UserReport from "./admin/views/UserReportManagerView";
 
-
 import { DeeplinkCommentModal } from "./stores/action/deepLinkAction";
-
 
 import TestDispatchAPI from "./views/TestDispatchAPI";
 
 import UserManagement from "./admin/views/UserManagement";
 
 import NotificationAdmin from "./admin/views/NotificationManagement";
+import LocationTracker from './components/RideComponent/LocationTracker'; // Import component mới
 import Site404 from "./views/404Site";
-
 
 function App() {
   const { isAuthenticated, userRole, isLoading } = useAuth();
@@ -376,7 +374,6 @@ function App() {
   );
   const selectedPost = useSelector((state) => state.posts.selectedPost);
   const error = useSelector((state) => state.deeplink.error);
-
 
   // useEffect(() => {
   //   if (isAuthenticated && location.pathname === "/login") {
@@ -401,7 +398,6 @@ function App() {
 
     if (selectedPost) {
       return;
-
     }
 
     const pathMatch = location.pathname.match(/^\/post\/(.+)$/);
@@ -435,8 +431,8 @@ function App() {
       <NotificationProvider>
         <AxiosConfigProvider />
         <SignalRProvider>
+          <LocationTracker /> {/* Thêm component LocationTracker */}
           <Routes location={background || location}>
-
             {!isAuthenticated && (
               <>
                 {/* Route không cần xác thực */}
@@ -458,7 +454,6 @@ function App() {
             )}
             {/* Route dành cho admin */}
             {isAuthenticated && userRole.toLowerCase() === "admin" && (
-
               <>
                 <Route
                   path="/admin/tripnotifications"
@@ -489,6 +484,7 @@ function App() {
                 <Route path="/your-ride" element={<YourRideView />} />
                 <Route path="/post/:id" element={<Homeview />} />
                 <Route path="/MessageView" element={<MessageView />} />
+                <Route path="/MessageView/:id" element={<MessageView />} />
                 <Route path="/ProfileUserView" element={<ProfileUserView />} />
                 <Route path="/settings" element={<SettingsView />} />
                 <Route
@@ -602,5 +598,4 @@ export default App;
             )}
 
           </Routes> */
-
 }

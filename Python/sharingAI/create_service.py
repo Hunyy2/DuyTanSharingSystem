@@ -59,6 +59,7 @@ class CreateQueryProcessor:
             password=os.getenv("REDIS_PASSWORD"),
             decode_responses=False,
         )
+        # self.redis = aioredis.from_url("redis://localhost", decode_responses=False)
 
     def default_encoder(self, obj):
         if isinstance(obj, decimal.Decimal):
@@ -662,29 +663,40 @@ class CreateQueryProcessor:
             endpoint = ""
             timestamp = None
             history_length = await self.redis.llen(state_key)
-            chat_history = []
+            # chat_history = []
+            sql_result = []
+            history_length = await self.redis.llen(state_key)
+            if chat_history is None or not isinstance(chat_history, list):
+                chat_history = []
             sql_result = []
             if history_length > 0:
-                last_item = await self.redis.lindex(state_key, -1)  # Lấy item cuối cùng
+                last_item = await self.redis.lindex(state_key, -1)
                 try:
                     state = json.loads(last_item)
                     if isinstance(state, dict) and "chat_history" in state:
-                        chat_history = state["chat_history"]
-                        params = state.get("params", {})
-                        missing_fields = state.get("missing_fields", [])
-                        endpoint = state.get("endpoint", "")
-                        sql_result = state.get("sql_result", [])
-                        ttimestamp = state.get("timestamp", timestamp)
+                        if isinstance(state["chat_history"], list):
+                            chat_history = state["chat_history"]
+                        else:
+                            logger.warning(
+                                f"Lịch sử chat từ Redis không phải là list: {type(state['chat_history'])}"
+                            )
+                            chat_history = []  # Khởi tạo lại nếu không phải list
+                    else:
+                        logger.warning(
+                            "Không tìm thấy chat_history hợp lệ trong Redis state"
+                        )
+                        chat_history = []  # Khởi tạo lại nếu không có chat_history
                 except json.JSONDecodeError as e:
                     logger.error(
                         f"Failed to decode Redis item: {last_item}, error: {e}"
                     )
+                    chat_history = []  # Khởi tạo lại nếu lỗi JSON
             # Chuẩn hóa chat_history
-            chat_history = [
-                item
-                for item in chat_history
-                if isinstance(item, dict) and "role" in item and "content" in item
-            ]
+            # chat_history = [
+            #     item
+            #     for item in chat_history
+            #     if isinstance(item, dict) and "role" in item and "content" in item
+            # ]
             # Format timestamp (nếu có)
             formatted_time = "Không rõ thời gian"
             if timestamp:
@@ -694,10 +706,10 @@ class CreateQueryProcessor:
                 except ValueError:
                     logger.warning(f"Không thể parse timestamp: {timestamp}")
             # Ghi log lịch sử chat
-            chat_history_str = json.dumps(
-                chat_history, ensure_ascii=False, indent=2, default=self.default_encoder
-            )
-            logger.info(f"Lịch sử trò chuyện:\n{chat_history_str}")
+            # chat_history_str = json.dumps(
+            #     chat_history, ensure_ascii=False, indent=2, default=self.default_encoder
+            # )
+            logger.info(f"Lịch sử trò chuyện trong create service:\n{chat_history}")
 
             # Gán mặc định nếu chưa có
             missing_params = missing_params or []

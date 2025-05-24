@@ -77,5 +77,11 @@ namespace DuyTanSharingSystem.Controllers
             var result = await _mediator.Send(query);
             return Ok(result);
         }
+        [HttpGet("user-information-detail")]
+        public async Task<IActionResult> GetUserInformationDetail([FromQuery] GetUserInformationDetailQuery query)
+        {
+            var result = await _mediator.Send(query);
+            return Ok(result);
+        }
     }
 }

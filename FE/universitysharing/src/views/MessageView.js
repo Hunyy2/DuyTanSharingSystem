@@ -47,6 +47,13 @@ const MessageView = () => {
     }
   };
 
+  useEffect(() => {
+    return () => {
+      // cleanup khi rời khỏi component
+      dispatch(resetMessages());
+    };
+  }, []);
+
   //thêm các yếu tố để viết được hàm nhắn tin
   const {
     handleJoin,
@@ -107,7 +114,9 @@ const MessageView = () => {
 
   const messengerState = useSelector((state) => state.messenges || {});
   const messenges = messengerState.messages || [];
-  const selectFriend = messengerState.selectFriend || [];
+  const selectFriend = messengerState.selectFriend || null;
+  const isLoading = messengerState.isLoadingInbox;
+  const hasSelectedFriend = (messengerState.selectFriend || []).length > 0;
 
   const [selectedFriend, setSelectedFriend] = useState(null); //Chọn bạn lưu ở dạng state component
 
@@ -162,6 +171,7 @@ const MessageView = () => {
         messages: messages.payload.data || [], // ✅ Lấy đúng mảng tin nhắn
         status: 2,
       });
+      navigate(`/MessageView/${friendData.friendId}`);
     } catch (err) {
       console.error("Lỗi chọn bạn để chat:", err);
     }
@@ -228,6 +238,7 @@ const MessageView = () => {
             selectFriend={selectFriend}
             inboxRead={inboxRead}
             countInbox={countInbox}
+            isLoading={isLoading}
           />
         </div>
 
@@ -269,7 +280,7 @@ const MessageView = () => {
                   })
                 }
                 conversationId={messengerState?.conversationId}
-                friendId={selectedFriend.friendId}
+                friendId={selectedFriend?.friendId}
                 isSending={isSending}
                 isUserTyping={isUserTyping}
                 setIsUserTyping={setIsUserTyping}

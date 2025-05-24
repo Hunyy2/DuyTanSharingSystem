@@ -189,9 +189,10 @@ export const getInbox = createAsyncThunk(
 
       const { data } = response.data;
 
-      const uniqueConversations = Array.from(
-        new Map(data.inBox.map((conv) => [conv.conversationId, conv])).values()
-      );
+      // const uniqueConversations = Array.from(
+      //   new Map(data.inBox.map((conv) => [conv.conversationId, conv])).values()
+      // );
+      const uniqueConversations = response.data.data.inBox;
 
       const initialUnreadCounts = {};
       uniqueConversations.forEach((conv) => {

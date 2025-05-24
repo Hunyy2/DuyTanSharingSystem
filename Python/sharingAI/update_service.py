@@ -52,6 +52,7 @@ class UpdateQueryProcessor:
             password=os.getenv("REDIS_PASSWORD"),
             decode_responses=False,
         )
+        # self.redis = aioredis.from_url("redis://localhost", decode_responses=False)
 
     def default_encoder(self, obj):
         if isinstance(obj, decimal.Decimal):

@@ -27,6 +27,7 @@ const ChatLayout = () => {
         setConversationId={setConversationId}
         isOpen={sidebarOpen}
         onNewChat={handleNewChat}
+        toggleSidebar={toggleSidebar}
       />
     </div>
   );

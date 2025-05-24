@@ -1,8 +1,10 @@
 import React, { useEffect } from "react";
 import Header from "../components/HomeComponent/Header";
 import LeftSidebar from "../components/HomeComponent/LeftSideBarHome";
+import RightSidebar from "../components/HomeComponent/RightSideBarHome"; // Thêm import
 import FooterHome from "../components/HomeComponent/FooterHome";
 import "../styles/HomeView.scss";
+import "../styles/headerHome.scss";
 import { useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { searchPost } from "../stores/action/searchAction";
@@ -19,18 +21,24 @@ const SearchView = () => {
   const { search, loading, error } = searchState;
   const { users } = usersState;
 
-  // Extract search query from URL
   const queryParams = new URLSearchParams(location.search);
   const searchQuery = queryParams.get("q");
 
   useEffect(() => {
+    console.log(
+      "SearchView - Query:",
+      searchQuery,
+      "Loading:",
+      loading,
+      "Search:",
+      search
+    );
     if (searchQuery) {
       dispatch(userProfile());
       dispatch(searchPost(searchQuery));
     }
   }, [searchQuery, dispatch]);
 
-  // Filter results by type
   const userResults =
     search?.data?.filter(
       (item) => item.type === "User" && typeof item.data !== "string"
@@ -42,11 +50,42 @@ const SearchView = () => {
     ) || [];
 
   if (loading) {
-    return <div className="loading">Đang tìm kiếm...</div>;
+    return (
+      <div className="home-view">
+        <Header className="header" usersProfile={users} />
+        <div className="main-content">
+          <div className="left-sidebar">
+            <LeftSidebar usersProfile={users} />
+            <FooterHome className="footer" />
+          </div>
+          <div className="center-content">
+            <div className="search-loading-spinner">
+              <div className="spinner" />
+              <div className="loading-text">Đang tìm kiếm...</div>
+            </div>
+          </div>
+          <RightSidebar className="right-sidebar" /> {/* Thêm RightSidebar */}
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="error">Lỗi tìm kiếm: {error.message}</div>;
+    return (
+      <div className="home-view">
+        <Header className="header" usersProfile={users} />
+        <div className="main-content">
+          <div className="left-sidebar">
+            <LeftSidebar usersProfile={users} />
+            <FooterHome className="footer" />
+          </div>
+          <div className="center-content">
+            <div className="error">Lỗi tìm kiếm: {error.message}</div>
+          </div>
+          <RightSidebar className="right-sidebar" /> {/* Thêm RightSidebar */}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -58,7 +97,6 @@ const SearchView = () => {
           <FooterHome className="footer" />
         </div>
         <div className="center-content">
-          {/* Only show "No results" if we have finished searching */}
           {!loading && userResults.length === 0 && postResults.length === 0 ? (
             <div className="no-results">Không tìm thấy kết quả</div>
           ) : (
@@ -71,6 +109,7 @@ const SearchView = () => {
             </>
           )}
         </div>
+        <RightSidebar className="right-sidebar" /> {/* Thêm RightSidebar */}
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ import "../../styles/MessageView/ChatList.scss";
 import "../../styles/MoblieReponsive/MessageViewMobile/MessageViewMobile.scss";
 import avatartDefault from "../../assets/AvatarDefaultFill.png";
 import { FiSearch } from "react-icons/fi";
-
+import Spinner from "../../utils/Spinner";
 const ChatList = ({
   onSelectChat,
   selectFriend,
@@ -11,6 +11,7 @@ const ChatList = ({
   inboxRead = [],
   countInbox = {},
   onlineUsers,
+  isLoading,
 }) => {
   // console.warn("User online>>", onlineUsers);
   // Sử dụng inboxRead nếu có, nếu không dùng friend
@@ -29,7 +30,12 @@ const ChatList = ({
       </div>
 
       <div className="chat-list__items">
-        {chatList.length === 0 ? (
+        {isLoading ? (
+          // <div className="chat-list__loading">Đang tải cuộc trò chuyện...</div>
+          <div className="chat-list__loading">
+            <Spinner size={70} />
+          </div>
+        ) : chatList.length === 0 ? (
           <div className="chat-list__empty">Không có cuộc trò chuyện nào</div>
         ) : (
           chatList.map((chat, index) => {
@@ -45,7 +51,7 @@ const ChatList = ({
 
             const lastMessage = chat.lastMessage || "";
             const lastMessageDate = chat.lastMessageDate
-              ? new Date(chat.lastMessageDate)
+              ? new Date(chat.lastMessageDate + "Z")
               : null;
             const time = lastMessageDate
               ? lastMessageDate.toLocaleTimeString("vi-VN", {

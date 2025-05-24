@@ -96,5 +96,11 @@ namespace DuyTanSharingSystem.Controllers
             var result = await _mediator.Send(query);
             return Ok(result);
         }
+        [HttpGet("get-friends-suggest")]
+        public async Task<IActionResult> GetFriendSuggestions([FromQuery] GetFriendSuggestionsQuery query)
+        {
+            var response = await _mediator.Send(query);
+            return Ok(response);
+        }
     }
 }

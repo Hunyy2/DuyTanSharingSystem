@@ -128,6 +128,7 @@ namespace Domain.Entities
 
             if (!string.IsNullOrWhiteSpace(gender) && Gender != gender)
                 Gender = gender;
+            UpdatedAt = DateTime.UtcNow;
         }
 
 

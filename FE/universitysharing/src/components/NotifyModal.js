@@ -303,11 +303,6 @@ const NotifyModal = ({ isOpen, onClose }) => {
                         />
                         <div className="notification-text">
                           <p className="title">{notif.title}</p>
-                          {notif.type === NOTIFICATION_TYPES.SEND_FRIEND && (
-                            <span className="mutual-friends">
-                              {notif.mutualFriendsCount} bạn chung
-                            </span>
-                          )}
                           <span className="time">
                             {formatRelativeTime(notif.createdAt)}
                           </span>
@@ -364,11 +359,6 @@ const NotifyModal = ({ isOpen, onClose }) => {
                           />
                           <div className="notification-text">
                             <p className="title">{notif.title}</p>
-                            {notif.type === NOTIFICATION_TYPES.SEND_FRIEND && (
-                              <span className="mutual-friends">
-                                {notif.mutualFriendsCount} bạn chung
-                              </span>
-                            )}
                             <span className="time">
                               {formatRelativeTime(notif.createdAt)}
                             </span>
@@ -432,11 +422,6 @@ const NotifyModal = ({ isOpen, onClose }) => {
                     />
                     <div className="notification-text">
                       <p className="title">{notif.title}</p>
-                      {notif.type === NOTIFICATION_TYPES.SEND_FRIEND && (
-                        <span className="mutual-friends">
-                          {notif.mutualFriendsCount} bạn chung
-                        </span>
-                      )}
                       <span className="time">
                         {formatRelativeTime(notif.createdAt)}
                       </span>

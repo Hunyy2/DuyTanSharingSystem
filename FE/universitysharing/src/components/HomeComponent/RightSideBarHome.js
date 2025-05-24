@@ -2,13 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { FiSearch } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import avatarDefault from "../../assets/AvatarDefault.png";
-import signalRService from "../../Service/signalRService";
 import { fetchFriends } from "../../stores/action/friendAction";
-import { updateOnlineStatus } from "../../stores/action/onlineAction";
 import { setActiveFriend } from "../../stores/reducers/friendReducer";
+import { setUserOffline, setUserOnline } from '../../stores/reducers/onlineSlice';
+
+import signalRService from "../../Service/signalRService";
 import "../../styles/MessageView/RightSidebar.scss";
 import ChatBox from "../MessageComponent/ChatBox";
-
 const RightSidebar = () => {
   const dispatch = useDispatch();
 
@@ -31,21 +31,19 @@ const RightSidebar = () => {
     dispatch(fetchFriends());
 
     signalRService.onUserOnline((userId) => {
-      console.log("Nhận sự kiện userOnline:", userId);
-      dispatch(updateOnlineStatus(userId, true));
-    });
+    console.log("Nhận sự kiện userOnline:", userId);
+    dispatch(setUserOnline(userId));
+  });
 
-    signalRService.onUserOffline((userId) => {
-      console.log("Nhận sự kiện userOffline:", userId);
-      dispatch(updateOnlineStatus(userId, false));
-    });
+  signalRService.onUserOffline((userId) => {
+    console.log("Nhận sự kiện userOffline:", userId);
+    dispatch(setUserOffline(userId));
+  });
 
-    signalRService.onInitialOnlineUsers((onlineUsers) => {
-      console.log("Nhận initialOnlineUsers:", onlineUsers);
-      onlineUsers.forEach((userId) =>
-        dispatch(updateOnlineStatus(userId, true))
-      );
-    });
+  signalRService.onInitialOnlineFriends((onlineUsers) => {
+    console.log("Nhận initialOnlineUsers:", onlineUsers);
+    onlineUsers.forEach((userId) => dispatch(setUserOnline(userId)));
+  });
 
     return () => {
       signalRService.off("userOnline", signalRService.chatConnection);
@@ -175,15 +173,13 @@ const RightSidebar = () => {
                       </div>
                       <div className="status-container">
                         <span
-                          className={`status-dot ${
-                            isOnline ? "online" : "offline"
-                          }`}
-                        ></span>
-                        <span className="status-text">
-                          {isOnline
-                            ? "Online"
-                            : getLastSeenText(friend.lastSeen)}
-                        </span>
+                            className={`status-dot ${isOnline ? "online" : "offline"}`}
+                          ></span>
+                          <span className="status-text">
+                            {isOnline
+                              ? "Online"
+                              : getLastSeenText(friend.lastSeen)}
+                          </span>
                       </div>
                     </div>
                   </div>

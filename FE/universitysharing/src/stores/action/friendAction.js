@@ -170,11 +170,14 @@ export const fetchSentFriendRequests = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("/api/FriendShip/get-friends-sent", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        "https://localhost:7053/api/FriendShip/get-friends-sent",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       return response.data.data;
     } catch (error) {
       return rejectWithValue(
@@ -183,7 +186,6 @@ export const fetchSentFriendRequests = createAsyncThunk(
     }
   }
 );
-
 // src/stores/action/friendAction.js
 export const acceptFriendRequest = createAsyncThunk(
   "friends/acceptFriendRequest",
@@ -410,7 +412,7 @@ export const fetchFriendPreview = createAsyncThunk(
       const baseURL =
         process.env.REACT_APP_BASE_URL || "https://localhost:7053";
       const response = await axiosInstance.get(
-        `$/api/FriendShip/get-list-friend-preview`,
+        `/api/FriendShip/get-list-friend-preview`,
         {
           params: { UserId: userId },
           headers: { Authorization: `Bearer ${token}` },
@@ -427,6 +429,38 @@ export const fetchFriendPreview = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Error fetching friend preview"
+      );
+    }
+  }
+);
+export const fetchFriendSuggestions = createAsyncThunk(
+  "friends/fetchFriendSuggestions",
+  async ({ limit = 10, offset = 0 }, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axiosInstance.get(
+        `/api/FriendShip/get-friends-suggest?limit=${limit}&offset=${offset}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.data.success) {
+        return rejectWithValue(response.data.message || "Lỗi không xác định");
+      }
+
+      return {
+        suggestions: response.data.data,
+        offset,
+        hasMore: response.data.data.length === limit, // Assume hasMore if we get exactly limit items
+      };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+          "Có lỗi xảy ra khi lấy danh sách gợi ý kết bạn"
       );
     }
   }

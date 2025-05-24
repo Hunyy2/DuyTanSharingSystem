@@ -183,5 +183,37 @@ namespace Infrastructure.Data.Repositories
             var firstDayOfWeek = firstThursday.AddDays((weekOfYear - 1) * 7);
             return firstDayOfWeek;
         }
+
+        public async Task<User?> GetUserBySuggestFriendAsync(Guid userId)
+        {
+            return await _context.Users
+                .Include(u => u.Posts)
+                .Include(u => u.Likes)
+                .Include(u => u.Comments)
+                .Include(u => u.RidePosts)
+                .Include(u => u.LocationUpdates)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+        }
+
+        public async Task<List<User>> GetAllActiveUsersAsync()
+        {
+            return await _context.Users
+                .Where(u => u.Status == "Active")
+                .ToListAsync();
+        }
+
+        public async Task<List<User>> GetUsersWithDetailsAsync()
+        {
+            return await _context.Users
+                .Include(u => u.Posts)
+                .Include(u => u.Likes)
+                .Include(u => u.Comments)
+                .Include(u => u.RidePosts)
+                .Include(u => u.LocationUpdates)
+                .Include(u => u.SentFriendRequests)
+                .Include(u => u.ReceivedFriendRequests)
+                .Where(u => u.Status == "Active")
+                .ToListAsync();
+        }
     }
 }

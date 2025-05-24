@@ -149,6 +149,9 @@ async def lifespan(app: FastAPI):
             password=os.getenv("REDIS_PASSWORD"),
             decode_responses=False,
         )
+        # redis = aioredis.from_url(
+        #     "redis://localhost", decode_responses=False
+        # )  # hoặc True nếu muốn auto decode bytes
         logger.info(
             "Initialized DataLoader, AnswerGenerator, QueryProcessors, and Redis"
         )
@@ -216,10 +219,11 @@ async def query(request: QueryRequest, current_user: dict = Depends(get_current_
     conversation_id = request.conversation_id.lower()
     user_id = request.user_id.lower()
     chat_history = await data_loader.load_chat_history_async(conversation_id)
+
     chat_history_str = json.dumps(
         chat_history, ensure_ascii=False, indent=2, default=default_encoder
     )
-    logger.info(f"Lịch sử trò chuyện:\n{chat_history_str}")
+    logger.info(f"Lịch sử trò chuyện:\n{chat_history}")
 
     # Kiểm tra Redis trước khi xử lý
     state_key = f"conversation:{conversation_id}:{user_id}"
@@ -274,6 +278,7 @@ async def query(request: QueryRequest, current_user: dict = Depends(get_current_
     async def stream_response() -> AsyncIterator[str]:
         try:
             if action_type == "CREATE":
+                logger.info(f"Lịch sử trò chuyện trong create:\n{chat_history_str}")
                 generator = create_service.generate_answer_create_stream_async(
                     query=request.query,
                     user_id=user_id,
@@ -282,7 +287,7 @@ async def query(request: QueryRequest, current_user: dict = Depends(get_current_
                     action_type=action_type,
                     relevant_tables=relevant_tables,
                     normalized_query=normalized_query,
-                    chat_history=chat_history_str,
+                    chat_history=chat_history,
                 )
             elif action_type == "UPDATE":
                 generator = update_service.generate_answer_update_stream_async(

@@ -1,4 +1,3 @@
-// src/styles/FriendViews/FriendViewComponent.scss
 .friend-request-container {
   font-family: Arial, sans-serif;
   width: 100%;
@@ -76,11 +75,38 @@
         }
       }
 
-      label {
+      .friend-details {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        width: 100%;
+      }
+
+      .friend-name {
         font-weight: bold;
         font-size: 18px;
         color: #333;
         cursor: pointer;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      .friend-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        width: 100%;
+      }
+
+      .trust-score,
+      .common-interests {
+        font-size: 13px;
+        color: #555;
+        text-align: center;
       }
     }
 
@@ -112,6 +138,11 @@
 
       .confirm-btn {
         background-color: #1877f2;
+        color: white;
+      }
+
+      .profile-btn {
+        background-color: #6b7280;
         color: white;
       }
 
@@ -148,27 +179,28 @@
       transform: none;
     }
   }
-}
-.search-box {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
 
-  .search-icon {
-    margin-right: 10px;
-    color: #666;
-  }
+  .search-box-friend {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
 
-  input {
-    padding: 8px;
-    width: 100%;
-    max-width: 300px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    outline: none;
+    .search-icon {
+      margin-right: 10px;
+      color: #666;
+    }
 
-    &:focus {
-      border-color: #007bff;
+    input {
+      padding: 8px;
+      width: 100%;
+      max-width: 300px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      outline: none;
+
+      &:focus {
+        border-color: #007bff;
+      }
     }
   }
 }
