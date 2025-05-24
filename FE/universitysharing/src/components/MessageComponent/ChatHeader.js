@@ -55,7 +55,7 @@ const ChatHeader = ({
   onlineUsers,
   navigateUser,
 }) => {
-  const isOnline = onlineUsers?.[selectedFriend.friendId] ?? false;
+  const isOnline = onlineUsers?.[selectedFriend?.friendId] ?? false;
 
   return (
     <div className="chat-header">

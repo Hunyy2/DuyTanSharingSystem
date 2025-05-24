@@ -51,7 +51,7 @@ const CommentList = ({
           )}
         </>
       ) : (
-        <span>Không có bình luận nào</span>
+        <span className="No-Comment-modal">Không có bình luận nào</span>
       )}
 
       {/* Sentinel element for infinite scroll */}
