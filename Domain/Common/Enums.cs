@@ -14,7 +14,7 @@ namespace Domain.Common
         }
         public enum ApprovalStatusEnum
         {
-            Pending,  Approved, Rejected 
+            Pending=0,  Approved=1, Rejected =2
         }
         public enum ScopeEnum
         {

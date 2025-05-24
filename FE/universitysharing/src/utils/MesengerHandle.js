@@ -203,7 +203,7 @@ export const useMessageReceiverData = () => {
 
   useEffect(() => {
     const unsubscribe = signalRService.onReceiveMessageData((message) => {
-      console.warn("[Nhận thông báo] 🥰🥰🥰", message);
+      // console.warn("[Nhận thông báo] 🥰🥰🥰", message);
 
       // Chỉ dispatch nếu tin nhắn không thuộc cuộc trò chuyện hiện tại
       if (message.conversationId !== conversationId) {

@@ -7,6 +7,7 @@ import logging
 import os
 import re
 import uuid
+import aiohttp
 from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordBearer
@@ -19,7 +20,9 @@ from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
 import httpx
 from redis import asyncio as aioredis
 from data_loader import DataLoader
-from vector_store import VectorStore
+import pyodbc
+
+# from vector_store import VectorStore
 from answer_generator import AnswerGenerator
 from config import SQL_SERVER_CONNECTION, JWT_SECRET_KEY, GOOGLE_API_KEY_LLM, REDIS_HOST
 from typing import AsyncIterator, List, Dict, Optional
@@ -41,12 +44,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-app = FastAPI()
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # Global instances
 data_loader = None
-vector_store = None
+# vector_store = None
 answer_generator = None
 llm = None
 
@@ -74,12 +77,12 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
             token,
             JWT_SECRET_KEY,
             algorithms=["HS256"],
-            audience="https://Sharing.com",
+            audience="https://universitysharing-web-app.azurewebsites.net",
             options={
                 "verify_iss": True,
                 "verify_aud": True,
                 "verify_exp": True,
-                "iss": "SharingSystem",
+                "iss": "https://universitysharing-web-app.azurewebsites.net",
             },
         )
         user_id = payload.get(
@@ -127,31 +130,40 @@ class ApproveSQLRequest(BaseModel):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize global resources on startup and clean up on shutdown."""
-    global data_loader, vector_store, answer_generator, llm, create_service, update_service, delete_service, public_service, redis
+    global data_loader, answer_generator, llm, create_service, update_service, delete_service, public_service, redis
     logger.info("Starting application")
     try:
-        data_loader = DataLoader(SQL_SERVER_CONNECTION)
-        vector_store = VectorStore()
+        sql_connection_string = os.getenv("SQL_SERVER_CONNECTION")
+        if not sql_connection_string:
+            raise ValueError(
+                "SQL_SERVER_CONNECTION environment variable must be set and be a non-empty string."
+            )
+        data_loader = DataLoader()
         answer_generator = AnswerGenerator()
         create_service = CreateQueryProcessor()
         update_service = UpdateQueryProcessor()
         delete_service = DeleteQueryProcessor()
         public_service = PublicQueryProcessor()
+        redis = await aioredis.from_url(
+            f"rediss://{os.getenv('REDIS_HOST')}",
+            password=os.getenv("REDIS_PASSWORD"),
+            decode_responses=False,
+        )
         # redis = aioredis.from_url(
         #     "redis://localhost", decode_responses=False
         # )  # hoặc True nếu muốn auto decode bytes
-        redis = aioredis.from_url(
-            f"rediss://{os.getenv('REDIS_HOST')}",
-            password=os.getenv("REDIS_PASSWORD"),
-            ssl=True,
-            decode_responses=False,
+        logger.info(
+            "Initialized DataLoader, AnswerGenerator, QueryProcessors, and Redis"
         )
-        logger.info("Initialized DataLoader, VectorStore")
     except Exception as e:
         logger.error(f"Lifespan error: {str(e)}", exc_info=True)
         raise
-    yield
-    logger.info("Shutting down application")
+    try:
+        yield
+    finally:
+        logger.info("Shutting down application")
+        if redis:
+            await redis.close()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -160,6 +172,42 @@ app = FastAPI(lifespan=lifespan)
 async def count_tokens(text: str) -> int:
     """Count tokens using Gemini API (placeholder)."""
     return len(text.split())
+
+
+@app.get("/check-odbc-driver")
+async def check_odbc_driver():
+    try:
+        drivers = pyodbc.drivers()
+        driver_info = {"available_drivers": drivers}
+        if "ODBC Driver 18 for SQL Server" in drivers:
+            driver_info["odbc_driver_18_installed"] = True
+        else:
+            driver_info["odbc_driver_18_installed"] = False
+
+        conn_str = os.getenv("SQL_SERVER_CONNECTION")
+        if not conn_str:
+            return {"error": "SQL_SERVER_CONNECTION environment variable is not set"}
+
+        logger.info(
+            f"Attempting to connect with connection string: {conn_str[:100]}..."
+        )
+        conn = pyodbc.connect(conn_str)
+        conn.close()
+        driver_info["sql_connection"] = "Connection successful"
+
+        return driver_info
+    except Exception as e:
+        return {"error": str(e), "available_drivers": pyodbc.drivers()}
+
+
+@app.get("/check-env")
+async def check_env():
+    return {
+        "IDENTITY_ENDPOINT": os.getenv("IDENTITY_ENDPOINT"),
+        "IDENTITY_HEADER": os.getenv("IDENTITY_HEADER"),
+        "SQL_SERVER_CONNECTION": os.getenv("SQL_SERVER_CONNECTION"),
+        "MSI_CLIENT_ID": os.getenv("MSI_CLIENT_ID"),
+    }
 
 
 @app.post("/api/query")
@@ -171,10 +219,11 @@ async def query(request: QueryRequest, current_user: dict = Depends(get_current_
     conversation_id = request.conversation_id.lower()
     user_id = request.user_id.lower()
     chat_history = await data_loader.load_chat_history_async(conversation_id)
+
     chat_history_str = json.dumps(
         chat_history, ensure_ascii=False, indent=2, default=default_encoder
     )
-    logger.info(f"Lịch sử trò chuyện:\n{chat_history_str}")
+    logger.info(f"Lịch sử trò chuyện:\n{chat_history}")
 
     # Kiểm tra Redis trước khi xử lý
     state_key = f"conversation:{conversation_id}:{user_id}"
@@ -229,6 +278,7 @@ async def query(request: QueryRequest, current_user: dict = Depends(get_current_
     async def stream_response() -> AsyncIterator[str]:
         try:
             if action_type == "CREATE":
+                logger.info(f"Lịch sử trò chuyện trong create:\n{chat_history_str}")
                 generator = create_service.generate_answer_create_stream_async(
                     query=request.query,
                     user_id=user_id,
@@ -237,7 +287,7 @@ async def query(request: QueryRequest, current_user: dict = Depends(get_current_
                     action_type=action_type,
                     relevant_tables=relevant_tables,
                     normalized_query=normalized_query,
-                    chat_history=chat_history_str,
+                    chat_history=chat_history,
                 )
             elif action_type == "UPDATE":
                 generator = update_service.generate_answer_update_stream_async(

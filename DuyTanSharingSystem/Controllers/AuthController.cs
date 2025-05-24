@@ -34,28 +34,28 @@ namespace DuyTanSharingSystem.Controllers
         {
             if (string.IsNullOrEmpty(token))
             {
-                return Redirect("http://localhost:3000/Home");
+                return Redirect("https://duy-tan-sharing-system.vercel.app/Home");
             }
 
             var response = await _mediator.Send(new VerifyEmailCommand(token));
             if (response.Success)
             {
-                return Redirect("http://localhost:3000/AccountVerified");
+                return Redirect("https://duy-tan-sharing-system.vercel.app/AccountVerified");
             }
 
             // Kiểm tra thông điệp lỗi để redirect
             if (response.Message.Contains("The verification token has expired. Please request a new verification email."))
             {
-                return Redirect("http://localhost:3000/ResendVerification");
+                return Redirect("https://duy-tan-sharing-system.vercel.app/ResendVerification");
             }
             if (response.Message.Contains("This email verification token has already been used.") ||
                 response.Message.Contains("Email already verified"))
             {
-                return Redirect("http://localhost:3000//404Site");
+                return Redirect("https://duy-tan-sharing-system.vercel.app/404Site");
             }
 
             // Các trường hợp lỗi khác (ví dụ: token không hợp lệ, không tìm thấy người dùng)
-            return Redirect("http://localhost:3000/404Site");
+            return Redirect("https://duy-tan-sharing-system.vercel.app/404Site");
         }
         [HttpPost("resend-verification-email")]
         public async Task<IActionResult> ResendVerificationEmail([FromBody] ResendVerificationEmailCommand command)
@@ -67,7 +67,7 @@ namespace DuyTanSharingSystem.Controllers
             }
             if (response.Message == "Email already verified")
             {
-                return Redirect("http://localhost:3000/Home");
+                return Redirect("https://duy-tan-sharing-system.vercel.app/Home");
             }
             return BadRequest(new { message = response.Message });
         }

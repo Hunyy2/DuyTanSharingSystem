@@ -1,11 +1,9 @@
-import React from "react";
-import avatarWeb from "../../assets/AvatarDefault.png";
-import "../../styles/SharingPost.scss";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
-import { openCommentModal } from "../../stores/reducers/listPostReducers";
+import avatarWeb from "../../assets/AvatarDefault.png";
+import "../../styles/SharingPost.scss";
 import getUserIdFromToken from "../../utils/JwtDecode";
 
 const SharedPost = ({ post }) => {
@@ -13,7 +11,7 @@ const SharedPost = ({ post }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const userId = getUserIdFromToken();
-
+const baseUrl = process.env.REACT_APP_BASE_URL;
   // Mở comment modal
   const handleOpenCommentModal = (post, index = 0) => {
     navigate(`/post/${post.postId}`, { state: { background: location } });
@@ -64,7 +62,7 @@ const SharedPost = ({ post }) => {
         {imageUrls.map((url, index) => {
           const fullUrl = url.startsWith("http")
             ? url.trim()
-            : `https://localhost:7053${url.trim()}`;
+            : `${baseUrl}${url.trim()}`;
           const showOverlay = totalMedia > 2 && index === (hasVideo ? 0 : 1);
 
           if (totalMedia > 2 && index > (hasVideo ? 0 : 1)) return null;
@@ -102,9 +100,9 @@ const SharedPost = ({ post }) => {
       case 0:
         return "Công khai";
       case 1:
-        return "Bạn bè";
+        return "riêng tư";
       case 2:
-        return "Riêng tư";
+        return "bạn bè";
       default:
         return "Công khai"; // Mặc định nếu không có giá trị
     }
@@ -115,7 +113,7 @@ const SharedPost = ({ post }) => {
       <div className="post-share" key={post.id}>
         {/* Header Post */}
         <div className="header-post-share">
-          <p className="AvaName-share">
+          <div  className="AvaName-share">
             <img
               className="avtardefaut-share"
               src={post.originalPost.author.profilePicture || avatarWeb}
@@ -135,11 +133,11 @@ const SharedPost = ({ post }) => {
                   })}
                 </span>
                 <span className="status-post-share">
-                  {getPrivacyStatus(post.privacy)}
+                  {getPrivacyStatus(post.originalPost.scope)}
                 </span>
               </div>
             </div>
-          </p>
+          </div>
         </div>
 
         {/* Nội dung bài viết */}

@@ -278,7 +278,13 @@ class SignalRService {
         }
     }
 }
-
+stopKeepAlive() {
+    if (this.keepAliveInterval) {
+        clearInterval(this.keepAliveInterval);
+        this.keepAliveInterval = null;
+        console.log("[SignalRService] Đã dừng KeepAlive interval");
+    }
+}
 startKeepAlive() {
     if (this.keepAliveInterval) {
         clearInterval(this.keepAliveInterval);
@@ -589,24 +595,23 @@ async stopConnections() {
       }
     );
   }
-  // onInitialOnlineUsers: Sửa để dùng on
-  onInitialOnlineUsers(callback) {
-    this.on(this.chatConnection, "initialOnlineUsers", (onlineUsers) => {
-      console.log("Nhận sự kiện initialOnlineUsers:", onlineUsers);
-      callback(onlineUsers);
-    });
-    console.log("Đăng ký sự kiện initialOnlineUsers");
-  }
 
   // onUserOnline: Sửa để dùng on
   onUserOnline(callback) {
-    this.on(this.chatConnection, "userOnline", (userId) => {
-      console.log("Nhận sự kiện userOnline:", userId);
-      callback(userId);
-    });
+    this.on(this.chatConnection, "UserOnline", (userId) => { // <-- "UserOnline" đúng
+  console.log("Nhận sự kiện UserOnline:", userId); // Đổi log cho khớp
+  callback(userId);
+  });
     console.log("Đăng ký sự kiện userOnline");
   }
-
+// Thêm vào signalRService.js
+onInitialOnlineFriends(callback) {
+    this.on(this.chatConnection, "InitialOnlineFriends", (userIds) => {
+        console.log("[SignalRService] Nhận sự kiện chat:InitialOnlineFriends", userIds);
+        callback(userIds);
+    });
+    console.log("Đăng ký sự kiện InitialOnlineFriends");
+}
   // onUserOffline: Sửa để dùng on
   onUserOffline(callback) {
     this.on(this.chatConnection, "UserOffline", (userId) => {

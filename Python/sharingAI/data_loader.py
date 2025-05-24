@@ -1,9 +1,11 @@
 # data_loader.py
 import json
+import os
 import re
 import logging
 from string import Template
 from typing import List, Dict, Tuple, Optional, Union
+import aiohttp
 from fuzzywuzzy import fuzz
 from datetime import datetime
 from contextlib import asynccontextmanager
@@ -12,7 +14,6 @@ import aioodbc
 from langchain_google_genai import ChatGoogleGenerativeAI
 from config import SQL_SERVER_CONNECTION, GOOGLE_API_KEY_FIX_SQL
 import pyodbc
-from embedding import EmbeddingManager
 from decimal import Decimal
 from langchain.prompts import PromptTemplate
 
@@ -32,59 +33,54 @@ class JSONEncoder(json.JSONEncoder):
 
 
 class DataLoader:
-    def __init__(
-        self,
-        connection_string: str = SQL_SERVER_CONNECTION,
-        config_path: str = "table_config.json",
-    ):
-        self.connection_string = connection_string
-        # self.embeddings = EmbeddingManager.get_embeddings()
+    def __init__(self, config_path: str = "table_config.json"):
+        self.connection_string = os.getenv("SQL_SERVER_CONNECTION")
+        logger.info(
+            f"DataLoader: Attempting to use connection string: {self.connection_string}"
+        )
+        if (
+            not isinstance(self.connection_string, str)
+            or not self.connection_string.strip()
+        ):
+            logger.error(
+                "DataLoader: connection_string passed is not a valid string or is empty."
+            )
+            raise ValueError("Connection string must be set and be a non-empty string.")
+        else:
+            logger.info(
+                f"DataLoader: Connection string loaded. Length: {len(self.connection_string)}"
+            )
+            logger.info(
+                f"DataLoader: Conn String (prefix): {self.connection_string[:50]}..."
+            )
+
         self.allowed_tables = set()
         self.table_config = {}
-        self.format_templates = self._load_format_templates("format_templates.json")
         self._initialize_table_config(config_path)
         self.sql_llm = ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",
+            model="gemini-2.0-flash",
             google_api_key=GOOGLE_API_KEY_FIX_SQL,
             temperature=0,
             max_output_tokens=2024,
             disable_streaming=True,
         )
 
-    def _load_format_templates(self, format_templates_file: str) -> dict:
-        """Load format templates from file and cache them."""
-        try:
-            with open(format_templates_file, "r", encoding="utf-8") as f:
-                templates = json.load(f)
-            logger.info(f"Loaded format templates from {format_templates_file}")
-            return templates
-        except Exception as e:
-            logger.warning(
-                f"Failed to load format templates: {str(e)}. Generating new templates."
-            )
-            # generate_format_templates()
-            try:
-                with open(format_templates_file, "r", encoding="utf-8") as f:
-                    templates = json.load(f)
-                logger.info(
-                    f"Generated and loaded new format templates from {format_templates_file}"
-                )
-                return templates
-            except Exception as e:
-                logger.error(f"Failed to generate/load format templates: {str(e)}")
-                return {}
-
     @asynccontextmanager
     async def _connect_async(self):
-        """Async context manager for database connections."""
-        async with aioodbc.connect(dsn=self.connection_string) as conn:
-            yield conn
+        try:
+            logger.info(
+                f"Connecting with connection string: {self.connection_string[:100]}..."
+            )
+            async with aioodbc.connect(dsn=self.connection_string) as conn:
+                yield conn
+        except Exception as e:
+            logger.error(f"Connection error: {str(e)}", exc_info=True)
+            raise
 
     # Trong _initialize_table_config
     def _initialize_table_config(self, config_path: str):
         """Build table config by combining database schema and JSON config, using table names as keys."""
         cache_file = "table_config_cache.json"
-        format_templates_file = "format_templates.json"
 
         # 1. Thử load cache nếu có
         try:
@@ -409,7 +405,19 @@ class DataLoader:
     async def _execute_query_async(self, query: str, params: Tuple = ()) -> List[Dict]:
         """Execute an SQL query asynchronously and return results as dictionaries."""
         try:
-            async with self._connect_async() as conn:
+            async with self._connect_async() as conn:  # Gọi context manager để có kết nối
+                # --- LOG ĐỂ KIỂM TRA DATABASE HIỆN TẠI SAU KHI KẾT NỐI ---
+                try:
+                    async with conn.cursor() as temp_cursor:
+                        await temp_cursor.execute("SELECT DB_NAME()")
+                        current_db = (await temp_cursor.fetchone())[0]
+                        logger.info(f"Kết nối hiện tại đang ở database: {current_db}")
+                except Exception as db_e:
+                    logger.warning(
+                        f"Không thể lấy tên database hiện tại (DB_NAME() failed): {db_e}"
+                    )
+                # --- KẾT THÚC LOG ---
+
                 async with conn.cursor() as cursor:
                     await cursor.execute(query, params)
                     if cursor.description:
@@ -417,12 +425,15 @@ class DataLoader:
                         logger.info(f"Query columns: {columns}")
                         results = await cursor.fetchall()
                         return [dict(zip(columns, row)) for row in results]
+                    # Dòng commit này thường dành cho INSERT/UPDATE/DELETE.
+                    # Với SELECT, nó không cần thiết và có thể gây lỗi nếu kết nối chỉ ở chế độ đọc.
+                    # Hãy xem xét bỏ qua nếu hàm này chỉ dùng cho SELECT.
                     await conn.commit()
                     return []
         except Exception as e:
             logger.error(
                 f"Async query execution failed: {query}, Params: {params}, Error: {str(e)}",
-                exc_info=True,
+                exc_info=True,  # exc_info=True để in ra toàn bộ traceback
             )
             raise
 
@@ -508,7 +519,7 @@ class DataLoader:
             h.Context,
             h.TokenCount,
             h.Type
-        FROM AIChatHistories h
+        FROM dbo.AIChatHistories h
         WHERE h.ConversationId = ?
         ORDER BY h.Timestamp DESC
         """
@@ -595,197 +606,6 @@ class DataLoader:
             )
 
         return chat_history
-
-    # data_loader.py
-    async def save_generated_sql(
-        self, sql_query: str, params: List, user_id: str, generated_sql_id: str
-    ) -> None:
-        query_sql = """
-        INSERT INTO GeneratedSQLs (Id, SQLQuery, Params, UserId, CreatedAt, UpdatedAt)
-        VALUES (?, ?, ?, ?, GETDATE(), GETDATE())
-        """
-        try:
-            params_json = json.dumps(params)
-            await self._execute_query_async(
-                query_sql, (generated_sql_id, sql_query, params_json, user_id)
-            )
-            logger.info(f"Saved generated SQL with ID: {generated_sql_id}")
-        except Exception as e:
-            logger.error(f"Failed to save generated SQL: {str(e)}", exc_info=True)
-            raise
-
-    async def get_approved_sql(
-        self, normalized_query: str, user_id: str
-    ) -> Optional[Dict]:
-        """Retrieve approved SQL from GeneratedSQLs via QueryCache."""
-        query = """
-        SELECT g.SQLQuery, g.Params
-        FROM GeneratedSQLs g
-        JOIN QueryCache qc ON g.Id = qc.GeneratedSQLId
-        WHERE qc.NormalizedQuery = ? AND qc.UserId = ? AND g.IsApproved = 0
-        """
-        try:
-            results = await self._execute_query_async(
-                query, (normalized_query, user_id)
-            )
-            if results:
-                logger.info(
-                    f"Found approved SQL for query: {normalized_query}, user: {user_id}"
-                )
-                return {
-                    "sql": results[0]["SQLQuery"],
-                    "params": (
-                        json.loads(results[0]["Params"]) if results[0]["Params"] else []
-                    ),
-                }
-            logger.info(
-                f"No approved SQL found for query: {normalized_query}, user: {user_id}"
-            )
-            return None
-        except Exception as e:
-            logger.error(f"Failed to get approved SQL: {str(e)}", exc_info=True)
-            return None
-
-    async def approve_generated_sql(
-        self, sql_id: str, rating: int, is_approved: bool
-    ) -> None:
-        """Approve or rate a generated SQL query."""
-        query = """
-        UPDATE GeneratedSQLs
-        SET Rating = ?, IsApproved = ?, UpdatedAt = GETDATE()
-        WHERE Id = ?
-        """
-        try:
-            await self._execute_query_async(query, (rating, is_approved, sql_id))
-            logger.info(
-                f"Updated SQL {sql_id} with rating {rating} and approved={is_approved}"
-            )
-        except Exception as e:
-            logger.error(f"Failed to approve SQL {sql_id}: {str(e)}", exc_info=True)
-            raise
-
-    async def _format_content_async(
-        self, data: Dict, query: str, table_name: str, role: str = "user"
-    ) -> str:
-        """Format data into a natural language string based on table_name and role."""
-        try:
-            # Chuẩn hóa thời gian
-            for time_field in ["StartTime", "CreatedAt", "UpdatedAt", "EndTime"]:
-                if time_field in data and isinstance(data[time_field], datetime):
-                    data[time_field] = data[time_field].strftime("%H:%M, %d/%m/%Y")
-
-            # Tạo bản sao dữ liệu để thay đổi trạng thái
-            formatted_data = data.copy()
-
-            # Các trường trạng thái cần chuyển đổi cho từng bảng
-            status_fields = {
-                "RidePosts": ["PostType", "Status", "PostRideType"],
-                "Rides": ["Status"],
-                "Friendships": ["Status"],
-                "Groups": ["Privacy", "Role"],
-                "Reports": ["Status"],
-                "Users": ["Role"],
-                "Alerts": ["Type"],
-                "Ratings": ["Level"],
-                "Messages": ["Status"],
-                "Notifications": ["Type"],
-            }
-
-            # Chuyển đổi các trường trạng thái sang chuỗi tiếng Việt
-            for field in status_fields.get(table_name, []):
-                if field in formatted_data and isinstance(
-                    formatted_data[field], (int, str)
-                ):
-                    try:
-                        formatted_data[field] = self.convert_status_to_string(
-                            table_name, field, int(formatted_data[field])
-                        )
-                    except ValueError:
-                        logger.warning(
-                            f"Cannot convert {field} value {formatted_data[field]} to int for table {table_name}"
-                        )
-
-            # Lấy template từ format_templates
-            format_template = self.format_templates.get(table_name, {}).get(
-                role, self.format_templates.get(table_name, {}).get("user", "")
-            )
-            if not format_template:
-                logger.warning(
-                    f"No format template found for table {table_name}, role {role}"
-                )
-                return await self._format_default(formatted_data, query, role)
-
-            # Thay thế giá trị vào template
-            try:
-                template = Template(format_template)
-                formatted_content = template.safe_substitute(
-                    {k: v or "Không có" for k, v in formatted_data.items()}
-                )
-                return formatted_content
-            except Exception as e:
-                logger.error(
-                    f"Error applying template for table {table_name}: {str(e)}"
-                )
-                return await self._format_default(formatted_data, query, role)
-
-        except Exception as e:
-            logger.error(
-                f"Error formatting content for table {table_name}: {str(e)}",
-                exc_info=True,
-            )
-            return "Không thể xử lý thông tin do lỗi hệ thống."
-
-    async def _format_default(self, data: Dict, query: str, role: str) -> str:
-        """Default formatter for tables without specific template."""
-        config = self.table_config.get(data.get("table", ""), {})
-        columns = config.get("columns", [])
-        result = []
-        for key, value in data.items():
-            if value is not None and key in columns:
-                result.append(f"{key}: {value}")
-        return ", ".join(result) or "Không có thông tin phù hợp."
-
-    # data_loader.py
-    async def load_user_queries_async(
-        self, user_id: Optional[str] = None
-    ) -> List[Dict]:
-        query = """
-        SELECT Query, NormalizedQuery, Embedding
-        FROM QueryCache
-        """
-        params = []
-        if user_id is not None:
-            query += " WHERE UserId = ?"
-            params.append(user_id)
-
-        try:
-            results = await self._execute_query_async(query, tuple(params))
-            user_queries = []
-            for r in results:
-                try:
-                    embedding = json.loads(r["Embedding"]) if r["Embedding"] else []
-                    if not embedding:
-                        logger.warning(
-                            f"Empty embedding for query: {r['NormalizedQuery']}"
-                        )
-                        continue
-                    user_queries.append(
-                        {
-                            "query": r["NormalizedQuery"],
-                            "embedding": embedding,
-                        }
-                    )
-                except json.JSONDecodeError as e:
-                    logger.error(
-                        f"Failed to decode embedding for query {r['NormalizedQuery']}: {e}"
-                    )
-            logger.info(
-                f"Loaded {len(user_queries)} user queries for user {user_id or 'admin'}"
-            )
-            return user_queries
-        except Exception as e:
-            logger.error(f"Failed to load user queries: {str(e)}", exc_info=True)
-            return []
 
     async def get_generated_sql(
         self, normalized_query: str, user_id: str

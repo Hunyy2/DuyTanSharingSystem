@@ -155,14 +155,12 @@ const listPostSlice = createSlice({
       .addCase(likePost.fulfilled, (state, action) => {
         const postId = action.payload;
         state.posts = state.posts.map((post) =>
-
           post.id === postId
             ? {
                 ...post,
                 isLiking: false,
               }
             : post
-
         );
       })
       .addCase(likePost.rejected, (state, action) => {
@@ -197,7 +195,7 @@ const listPostSlice = createSlice({
                   : comment.likeCountComment + 1,
               };
             }
-            
+
             const updatedReplies = Array.isArray(comment.replies)
               ? comment.replies.map((reply) =>
                   reply.id === commentId
@@ -246,7 +244,6 @@ const listPostSlice = createSlice({
           replies: [],
           parentCommentId: null,
         };
-
 
         if (!Array.isArray(state.comments[postId])) {
           state.comments[postId] = [];
@@ -370,7 +367,6 @@ const listPostSlice = createSlice({
       .addCase(getReplyComment.fulfilled, (state, action) => {
         const { commentId, data } = action.payload;
 
-
         let found = false;
         Object.keys(state.comments).forEach((postId) => {
           const commentsArray = state.comments[postId];
@@ -461,13 +457,26 @@ const listPostSlice = createSlice({
         }
       })
       .addCase(sharePost.fulfilled, (state, action) => {
+        console.log("sharePost payload:", action.payload);
+        console.log("action.payload.privacy:", action.payload.privacy);
         const newPost = {
-          ...action.payload,
-          hasLiked: false,
-          likeCount: 0,
+          id: action.payload.id,
+          userId: action.payload.userId,
+          fullName: action.payload.fullName,
+          profilePicture: action.payload.profilePicture,
+          content: action.payload.content,
+          imageUrl: action.payload.imageUrl || null,
+          videoUrl: action.payload.videoUrl || null,
+          createdAt: action.payload.createdAt,
+          updateAt: null,
           commentCount: 0,
+          likeCount: 0,
           shareCount: 0,
+          hasLiked: false,
+          isSharedPost: action.payload.isSharedPost || true,
           postType: 1,
+          originalPost: action.payload.originalPost,
+          privacy: action.payload.privacy,
         };
 
         state.posts.unshift(newPost);
@@ -476,7 +485,9 @@ const listPostSlice = createSlice({
           const originalPost = state.posts.find(
             (p) => p.id === newPost.originalPost.postId
           );
-          if (originalPost) originalPost.shareCount += 1;
+          if (originalPost) {
+            originalPost.shareCount += 1;
+          }
         }
       });
   },
