@@ -285,6 +285,24 @@ namespace Application
                 CreatedAt = user.CreatedAt
             };
         }
+        public static UserInformationDetailDto MapToUserInformationDetailDto(User user)
+        {
+            return new UserInformationDetailDto
+            {
+                Email = user.Email,
+                FullName = user.FullName,
+                Bio = user.Bio,
+                Phone = user.Phone,
+                PhoneRelative = user.RelativePhone,
+                Gender = user.Gender,
+                IsVerifiedEmail = user.IsVerifiedEmail,
+                TrustScore = user.TrustScore,
+                CreatedAt = FormatUtcToLocal(user.CreatedAt),
+                UpdatedAt = user.UpdatedAt != null
+                            ? FormatUtcToLocal(user.UpdatedAt.Value)
+                            : null
+            };
+        }
         public static UserUpdateInformationDto MaptoUserInformationDto(User user)
         {
             return new UserUpdateInformationDto

@@ -48,6 +48,8 @@ namespace Application.CQRS.Commands.RidePosts
                 return ResponseFactory.Fail<ResponseRidePostDto>("Người dùng không tồn tại", 404);
             if (user.Status == "Suspended")
                 return ResponseFactory.Fail<ResponseRidePostDto>("Tài khoản đang bị tạm ngưng", 403);
+            if(user.TrustScore < 30)
+                return ResponseFactory.Fail<ResponseRidePostDto>("Tài khoản của bạn không đủ độ tin cậy để đăng bài", 403);
 
 
             await _unitOfWork.BeginTransactionAsync();
