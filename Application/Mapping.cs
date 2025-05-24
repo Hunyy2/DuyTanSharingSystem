@@ -125,6 +125,7 @@ namespace Application
                 OriginalPostId = originalPost.Id,
                 OriginalPost = new OriginalPostDto(originalPost),
                 Privacy = share.Privacy,
+                Scope = post.Scope,
             };
         }
 
