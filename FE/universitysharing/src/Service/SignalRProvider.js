@@ -1,26 +1,26 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
-  useState,
   useRef,
-  useCallback,
+  useState,
 } from "react";
-import signalRService from "../Service/signalRService";
-import { useAuth } from "../contexts/AuthContext";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  setOnlineStatus,
-  setUserOnline,
-  setUserOffline,
-  setLoading,
-  setError,
-  resetOnlineStatus,
-} from "../stores/reducers/onlineSlice";
 import { toast } from "react-toastify";
-import { notificationHandlers } from "../utils/notificationHandlers";
-import { addRealTimeNotification } from "../stores/action/notificationAction";
+import signalRService from "../Service/signalRService";
 import { NOTIFICATION_TYPES } from "../constants/notificationTypes"; // Import NOTIFICATION_TYPES
+import { useAuth } from "../contexts/AuthContext";
+import { addRealTimeNotification } from "../stores/action/notificationAction";
+import {
+  resetOnlineStatus,
+  setError,
+  setInitialOnlineUsers,
+  setLoading,
+  setUserOffline,
+  setUserOnline
+} from "../stores/reducers/onlineSlice";
+import { notificationHandlers } from "../utils/notificationHandlers";
 
 const SignalRContext = createContext();
 
@@ -94,6 +94,7 @@ export const SignalRProvider = ({ children }) => {
         console.log("[SignalRProvider] Khởi tạo SignalR...");
         dispatch(setLoading());
         connectionAttemptRef.current += 1;
+        console.log("[SignalRProvider]",token)
         await signalRService.startConnections(token, userId);
         // Kiểm tra tất cả các kết nối
         if (
@@ -122,7 +123,7 @@ export const SignalRProvider = ({ children }) => {
         //   signalRService.off(signalRService.notificationConnection, eventName);
         // });
 
-        signalRService.onInitialOnlineUsers((onlineUsers) => {
+        signalRService.onInitialOnlineFriends((onlineUsers) => {
           let usersArray = onlineUsers;
           if (!Array.isArray(onlineUsers)) {
             console.warn(
@@ -160,7 +161,7 @@ export const SignalRProvider = ({ children }) => {
             acc[id] = true;
             return acc;
           }, {});
-          dispatch(setOnlineStatus(status));
+          dispatch(setInitialOnlineUsers(status));
           console.log("[SignalRProvider] Nhận initialOnlineUsers:", status);
         });
 
@@ -201,6 +202,12 @@ export const SignalRProvider = ({ children }) => {
           dispatch(setUserOffline(userId));
           console.log("[SignalRProvider] User offline:", userId);
         });
+        // THÊM ĐOẠN NÀY
+        // signalRService.onInitialOnlineFriends((userIds) => {
+        // console.log("[SignalRProvider] Nhận sự kiện chat:InitialOnlineFriends", userIds);
+        //   // Gửi toàn bộ danh sách online ban đầu vào Redux store
+        //   dispatch(setInitialOnlineUsers(userIds)); // <-- SỬ DỤNG TÊN MỚI Ở ĐÂY
+        // });
         // Đăng ký sự kiện thông báo
         Object.keys(notificationHandlers).forEach((eventName) => {
           signalRService.on(
@@ -263,6 +270,15 @@ export const SignalRProvider = ({ children }) => {
     };
 
     initializeSignalR();
+    return () => {
+        if (signalRService.chatConnection) {
+            signalRService.off(signalRService.chatConnection, "UserOnline");
+            signalRService.off(signalRService.chatConnection, "UserOffline");
+            signalRService.off(signalRService.chatConnection, "InitialOnlineFriends"); // Cleanup này
+            // Bạn có thể cần một hàm `dispose` trong signalRService để ngừng interval keepAlive
+            signalRService.stopKeepAlive();
+        }
+    };
     // return () => {
     //   Object.keys(notificationHandlers).forEach((eventName) => {
     //     signalRService.off(signalRService.notificationConnection, eventName);

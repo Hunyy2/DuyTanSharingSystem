@@ -1,10 +1,10 @@
 // File: src/stores/reducer/authReducer.js
 import { createSlice } from "@reduxjs/toolkit";
 import {
-  forgotPassword,
-  resetPassword,
   changePassword,
+  forgotPassword,
   resendVerificationEmail,
+  resetPassword,
   validateResetToken,
 } from "../action/authAction";
 

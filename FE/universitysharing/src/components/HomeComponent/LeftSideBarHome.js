@@ -1,24 +1,21 @@
-import React from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  FiHome,
-  FiUser,
-  FiMessageSquare,
-  FiBell,
-  FiMapPin,
   FiChevronRight,
+  FiHome,
+  FiMapPin,
+  FiMessageSquare,
+  FiUser
 } from "react-icons/fi";
-import { RiAiGenerate2 } from "react-icons/ri";
-import { RiUserLocationLine } from "react-icons/ri";
+import { RiAiGenerate2, RiUserLocationLine } from "react-icons/ri";
+import { useLocation, useNavigate } from "react-router-dom";
 import avatartDefault from "../../assets/AvatarDefaultFill.png";
 
 const LeftSidebar = ({ usersProfile }) => {
-  // console.log("Hello>>", usersProfile);
+   console.log("Hello>>", usersProfile);
   const navigate = useNavigate();
   const location = useLocation();
 
-  let username = usersProfile.fullName || "Người dùng";
+  let username = usersProfile?.fullName || "Người dùng";
 
   // Menu items data
 
@@ -52,7 +49,7 @@ const LeftSidebar = ({ usersProfile }) => {
         transition={{ type: "spring", stiffness: 400, damping: 17 }}
       >
         <img
-          src={usersProfile.profilePicture || avatartDefault}
+          src={usersProfile?.profilePicture || avatartDefault}
           alt="Profile"
           className="profile-icon"
         />

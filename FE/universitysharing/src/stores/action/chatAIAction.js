@@ -88,10 +88,10 @@ export const confirmAction = createAsyncThunk(
       let dataToSend = null;
       let config = {};
       let method = 'post';
-      let url = endpoint;
+      let url = new URL(endpoint).pathname;
 
       console.log('[confirmAction] Received params:', JSON.stringify(params, null, 2));
-
+      const token = localStorage.getItem("token");
       // Đảm bảo params là object, không phải mảng
       let normalizedParams = params;
       if (Array.isArray(params)) {
@@ -173,7 +173,7 @@ export const confirmAction = createAsyncThunk(
         });
         formData.append('redis_key', redis_key);
         dataToSend = formData;
-        config.headers = { 'Content-Type': 'multipart/form-data' };
+        config.headers = { 'Content-Type': 'multipart/form-data','Authorization': `Bearer ${token}`, };
       } else if (method === 'delete' || (method === 'patch' && !endpoint.includes('/Post/update-post'))) {
         dataToSend = null;
         const queryParams = Object.entries(jsonParams).reduce((acc, [key, value]) => {
@@ -185,7 +185,7 @@ export const confirmAction = createAsyncThunk(
         config.params = { ...queryParams, redis_key };
       } else {
         dataToSend = jsonParams;
-        config.headers = { 'Content-Type': 'application/json' };
+        config.headers = { 'Content-Type': 'application/json','Authorization': `Bearer ${token}`, };
       }
 
       console.log('[confirmAction] Sending dataToSend:', JSON.stringify(dataToSend, null, 2));
@@ -193,13 +193,13 @@ export const confirmAction = createAsyncThunk(
       // Gửi request tới endpoint
       let response;
       if (method === 'post') {
-        response = await axiosClient.post(url, dataToSend, config);
+        response = await axiosClient.post(url, dataToSend, config); // <-- Sử dụng 'url' đã xử lý
       } else if (method === 'put') {
-        response = await axiosClient.put(url, dataToSend, config);
+        response = await axiosClient.put(url, dataToSend, config); // <-- Sử dụng 'url' đã xử lý
       } else if (method === 'patch') {
-        response = await axiosClient.patch(url, dataToSend, config);
+        response = await axiosClient.patch(url, dataToSend, config); // <-- Sử dụng 'url' đã xử lý
       } else if (method === 'delete') {
-        response = await axiosClient.delete(url, config);
+        response = await axiosClient.delete(url, config); // <-- Sử dụng 'url' đã xử lý
       }
       console.log('[confirmAction] rediskey:', redis_key);
 
