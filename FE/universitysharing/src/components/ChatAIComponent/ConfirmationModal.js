@@ -18,6 +18,7 @@ const paramDisplayMap = {
   '/api/Ride/create': {
     DriverId: 'ID Tài xế',
     RidePostId: 'ID bài đăng',
+    EstimatedDuration:"0",
     IsSafetyTrackingEnabled: 'Chế độ an toàn',
   },
   '/api/Comment/CommentPost': {

@@ -31,22 +31,22 @@
 
                         bool isSafetyTrackingEnabled = ride.IsSafetyTrackingEnabled; // Kiểm tra chế độ an toàn
 
-                        if (lastDriverUpdate != null && (currentUtc - lastDriverUpdate) >= TimeSpan.FromMinutes(3))
+                        if (lastDriverUpdate != null && (currentUtc - lastDriverUpdate) >= TimeSpan.FromMinutes(6))
                         {
-                            if (currentUtc - lastDriverUpdate < TimeSpan.FromMinutes(1))
+                            if ((currentUtc - lastDriverUpdate) < TimeSpan.FromMinutes(6))
                             {
-                                // Cảnh báo trong app trước
+                                // Cảnh báo nhẹ trong app (qua notification service)
                                 await notificationService.SendInAppNotificationAsync(ride.DriverId, "GPS có thể bị tắt! Hãy kiểm tra lại.");
                             }
                             else
                             {
-                                // Cảnh báo mạnh hơn qua email/SMS
-                                await notificationService.SendAlertAsync(ride.DriverId, "GPS đã bị tắt hơn 5 phút! Hãy bật lại ngay.");
+                                // Cảnh báo mạnh hơn qua email hoặc SMS
+                                await notificationService.SendAlertAsync(ride.DriverId, "GPS đã bị tắt hơn 6 phút! Hãy bật lại ngay.");
                             }
                         }
-                            // (1) Tài xế tắt GPS hơn 30 phút
+                        // (1) Tài xế tắt GPS hơn 30 phút
 
-                            if (lastDriverUpdate != null && (currentUtc - lastDriverUpdate) > TimeSpan.FromMinutes(10))
+                        if (lastDriverUpdate != null && (currentUtc - lastDriverUpdate) > TimeSpan.FromMinutes(10))
 
                             {
                             await notificationService.SendAlertAsync(ride.PassengerId, "🚨 Cảnh giác! Tài xế của bạn đã tắt GPS hơn 10 phút.");

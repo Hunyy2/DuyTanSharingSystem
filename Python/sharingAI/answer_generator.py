@@ -76,6 +76,7 @@ class AnswerGenerator:
             password=os.getenv("REDIS_PASSWORD"),
             decode_responses=False,
         )
+        # self.redis = aioredis.from_url("redis://localhost", decode_responses=False)
         self.mappings = {
             "Posts": "/post/{id}",
             "RidePosts": "/sharing-ride",

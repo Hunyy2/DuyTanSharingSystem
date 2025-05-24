@@ -119,7 +119,7 @@ const YourRide = () => {
   const [mapBounds, setMapBounds] = useState(null);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedRide, setSelectedRide] = useState(null);
-
+  const currentUserLocation = useSelector((state) => state.rides.currentUserLocation);
   const navigate = useNavigate();
 
   const [mapReady, setMapReady] = useState(false); // Thêm state để kiểm tra bản đồ sẵn sàng
@@ -184,6 +184,12 @@ const YourRide = () => {
         callback(false);
       });
   };
+   useEffect(() => {
+    if (currentUserLocation) {
+      console.log("Vị trí hiện tại của người dùng từ Redux:", currentUserLocation);
+      // Cập nhật marker trên bản đồ, v.v.
+    }
+  }, [currentUserLocation]);
   useEffect(() => {
     // Kiểm tra quyền vị trí khi component mount
     checkLocationPermission((hasPermission) => {
@@ -415,6 +421,21 @@ const YourRide = () => {
         navigator.geolocation.clearWatch(watchIdRef.current);
     };
   }, [currentPosition, lastNotifiedPosition]);
+useEffect(() => {
+  const currentRide = getCurrentRide();
+  if (!currentRide) return; // Nếu currentRide không tồn tại thì dừng
+
+  const rideId = currentRide.rideId;
+  if (!currentPosition || !rideId) return;
+
+  const intervalId = setInterval(() => {
+    console.log("Gửi vị trí định kỳ mỗi 5 phút:", currentPosition);
+    sendLocationToServer(rideId, currentPosition.lat, currentPosition.lon, false);
+  }, 300000); // 5 phút = 300000 ms
+
+  return () => clearInterval(intervalId);
+}, [currentPosition]);
+
 
   // Periodically send location for current ride
   useEffect(() => {
@@ -505,47 +526,155 @@ const YourRide = () => {
   }, [driverRides, passengerRides, routePaths]);
 
   // Calculate ride progress percentage
-  const calculateProgress = (ride, currentPosition) => {
-    if (!ride || !currentPosition) return 0;
-    const startLatLon = parseLatLon(ride.latLonStart);
-    const endLatLon = parseLatLon(ride.latLonEnd);
-    if (!startLatLon || !endLatLon) return 0;
+// Tính toán điểm gần nhất trên polyline (tuyến đường)
+const findNearestPointOnPolyline = (point, polylineCoords) => {
+  if (!polylineCoords || polylineCoords.length < 2) return null;
 
-    const totalDistance = calculateDistance(
-      startLatLon[0],
-      startLatLon[1],
-      endLatLon[0],
-      endLatLon[1]
-    );
-    const traveledDistance = calculateDistance(
-      startLatLon[0],
-      startLatLon[1],
-      currentPosition.lat,
-      currentPosition.lon
-    );
-    const distanceToEnd = calculateDistance(
-      currentPosition.lat,
-      currentPosition.lon,
-      endLatLon[0],
-      endLatLon[1]
-    );
+  let nearestPoint = null;
+  let minDistance = Infinity;
+  let segmentIndex = -1;
+  let fraction = 0; // Tỷ lệ dọc theo đoạn
 
-    if (distanceToEnd < 0.05) return 100;
-    return Math.min((traveledDistance / totalDistance) * 100, 100);
-  };
+  for (let i = 0; i < polylineCoords.length - 1; i++) {
+    const p1 = polylineCoords[i];
+    const p2 = polylineCoords[i + 1];
 
-  // Calculate remaining distance to destination
-  const calculateRemainingDistance = (ride, currentPosition) => {
-    if (!ride || !currentPosition || !ride.latLonEnd) return 0;
-    const endLatLon = parseLatLon(ride.latLonEnd);
-    if (!endLatLon) return 0;
-    return calculateDistance(
-      currentPosition.lat,
-      currentPosition.lon,
-      endLatLon[0],
-      endLatLon[1]
+    const A = point[0] - p1[0];
+    const B = point[1] - p1[1];
+    const C = p2[0] - p1[0];
+    const D = p2[1] - p1[1];
+
+    const dot = A * C + B * D;
+    const lenSq = C * C + D * D;
+    let t = -1;
+
+    if (lenSq !== 0) {
+      t = dot / lenSq;
+    }
+
+    let closest;
+    if (t < 0) {
+      closest = p1;
+      t = 0; // Đảm bảo t không âm
+    } else if (t > 1) {
+      closest = p2;
+      t = 1; // Đảm bảo t không quá 1
+    } else {
+      closest = [p1[0] + t * C, p1[1] + t * D];
+    }
+
+    const dist = calculateDistance(point[0], point[1], closest[0], closest[1]);
+
+    if (dist < minDistance) {
+      minDistance = dist;
+      nearestPoint = closest;
+      segmentIndex = i;
+      fraction = t;
+    }
+  }
+  return { nearestPoint, segmentIndex, fraction };
+};
+
+// Tính toán độ dài đã đi trên polyline
+const calculateTraveledDistanceOnPolyline = (
+  currentPosition,
+  routePaths,
+  rideId
+) => {
+  if (!routePaths[rideId] || !currentPosition) return 0;
+  const polyline = routePaths[rideId];
+  if (polyline.length < 2) return 0;
+
+  const { nearestPoint, segmentIndex, fraction } = findNearestPointOnPolyline(
+    [currentPosition.lat, currentPosition.lon],
+    polyline
+  );
+
+  if (!nearestPoint || segmentIndex === -1) return 0;
+
+  let traveledDistance = 0;
+  for (let i = 0; i < segmentIndex; i++) {
+    traveledDistance += calculateDistance(
+      polyline[i][0],
+      polyline[i][1],
+      polyline[i + 1][0],
+      polyline[i + 1][1]
     );
-  };
+  }
+  // Thêm phần khoảng cách trên đoạn hiện tại
+  traveledDistance +=
+    calculateDistance(
+      polyline[segmentIndex][0],
+      polyline[segmentIndex][1],
+      nearestPoint[0],
+      nearestPoint[1]
+    ) * fraction; // Nhân với fraction để lấy đúng khoảng cách trên đoạn
+
+  return traveledDistance;
+};
+
+// Tính toán tổng chiều dài của một tuyến đường (polyline)
+const calculatePolylineLength = (polylineCoords) => {
+  let totalLength = 0;
+  for (let i = 0; i < polylineCoords.length - 1; i++) {
+    totalLength += calculateDistance(
+      polylineCoords[i][0],
+      polylineCoords[i][1],
+      polylineCoords[i + 1][0],
+      polylineCoords[i + 1][1]
+    );
+  }
+  return totalLength;
+};
+
+// Cập nhật hàm calculateProgress
+const calculateProgress = (ride, currentPosition, routePaths) => {
+  // Kiểm tra đầy đủ: ride, currentPosition, routePaths, và routePaths[ride.rideId]
+  if (!ride || !currentPosition || !routePaths || !routePaths[ride.rideId]) {
+    console.warn(`[calculateProgress] Skipping calculation: Missing data for rideId ${ride?.rideId}`);
+    return 0; // Trả về 0 nếu thiếu bất kỳ dữ liệu nào
+  }
+
+  const polyline = routePaths[ride.rideId];
+  if (polyline.length < 2) {
+    console.warn(`[calculateProgress] Polyline too short for rideId ${ride.rideId}`);
+    return 0;
+  }
+
+  const totalDistance = calculatePolylineLength(polyline);
+  const traveledDistance = calculateTraveledDistanceOnPolyline(
+    currentPosition,
+    routePaths,
+    ride.rideId
+  );
+
+  if (totalDistance === 0) return 0;
+  return Math.min((traveledDistance / totalDistance) * 100, 100);
+};
+
+// Cập nhật hàm calculateRemainingDistance
+const calculateRemainingDistance = (ride, currentPosition, routePaths) => {
+  // Kiểm tra đầy đủ: ride, currentPosition, routePaths, và routePaths[ride.rideId]
+  if (!ride || !currentPosition || !routePaths || !routePaths[ride.rideId]) {
+    console.warn(`[calculateRemainingDistance] Skipping calculation: Missing data for rideId ${ride?.rideId}`);
+    return 0; // Trả về 0 nếu thiếu bất kỳ dữ liệu nào
+  }
+
+  const polyline = routePaths[ride.rideId];
+  if (polyline.length < 2) {
+    console.warn(`[calculateRemainingDistance] Polyline too short for rideId ${ride.rideId}`);
+    return 0;
+  }
+
+  const totalDistance = calculatePolylineLength(polyline);
+  const traveledDistance = calculateTraveledDistanceOnPolyline(
+    currentPosition,
+    routePaths,
+    ride.rideId
+  );
+
+  return Math.max(totalDistance - traveledDistance, 0);
+};
 
   // Helper function to get current ride
   const getCurrentRide = () =>
@@ -556,9 +685,15 @@ const YourRide = () => {
       ? passengerRides.find((ride) => ride.status === "Accepted")
       : null);
   const currentRide = getCurrentRide();
+  console.log("[YourRide] Current ride:", currentRide);
+
+
   // Smooth progress animation
   // const currentRide = getCurrentRide();
-  const progress = calculateProgress(currentRide, currentPosition);
+const progress =
+    currentRide && currentRide.rideId && routePaths[currentRide.rideId]
+        ? calculateProgress(currentRide, currentPosition, routePaths)
+        : 0;
   useEffect(() => {
     const timer = setTimeout(() => setSmoothedProgress(progress), 500);
     return () => clearTimeout(timer);
@@ -664,9 +799,10 @@ const YourRide = () => {
       ? passengerRides.filter((ride) => ride.status === "Completed")
       : []),
   ];
-  const remainingDistance = currentRide
-    ? calculateRemainingDistance(currentRide, currentPosition)
-    : 0;
+const remainingDistance =
+    currentRide && currentRide.rideId && routePaths[currentRide.rideId]
+        ? calculateRemainingDistance(currentRide, currentPosition, routePaths)
+        : 0;
 
   const cityBounds = L.latLngBounds(
     L.latLng(15.9, 107.9),
@@ -677,7 +813,7 @@ const YourRide = () => {
     <div className="rides-app">
       <div className="rides-header">
         <h2>
-          <FiNavigation className="header-icon" /> Chuyến đi của bạn
+          <FiNavigation className="header-icon" /> Chuyến đi của bạn 
         </h2>
         <div className="header-gradient"></div>
       </div>

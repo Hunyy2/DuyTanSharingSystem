@@ -360,6 +360,7 @@ import TestDispatchAPI from "./views/TestDispatchAPI";
 import UserManagement from "./admin/views/UserManagement";
 
 import NotificationAdmin from "./admin/views/NotificationManagement";
+import LocationTracker from './components/RideComponent/LocationTracker'; // Import component mới
 import Site404 from "./views/404Site";
 
 
@@ -435,6 +436,7 @@ function App() {
       <NotificationProvider>
         <AxiosConfigProvider />
         <SignalRProvider>
+          <LocationTracker /> {/* Thêm component LocationTracker */}
           <Routes location={background || location}>
 
             {!isAuthenticated && (
