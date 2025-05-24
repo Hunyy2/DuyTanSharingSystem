@@ -3,13 +3,17 @@ import { FaUser, FaKey } from "react-icons/fa";
 import { FcNext } from "react-icons/fc";
 import { RiInformation2Fill } from "react-icons/ri";
 
-const YourAccount = ({ onChangePassword, onUpdateProfileInfo }) => {
+const YourAccount = ({
+  onChangePassword,
+  onUpdateProfileInfo,
+  onShowAccountInfo,
+}) => {
   return (
     <div className="your-account">
       <h2>Tài khoản của bạn</h2>
       <p>Xem thông tin về tài khoản và các tùy chọn bảo mật của bạn.</p>
       <ul className="account-options">
-        <li>
+        <li onClick={onShowAccountInfo}>
           <FaUser className="icon" />
           <div className="option-content">
             <span className="option-title">Thông tin tài khoản</span>

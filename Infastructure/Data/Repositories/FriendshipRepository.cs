@@ -135,5 +135,12 @@ namespace Infrastructure.Data.Repositories
                 .Take(take)
                 .ToListAsync(cancellationToken);
         }
+
+        public async Task<List<Friendship>> GetFriendshipsByUserIdAsync(Guid userId)
+        {
+            return await _context.Friendships
+                .Where(f => f.UserId == userId || f.FriendId == userId)
+                .ToListAsync();
+        }
     }
 }

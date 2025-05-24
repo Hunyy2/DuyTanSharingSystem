@@ -15,13 +15,14 @@ import {
   fetchReceivedRequestsWithCursor,
   fetchSentRequestsWithCursor,
   fetchFriendPreview,
+  fetchFriendSuggestions,
 } from "../action/friendAction";
 
 const friendSlice = createSlice({
   name: "friends",
   initialState: {
     friends: [],
-    countFriend: 0, // Add this to initialState
+    countFriend: 0,
     loading: false,
     error: null,
     activeFriend: null,
@@ -33,7 +34,14 @@ const friendSlice = createSlice({
       error: null,
       success: false,
     },
-    sentFriendRequests: [], // Thêm state mới
+    sentFriendRequests: [],
+    friendSuggestions: {
+      data: [],
+      offset: 0,
+      hasMore: true,
+      loading: false,
+      error: null,
+    },
     listFriendsCursor: {
       data: [],
       count: 0,
@@ -158,7 +166,12 @@ const friendSlice = createSlice({
       .addCase(sendFriendRequest.fulfilled, (state, action) => {
         state.friendRequestStatus.loading = false;
         state.friendRequestStatus.success = true;
-        // Update listFriendReceived if needed
+        state.friendSuggestions.data = state.friendSuggestions.data.map(
+          (suggestion) =>
+            suggestion.id === action.payload.friendId
+              ? { ...suggestion, isPending: true }
+              : suggestion
+        );
         if (state.listFriendReceived) {
           state.listFriendReceived = state.listFriendReceived.filter(
             (request) => request.friendId !== action.payload.friendId
@@ -177,7 +190,12 @@ const friendSlice = createSlice({
       .addCase(cancelFriendRequest.fulfilled, (state, action) => {
         state.friendRequestStatus.loading = false;
         state.friendRequestStatus.success = true;
-        // Update listFriendReceived if needed
+        state.friendSuggestions.data = state.friendSuggestions.data.map(
+          (suggestion) =>
+            suggestion.id === action.payload.friendId
+              ? { ...suggestion, isPending: false }
+              : suggestion
+        );
         if (state.listFriendReceived) {
           state.listFriendReceived = state.listFriendReceived.filter(
             (request) => request.friendId !== action.payload.friendId
@@ -363,6 +381,30 @@ const friendSlice = createSlice({
       .addCase(fetchFriendPreview.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(fetchFriendSuggestions.pending, (state) => {
+        state.friendSuggestions.loading = true;
+        state.friendSuggestions.error = null;
+      })
+      .addCase(fetchFriendSuggestions.fulfilled, (state, action) => {
+        state.friendSuggestions.loading = false;
+        if (action.payload.offset === 0) {
+          state.friendSuggestions.data = action.payload.suggestions || [];
+        } else {
+          state.friendSuggestions.data = [
+            ...state.friendSuggestions.data,
+            ...(action.payload.suggestions || []),
+          ];
+        }
+        state.friendSuggestions.offset =
+          action.payload.offset + (action.payload.suggestions?.length || 0);
+        state.friendSuggestions.hasMore = action.payload.hasMore;
+      })
+      .addCase(fetchFriendSuggestions.rejected, (state, action) => {
+        state.friendSuggestions.loading = false;
+        state.friendSuggestions.error =
+          action.payload || "Không thể lấy danh sách gợi ý kết bạn";
+        state.friendSuggestions.hasMore = false;
       });
   },
 });
