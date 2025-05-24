@@ -309,61 +309,57 @@
 
 // export default App;
 
-import "./App.css";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
   Navigate,
+  Route,
+  Routes,
   useLocation,
-  useNavigate,
+  useNavigate
 } from "react-router-dom";
+import "./App.css";
 
 import { ToastContainer, toast } from "react-toastify";
 
+import { useDispatch, useSelector } from "react-redux";
 import "react-toastify/dist/ReactToastify.css";
-import Login from "./views/Login";
-import Register from "./views/Register";
+import { AxiosConfigProvider } from "../src/Service/axiosClient";
+import { SignalRProvider } from "../src/Service/SignalRProvider";
+import AdminPostManagement from "./admin/views/AdminPostManagement";
+import AccountVerified from "./components/AccountVerified";
+import CommentModalBackGround from "./components/CommentModalBackgroud.";
+import ResendVerification from "./components/ResendVerification";
+import { useAuth } from "./contexts/AuthContext";
+import { NotificationProvider } from "./contexts/NotificationContext";
+import ChatBotAIView from "./views/ChatBotAIView";
 import ForgotPass from "./views/ForgotPassword";
-import ResetForgotPassword from "./views/ResetForgotPassword";
+import FriendProfileView from "./views/FriendProfileView";
+import FriendView from "./views/FriendView";
 import Homeview from "./views/HomeView";
+import Login from "./views/Login";
+import MessageView from "./views/MessageView";
+import Notifications from "./views/Notifications";
+import ProfileUserView from "./views/ProfileUserView";
+import Register from "./views/Register";
+import ResetForgotPassword from "./views/ResetForgotPassword";
+import ResultSearchView from "./views/ResultSearchView";
+import SearchView from "./views/SearchView";
+import SettingsView from "./views/SettingsView";
 import SharingRideView from "./views/SharingRideView";
 import YourRideView from "./views/YourRideView";
-import MessageView from "./views/MessageView";
-import ProfileUserView from "./views/ProfileUserView";
-import AccountVerified from "./components/AccountVerified";
-import SearchView from "./views/SearchView";
-import ResultSearchView from "./views/ResultSearchView";
-import Notifications from "./views/Notifications";
-import ChatBotAIView from "./views/ChatBotAIView";
-import AdminPostManagement from "./admin/views/AdminPostManagement";
-import FriendProfileView from "./views/FriendProfileView";
-import SettingsView from "./views/SettingsView";
-import ResendVerification from "./components/ResendVerification";
-import getUserIdFromToken from "./utils/JwtDecode";
-import FriendView from "./views/FriendView";
-import CommentModalBackGround from "./components/CommentModalBackgroud.";
-import { useSelector, useDispatch } from "react-redux";
-import { NotificationProvider } from "./contexts/NotificationContext";
-import { SignalRProvider, useSignalR } from "../src/Service/SignalRProvider";
-import { useAuth } from "./contexts/AuthContext";
-import { AxiosConfigProvider } from "../src/Service/axiosClient";
-import { notificationHandlers } from "./utils/notificationHandlers";
-import { addRealTimeNotification } from "./stores/action/notificationAction";
 
 import Dashboard from "./admin/views/DashBoardView";
 import UserReport from "./admin/views/UserReportManagerView";
 
 import { DeeplinkCommentModal } from "./stores/action/deepLinkAction";
-import CommentModalDeepLink from "./components/CommentModalDeepLink";
 
 import TestDispatchAPI from "./views/TestDispatchAPI";
 
 import UserManagement from "./admin/views/UserManagement";
 
-import Site404 from "./views/404Site";
 import NotificationAdmin from "./admin/views/NotificationManagement";
+import LocationTracker from './components/RideComponent/LocationTracker'; // Import component mới
+import Site404 from "./views/404Site";
 
 function App() {
   const { isAuthenticated, userRole, isLoading } = useAuth();
@@ -435,6 +431,7 @@ function App() {
       <NotificationProvider>
         <AxiosConfigProvider />
         <SignalRProvider>
+          <LocationTracker /> {/* Thêm component LocationTracker */}
           <Routes location={background || location}>
             {!isAuthenticated && (
               <>

@@ -4,6 +4,7 @@ import asyncio
 from collections import defaultdict
 import decimal
 import logging
+import os
 import psutil
 import re
 from typing import AsyncIterator, List, Dict, Optional, Tuple, Union
@@ -26,7 +27,8 @@ import json
 import uuid
 import emoji
 from datetime import datetime, date, time, timedelta
-from vector_store import VectorStore
+
+# from vector_store import VectorStore
 from Promft import TablePromptGenerator
 
 logging.basicConfig(
@@ -69,7 +71,12 @@ class AnswerGenerator:
         # self.chain = self._create_chain()
         self.sql_cache_locks = defaultdict(Lock)
         self.table_prompt_generator = TablePromptGenerator()
-        self.redis = aioredis.from_url("redis://localhost:6379", decode_responses=True)
+        self.redis = aioredis.from_url(
+            f"rediss://{os.getenv('REDIS_HOST')}",
+            password=os.getenv("REDIS_PASSWORD"),
+            decode_responses=False,
+        )
+        # self.redis = aioredis.from_url("redis://localhost", decode_responses=False)
         self.mappings = {
             "Posts": "/post/{id}",
             "RidePosts": "/sharing-ride",
@@ -528,12 +535,9 @@ class AnswerGenerator:
             return []
 
         logger.debug("Checking approved SQL cache")
-        cached_sql = await self.data_loader.get_approved_sql(normalized_query, user_id)
-        if not cached_sql:
-            logger.debug("Checking generated SQL cache")
-            cached_sql = await self.data_loader.get_generated_sql(
-                normalized_query, user_id
-            )
+
+        logger.debug("Checking generated SQL cache")
+        cached_sql = await self.data_loader.get_generated_sql(normalized_query, user_id)
 
         generated_sql_id = None
         if cached_sql:
@@ -705,146 +709,6 @@ class AnswerGenerator:
         """Count the number of tokens in the text (approximation based on words)."""
         words = text.split()
         return len(words)  # Mỗi từ được coi là một token (gần đúng)
-
-    # answer_generator.py, trong hàm _load_data_async
-    async def _load_data_async(
-        self,
-        user_id: str,
-        role: str,
-        table_intent: str,
-        last_data_time: Optional[datetime] = None,
-    ) -> Tuple[List[Dict], datetime, List[str]]:
-        formatted_data = []
-        deleted_ids = []
-        new_data_time = last_data_time or datetime(2000, 1, 1)
-        logger.info(f"Loading data with last_data_time: {new_data_time}")
-
-        config = self.data_loader.table_config.get(table_intent)
-        if not config:
-            logger.info(f"No table configuration for intent {table_intent}")
-            return formatted_data, new_data_time, deleted_ids
-
-        table_name = config["table"]
-        columns = config["columns"]
-        id_field = config["id_field"]
-        user_id_field = config["user_id_field"]
-        user_id_source = config.get("user_id_source", "field")
-        filters = config.get("filters")
-
-        time_field = next(
-            (
-                col
-                for col in columns
-                if col.lower() in ["updatedat", "updateat", "timestamp"]
-            ),
-            "CreatedAt",
-        )
-
-        columns_str = ", ".join(columns)
-        query = f"""
-        SELECT TOP 100 {columns_str}
-        FROM {table_name}
-        WHERE ({time_field} > ? OR CreatedAt > ?)
-        """
-        params = [new_data_time, new_data_time]
-
-        if filters:
-            query += f" AND {filters}"
-
-        if role != "admin":
-            if user_id_field:
-                if table_intent == "Friendships":
-                    query += f" AND (UserId = ? OR FriendId = ?)"
-                    params.extend([user_id, user_id])
-                elif table_intent == "Rides":
-                    query += f" AND (PassengerId = ? OR DriverId = ?)"
-                    params.extend([user_id, user_id])
-                else:
-                    query += f" AND {user_id_field} = ?"
-                    params.append(user_id)
-
-        try:
-            results = await self.data_loader._execute_query_async(query, tuple(params))
-            logger.info(
-                f"Found {len(results)} new/changed records for table {table_name}"
-            )
-
-            for r in results:
-                if id_field not in r:
-                    logger.error(f"Missing '{id_field}' in record: {r}")
-                    continue
-                created_at = r.get("CreatedAt")
-                updated_at = r.get(time_field)
-                if created_at is None and updated_at is None:
-                    logger.info(
-                        f"Skipping record with NULL CreatedAt and {time_field}: {r}"
-                    )
-                    continue
-                record_id = f"{table_intent}_{r[id_field]}"
-
-                if user_id_source == "input":
-                    record_user_id = user_id
-                elif user_id_source == "field" and user_id_field:
-                    record_user_id = r.get(user_id_field, user_id)
-                elif user_id_source == "custom" and table_intent == "Friendships":
-                    record_user_id = (
-                        r.get("UserId")
-                        if r.get("UserId") == user_id
-                        else r.get("FriendId", user_id)
-                    )
-                else:
-                    record_user_id = user_id
-                    logger.warning(
-                        f"Invalid user_id_source '{user_id_source}' for table {table_name}. Defaulting to user_id."
-                    )
-
-                formatted_data.append(
-                    {
-                        "content": await self.data_loader._format_content_async(
-                            r, self.normalized_query, table_intent, role
-                        ),
-                        "id": record_id,
-                        "table": table_intent,
-                        "userId": record_user_id,
-                        "generated_sql_id": str(uuid.uuid4()),
-                    }
-                )
-                valid_times = [t for t in [created_at, updated_at] if t is not None]
-                if valid_times:
-                    new_data_time = max(new_data_time, *valid_times)
-
-            if "IsDeleted" in columns:
-                delete_query = f"""
-                SELECT {id_field}
-                FROM {table_name}
-                WHERE IsDeleted = 1 OR CreatedAt <= ?
-                """
-                delete_results = await self.data_loader._execute_query_async(
-                    delete_query, (new_data_time,)
-                )
-                potential_deleted_ids = [
-                    f"{table_intent}_{r[id_field]}" for r in delete_results
-                ]
-                valid_deleted_ids = [
-                    id
-                    for id in potential_deleted_ids
-                    if id in self.vectorstore.vectorstore.docstore._dict
-                ]
-                deleted_ids.extend(valid_deleted_ids)
-                if potential_deleted_ids != valid_deleted_ids:
-                    logger.warning(
-                        f"Some deleted IDs not found in FAISS: {set(potential_deleted_ids) - set(valid_deleted_ids)}"
-                    )
-
-            logger.info(
-                f"Processed {len(formatted_data)} records for table {table_intent}"
-            )
-        except Exception as e:
-            logger.error(
-                f"Error loading data for {table_name}: {str(e)}", exc_info=True
-            )
-
-        return formatted_data, new_data_time, deleted_ids
 
     # answer_generator.py
     async def _stream_response(

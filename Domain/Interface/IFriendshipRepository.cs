@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
 
 namespace Domain.Interface
 {
@@ -19,5 +15,6 @@ namespace Domain.Interface
         Task<bool> ExistsAsync(Guid userId, Guid friendId, CancellationToken cancellationToken = default);
         Task<int> CountAcceptedFriendsAsync(Guid userId);
         Task<List<Friendship>> GetFriendsPreviewAsync(Guid userId, int take, CancellationToken cancellationToken = default);
+        Task<List<Friendship>> GetFriendshipsByUserIdAsync(Guid userId);
     }
 }

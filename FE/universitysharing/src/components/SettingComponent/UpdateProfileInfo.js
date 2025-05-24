@@ -17,26 +17,28 @@ const UpdateProfileInfo = ({ onBack }) => {
   const [gender, setGender] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Format số hiển thị (ví dụ: 077 759 9558)
+  // Format số hiển thị (ví dụ: 239 192 932)
   const formatPhoneNumber = (value) => {
     const digits = value.replace(/[^\d]/g, "");
-    if (digits.length <= 3) return digits;
-    if (digits.length <= 6) return `${digits.slice(0, 3)} ${digits.slice(3)}`;
-    if (digits.length <= 9)
-      return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
-    return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6, 10)}`;
+    const normalized = digits.startsWith("0") ? digits : `0${digits}`; // Ensure leading 0 for display
+    if (normalized.length <= 3) return normalized;
+    if (normalized.length <= 6)
+      return `${normalized.slice(0, 3)} ${normalized.slice(3)}`;
+    if (normalized.length <= 9)
+      return `${normalized.slice(0, 3)} ${normalized.slice(
+        3,
+        6
+      )} ${normalized.slice(6)}`;
+    return `${normalized.slice(0, 3)} ${normalized.slice(
+      3,
+      6
+    )} ${normalized.slice(6, 10)}`;
   };
 
-  // Chuẩn hóa số cho state và API (thêm 0 nếu thiếu)
+  // Chuẩn hóa số (thêm 0 nếu thiếu)
   const normalizePhoneNumber = (value) => {
     const digits = value.replace(/[^\d]/g, "");
     return digits.startsWith("0") ? digits : `0${digits}`;
-  };
-
-  // Parse số cho API (ví dụ: +84777599558)
-  const parsePhoneNumber = (value) => {
-    const digits = normalizePhoneNumber(value);
-    return `+84${digits.slice(1)}`;
   };
 
   // Validate số (10 hoặc 11 số, bắt đầu bằng 0)
@@ -46,11 +48,11 @@ const UpdateProfileInfo = ({ onBack }) => {
   };
 
   // Xử lý thay đổi input số điện thoại
-  const handlePhoneChange10Change = (e) => {
+  const handlePhoneChange = (e) => {
     const value = e.target.value;
     const digits = value.replace(/[^\d]/g, "");
     if (digits.length <= 11) {
-      setPhoneNumber(formatPhoneNumber(normalizePhoneNumber(digits)));
+      setPhoneNumber(formatPhoneNumber(digits));
     }
   };
 
@@ -59,7 +61,7 @@ const UpdateProfileInfo = ({ onBack }) => {
     const value = e.target.value;
     const digits = value.replace(/[^\d]/g, "");
     if (digits.length <= 11) {
-      setEmergencyContact(formatPhoneNumber(normalizePhoneNumber(digits)));
+      setEmergencyContact(formatPhoneNumber(digits));
     }
   };
 
@@ -72,19 +74,11 @@ const UpdateProfileInfo = ({ onBack }) => {
   useEffect(() => {
     console.log("User Profile Data (usersDetail):", usersDetail);
     if (usersDetail) {
-      const phone = usersDetail?.phoneNumber || usersDetail?.phone || "";
-      setPhoneNumber(
-        phone.startsWith("+84")
-          ? formatPhoneNumber(phone.replace("+84", "0"))
-          : formatPhoneNumber(normalizePhoneNumber(phone))
-      );
+      const phone = usersDetail?.phoneNumber || usersDetail?.phone || null;
+      setPhoneNumber(phone ? formatPhoneNumber(phone) : "");
       const emergency =
-        usersDetail?.phoneNumberRelative || usersDetail?.phoneRelative || "";
-      setEmergencyContact(
-        emergency.startsWith("+84")
-          ? formatPhoneNumber(emergency.replace("+84", "0"))
-          : formatPhoneNumber(normalizePhoneNumber(emergency))
-      );
+        usersDetail?.phoneNumberRelative || usersDetail?.phoneRelative || null;
+      setEmergencyContact(emergency ? formatPhoneNumber(emergency) : "");
       setGender(usersDetail?.gender || "");
     }
   }, [usersDetail]);
@@ -94,9 +88,12 @@ const UpdateProfileInfo = ({ onBack }) => {
     e.preventDefault();
     setIsProcessing(true);
 
-    // Validate số điện thoại
-    if (!validatePhoneNumber(phoneNumber)) {
-      toast.error("Số điện thoại phải bắt đầu bằng 0 và có 10 hoặc 11 số!", {
+    // Validate and prepare data
+    const normalizedPhone = normalizePhoneNumber(phoneNumber);
+    const normalizedEmergency = normalizePhoneNumber(emergencyContact);
+
+    if (!phoneNumber || !validatePhoneNumber(phoneNumber)) {
+      toast.error("Số điện thoại phải có 10 hoặc 11 số!", {
         position: "top-right",
         autoClose: 3000,
       });
@@ -104,9 +101,8 @@ const UpdateProfileInfo = ({ onBack }) => {
       return;
     }
 
-    // Validate số người thân
-    if (!validatePhoneNumber(emergencyContact)) {
-      toast.error("Số người thân phải bắt đầu bằng 0 và có 10 hoặc 11 số!", {
+    if (!emergencyContact || !validatePhoneNumber(emergencyContact)) {
+      toast.error("Số người thân phải có 10 hoặc 11 số!", {
         position: "top-right",
         autoClose: 3000,
       });
@@ -116,10 +112,12 @@ const UpdateProfileInfo = ({ onBack }) => {
 
     try {
       const updatedData = {
-        phoneNumber: parsePhoneNumber(phoneNumber),
-        phoneRelative: parsePhoneNumber(emergencyContact),
-        gender,
+        Phone: normalizedPhone,
+        PhoneRelative: normalizedEmergency,
+        Gender: gender,
       };
+
+      console.log("Sending updatedData:", updatedData); // Debug log
 
       const result = await dispatch(
         updateUserInformation(updatedData)
@@ -168,68 +166,58 @@ const UpdateProfileInfo = ({ onBack }) => {
 
   return (
     <div className="update-profile-info">
-      {" "}
       <button className="back-button" onClick={onBack}>
-        {" "}
-        <FaArrowLeft />{" "}
-      </button>{" "}
-      <h2>Cập nhật thông tin</h2>{" "}
+        <FaArrowLeft />
+      </button>
+      <h2>Cập nhật thông tin</h2>
       <form onSubmit={handleSubmit} className="form-container">
-        {" "}
         <div className="form-group">
-          {" "}
-          <label>Số điện thoại</label>{" "}
+          <label>Số điện thoại</label>
           <div className="phone-input-wrapper">
-            {" "}
-            <span className="phone-prefix">+84</span>{" "}
+            <span className="phone-prefix">+84</span>
             <input
               type="text"
               value={phoneNumber}
-              onChange={handlePhoneChange10Change}
+              onChange={handlePhoneChange}
               required
-              placeholder="077 759 9558"
+              placeholder="239 192 932"
               pattern="^0\d{2} \d{3} \d{3,4}$"
-            />{" "}
-          </div>{" "}
-        </div>{" "}
+            />
+          </div>
+        </div>
         <div className="form-group">
-          {" "}
-          <label>Số người thân</label>{" "}
+          <label>Số người thân</label>
           <div className="phone-input-wrapper">
-            {" "}
-            <span className="phone-prefix">+84</span>{" "}
+            <span className="phone-prefix">+84</span>
             <input
               type="text"
               value={emergencyContact}
               onChange={handleEmergencyContactChange}
               required
-              placeholder="077 759 9558"
+              placeholder="777 599 558"
               pattern="^0\d{2} \d{3} \d{3,4}$"
-            />{" "}
-          </div>{" "}
-        </div>{" "}
+            />
+          </div>
+        </div>
         <div className="form-group">
-          {" "}
-          <label>Giới tính</label>{" "}
+          <label>Giới tính</label>
           <select
             value={gender}
             onChange={(e) => setGender(e.target.value)}
             required
           >
-            {" "}
             <option value="" disabled>
-              {" "}
-              Chọn giới tính{" "}
-            </option>{" "}
-            <option value="Nam">Nam</option> <option value="Nữ">Nữ</option>{" "}
-            <option value="Khác">Khác</option>{" "}
-          </select>{" "}
-        </div>{" "}
+              Chọn giới tính
+            </option>
+            <option value="Nam">Nam</option>
+            <option value="Nữ">Nữ</option>
+            <option value="Khác">Khác</option>
+          </select>
+        </div>
         <button type="submit" className="save-button" disabled={isProcessing}>
-          {" "}
-          {isProcessing ? "Đang xử lý..." : "Lưu"}{" "}
-        </button>{" "}
-      </form>{" "}
+          {isProcessing ? "Đang xử lý..." : "Lưu"}
+        </button>
+      </form>
     </div>
   );
 };

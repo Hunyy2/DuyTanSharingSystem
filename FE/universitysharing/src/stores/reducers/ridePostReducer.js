@@ -9,6 +9,7 @@ import {
   fetchRidePost,
   fetchRidesByUserId,
   rateDriver,
+  sendLocationToServer,
   updatePost
 } from "../../stores/action/ridePostAction";
 
@@ -24,6 +25,7 @@ const ridePostSlice = createSlice({
     currentRide: null,
     ratedRides: [],
     completedRidesWithRating: [],
+    currentUserLocation: null,
     loading: false,
     error: null,
     success: false,
@@ -35,6 +37,12 @@ const ridePostSlice = createSlice({
       state.success = false;
       state.error = null;
     },
+    setCurrentUserLocation: (state, action) => {
+      state.currentUserLocation = action.payload;
+    },
+    clearCurrentRide: (state) => { // Khi chuyến đi kết thúc hoặc hủy
+      state.currentRide = null;
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -211,15 +219,24 @@ const ridePostSlice = createSlice({
       })
       .addCase(fetchLocation.fulfilled, (state, action) => {
         state.loading = false;
-        state.locations = action.payload; // Lưu danh sách vị trí
+        state.locations = action.payload;
       })
       .addCase(fetchLocation.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      // Xử lý sendLocationToServer (nếu bạn dùng async thunk này)
+      .addCase(sendLocationToServer.pending, (state) => {
+        // Có thể set trạng thái loading riêng cho việc gửi vị trí
+      })
+      .addCase(sendLocationToServer.fulfilled, (state, action) => {
+        // Xử lý sau khi gửi vị trí thành công (nếu cần)
+      })
+      .addCase(sendLocationToServer.rejected, (state, action) => {
+        // Xử lý lỗi khi gửi vị trí
       });
-      
   },
 });
 
-export const { resetPostState } = ridePostSlice.actions;
+export const { resetPostState, setCurrentUserLocation, clearCurrentRide } = ridePostSlice.actions; // Export action mới
 export default ridePostSlice.reducer;

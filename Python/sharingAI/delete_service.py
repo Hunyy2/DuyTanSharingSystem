@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import decimal
 import json
 import logging
+import os
 import random
 import re
 from typing import AsyncIterator, Dict, List, Optional
@@ -20,6 +21,7 @@ from answer_generator import AnswerGenerator
 import time as time_module
 from redis.asyncio import Redis
 from data_loader import DataLoader
+from redis import asyncio as aioredis
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +47,12 @@ class DeleteQueryProcessor:
         self.ans = AnswerGenerator()
         self.data_loader = DataLoader()
         self.table_prompt_generator = TablePromptGenerator()
-        self.redis = Redis.from_url("redis://localhost:6379", decode_responses=True)
+        self.redis = aioredis.from_url(
+            f"rediss://{os.getenv('REDIS_HOST')}",
+            password=os.getenv("REDIS_PASSWORD"),
+            decode_responses=False,
+        )
+        # self.redis = aioredis.from_url("redis://localhost", decode_responses=False)
 
     def default_encoder(self, obj):
         if isinstance(obj, decimal.Decimal):

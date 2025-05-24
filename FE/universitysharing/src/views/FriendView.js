@@ -4,6 +4,7 @@ import {
   fetchFriendsWithCursor,
   fetchReceivedRequestsWithCursor,
   fetchSentRequestsWithCursor,
+  fetchFriendSuggestions,
 } from "../stores/action/friendAction";
 import Header from "../components/HomeComponent/Header";
 import LeftSidebar from "../components/HomeComponent/LeftSideBarHome";
@@ -11,6 +12,7 @@ import FooterHome from "../components/HomeComponent/FooterHome";
 import FriendRequestsReceived from "../components/FriendComponent/FriendRequestReceived";
 import FriendRequestsSent from "../components/FriendComponent/FriendRequestSent";
 import Friendly from "../components/FriendComponent/Friendly";
+import FriendSuggestions from "../components/FriendComponent/FriendSuggestions";
 import {
   useSwipeToOpenSidebar,
   useBackButtonToCloseSidebar,
@@ -25,13 +27,19 @@ const FriendView = () => {
   const dispatch = useDispatch();
   const usersState = useSelector((state) => state.users) || {};
   const { users } = usersState;
-  const { listFriendsCursor, listFriendReceivedCursor, listFriendsSentCursor } =
-    useSelector((state) => state.friends || {});
+  const {
+    listFriendsCursor,
+    listFriendReceivedCursor,
+    listFriendsSentCursor,
+    friendSuggestions,
+  } = useSelector((state) => state.friends || {});
   const [showSidebar, setShowSidebar] = useState(false);
   const [activeTab, setActiveTab] = useState("friends");
+
   useEffect(() => {
     dispatch(userProfile());
   }, [dispatch]);
+
   // Fetch data based on active tab
   useEffect(() => {
     switch (activeTab) {
@@ -43,6 +51,9 @@ const FriendView = () => {
         break;
       case "requests-sent":
         dispatch(fetchSentRequestsWithCursor());
+        break;
+      case "suggestions":
+        dispatch(fetchFriendSuggestions({ limit: 10, offset: 0 }));
         break;
       default:
         break;
@@ -68,6 +79,16 @@ const FriendView = () => {
         if (listFriendsSentCursor.nextCursor) {
           dispatch(
             fetchSentRequestsWithCursor(listFriendsSentCursor.nextCursor)
+          );
+        }
+        break;
+      case "suggestions":
+        if (friendSuggestions.hasMore) {
+          dispatch(
+            fetchFriendSuggestions({
+              limit: 10,
+              offset: friendSuggestions.offset,
+            })
           );
         }
         break;
@@ -121,6 +142,12 @@ const FriendView = () => {
             >
               Lời mời đi
             </button>
+            <button
+              className={activeTab === "suggestions" ? "active" : ""}
+              onClick={() => setActiveTab("suggestions")}
+            >
+              Gợi ý kết bạn
+            </button>
           </div>
 
           {activeTab === "requests-received" && (
@@ -148,6 +175,15 @@ const FriendView = () => {
               hasMore={!!listFriendsSentCursor.nextCursor}
               loading={listFriendsSentCursor.loading}
               error={listFriendsSentCursor.error}
+            />
+          )}
+          {activeTab === "suggestions" && (
+            <FriendSuggestions
+              suggestions={friendSuggestions.data || []}
+              loading={friendSuggestions.loading}
+              error={friendSuggestions.error}
+              hasMore={friendSuggestions.hasMore}
+              onLoadMore={handleLoadMore}
             />
           )}
         </div>

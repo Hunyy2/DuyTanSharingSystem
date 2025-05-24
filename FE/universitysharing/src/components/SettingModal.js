@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom"; // Thêm để điều hướng
-import { useAuth } from "../contexts/AuthContext"; // Tích hợp authContext
 import { toast } from "react-toastify"; // Thêm toast
 import avatarDefaut from "../assets/AvatarDefault.png";
+import { useAuth } from "../contexts/AuthContext"; // Tích hợp authContext
 import "../styles/SettingModal.scss";
 
 import "../styles/MoblieReponsive/HomeViewMobile/SettingModalMobile.scss";
@@ -49,11 +49,11 @@ const SettingModal = ({ isOpen, onClose, users, UserProfile }) => {
         <div className="Account" onClick={UserProfile}>
           <img
             className="AvatarUser"
-            src={users.profilePicture || avatarDefaut}
+            src={users?.profilePicture || avatarDefaut}
             alt="Avatar"
           />
           <span className="UserName">
-            {users.fullName || "University Sharing"}
+            {users?.fullName || "University Sharing"}
           </span>
         </div>
         <div className="setting">

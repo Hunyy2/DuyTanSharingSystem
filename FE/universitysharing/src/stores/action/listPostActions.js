@@ -132,15 +132,11 @@ export const createPost = createAsyncThunk(
     const toastId = toast.loading("Đang đăng bài...");
 
     try {
-      const response = await axiosInstance.post(
-        "/api/Post/create",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // Gửi token trong header
-          },
-        }
-      );
+      const response = await axiosInstance.post("/api/Post/create", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Gửi token trong header
+        },
+      });
 
       if (response.data.success) {
         toast.update(toastId, {
@@ -331,7 +327,7 @@ export const replyComments = createAsyncThunk(
 export const sharePost = createAsyncThunk(
   "post/sharePost",
   async (
-    { postId, content, fullName, profilePicture },
+    { postId, content, fullName, profilePicture, privacy },
     { rejectWithValue }
   ) => {
     const toastId = toast.loading("Đang chia sẻ bài viết...");
@@ -342,7 +338,7 @@ export const sharePost = createAsyncThunk(
       const response = await axiosInstance.post(
         "/api/Share/SharePost",
 
-        { postId, content },
+        { postId, content, privacy },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -380,6 +376,7 @@ export const sharePost = createAsyncThunk(
         hasLiked: false,
         isSharedPost: true,
         postType: 1,
+        privacy: apiData.privacy,
         originalPost: {
           postId: apiData.originalPost.postId,
           content: apiData.originalPost.content,
@@ -387,6 +384,7 @@ export const sharePost = createAsyncThunk(
           createAt: apiData.originalPost.createAt,
           imageUrl: apiData.originalPost.imageUrl || null,
           videoUrl: apiData.originalPost.videoUrl || null,
+          scope: apiData.scope,
         },
       };
     } catch (error) {
