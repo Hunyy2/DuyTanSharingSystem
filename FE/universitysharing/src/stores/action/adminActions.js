@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-import axiosInstance from "../../Service/axiosClient";
+
 // Lấy danh sách bài viết có báo cáo
 export const fetchReportedPosts = createAsyncThunk(
   "report/fetchReportedPosts",
@@ -11,7 +11,7 @@ export const fetchReportedPosts = createAsyncThunk(
         return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
       }
       const response = await axios.get(
-        "/api/report/posts-report",
+        "https://localhost:7053/api/report/posts-report",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -46,7 +46,7 @@ export const fetchUserUserReports = createAsyncThunk(
         return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
       }
       const response = await axios.get(
-        "/api/report/user-user-report",
+        "https://localhost:7053/api/report/user-user-report",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -304,7 +304,7 @@ export const deletePost = createAsyncThunk(
 
     try {
       const response = await axios.patch(
-        `/api/report/delete-post-report/${postId}`,
+        `https://localhost:7053/api/report/delete-post-report/${postId}`,
         null,
         {
           headers: {
@@ -339,7 +339,7 @@ export const deleteAllReports = createAsyncThunk(
 
     try {
       const response = await axios.delete(
-        `/api/report/delete-all-report/${postId}`,
+        `https://localhost:7053/api/report/delete-all-report/${postId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -362,7 +362,6 @@ export const deleteAllReports = createAsyncThunk(
 );
 
 // Action lấy danh sách bài post bởi admin
-
 export const fetchPostsByAdmin = createAsyncThunk(
   "adminPosts/fetchPostsByAdmin",
   async ({ pageNumber, pageSize }, { rejectWithValue }) => {
@@ -373,7 +372,7 @@ export const fetchPostsByAdmin = createAsyncThunk(
       }
 
       const response = await axios.get(
-        `/api/post/get-posts-by-admin?pageNumber=${pageNumber}&pageSize=${pageSize}`,
+        `https://localhost:7053/api/post/get-posts-by-admin?pageNumber=${pageNumber}&pageSize=${pageSize}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -381,8 +380,8 @@ export const fetchPostsByAdmin = createAsyncThunk(
         }
       );
 
-      console.log("API Response:", response.data); // Log the full response
-      return response.data.data; // Ensure response.data.data contains { posts, totalCount }
+      console.log("API Response:", response.data);
+      return response.data.data;
     } catch (error) {
       console.error("API Error:", error);
       if (error.response) {
@@ -416,7 +415,7 @@ export const approvePost = createAsyncThunk(
 
     try {
       const response = await axios.patch(
-        `/api/post/approve?PostId=${postId}`,
+        `https://localhost:7053/api/post/approve?PostId=${postId}`,
         null,
         {
           headers: {
@@ -441,14 +440,17 @@ export const approvePost = createAsyncThunk(
   }
 );
 
-// Xóa bài viết
+// Xóa bài viếts
 export const adDeletePost = createAsyncThunk(
   "posts/deletePost",
   async (postID, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axiosInstance.delete(
-        `/api/Post/ad-delete?PostId=${postID}`,
+      if (!token) {
+        return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
+      }
+      await axios.delete(
+        `https://localhost:7053/api/Post/ad-delete?PostId=${postID}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -457,7 +459,17 @@ export const adDeletePost = createAsyncThunk(
       );
       return postID;
     } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
+      if (error.response) {
+        if (error.response.status === 401) {
+          return rejectWithValue({ message: "Phiên đăng nhập hết hạn" });
+        }
+        return rejectWithValue(
+          error.response.data?.message || "Không thể xóa bài viết!"
+        );
+      } else if (error.request) {
+        return rejectWithValue({ message: "Không kết nối được với server" });
+      }
+      return rejectWithValue({ message: "Lỗi không xác định" });
     }
   }
 );
