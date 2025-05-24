@@ -135,14 +135,17 @@ const notificationSlice = createSlice({
         state.loading = false;
         const notificationId = action.payload;
 
+        // Cập nhật trạng thái isRead cho thông báo
         state.notifications = state.notifications.map((notif) =>
           notif.id === notificationId ? { ...notif, isRead: true } : notif
         );
 
+        // Loại bỏ thông báo khỏi danh sách chưa đọc
         state.unreadNotifications = state.unreadNotifications.filter(
           (notif) => notif.id !== notificationId
         );
 
+        // Thêm thông báo vào danh sách đã đọc nếu chưa có
         if (
           !state.readNotifications.some((notif) => notif.id === notificationId)
         ) {
@@ -150,9 +153,12 @@ const notificationSlice = createSlice({
             (notif) => notif.id === notificationId
           );
           if (notification) {
-            state.readNotifications.unshift(notification);
+            state.readNotifications.unshift({ ...notification, isRead: true });
           }
         }
+
+        // Giảm unreadCount
+        state.unreadCount = Math.max(0, state.unreadCount - 1);
       })
       .addCase(markNotificationAsRead.rejected, (state, action) => {
         state.loading = false;

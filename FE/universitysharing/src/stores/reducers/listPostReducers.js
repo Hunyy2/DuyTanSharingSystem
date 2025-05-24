@@ -477,6 +477,7 @@ const listPostSlice = createSlice({
           postType: 1,
           originalPost: action.payload.originalPost,
           privacy: action.payload.privacy,
+          scope: action.payload.scope || 0,
         };
 
         state.posts.unshift(newPost);

@@ -9,6 +9,7 @@ import {
   fetchPostImagesPreview,
   fetchAllPostImages,
   fetchTrustScoreHistories,
+  fetchUserInformationDetail,
 } from "../action/profileActions";
 
 const listUser = createSlice({
@@ -143,6 +144,19 @@ const listUser = createSlice({
       .addCase(fetchTrustScoreHistories.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(fetchUserInformationDetail.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchUserInformationDetail.fulfilled, (state, action) => {
+        state.loading = false;
+        state.usersDetail = action.payload; // Lưu thông tin chi tiết vào usersDetail
+        state.usersProfile = action.payload; // Cập nhật usersProfile để đồng bộ
+      })
+      .addCase(fetchUserInformationDetail.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload; // Lưu thông báo lỗi
       });
   },
 });
