@@ -1,4 +1,3 @@
-import axios from "axios";
 
 import { TbMoodEmptyFilled } from "react-icons/tb";
 import { useNavigate } from "react-router-dom";
@@ -11,7 +10,6 @@ import { motion } from "framer-motion";
 import L from "leaflet";
 import { useEffect, useRef, useState } from "react";
 import { confirmAlert } from "react-confirm-alert";
-
 import {
   MapContainer,
   Marker,
@@ -21,6 +19,7 @@ import {
 } from "react-leaflet";
 import { useDispatch, useSelector } from "react-redux";
 import { useAuth } from "../../contexts/AuthContext"; // Thêm import useAuth
+import axiosInstance from "../../Service/axiosClient";
 
 // Icons
 import { FaCar } from "react-icons/fa6";
@@ -334,8 +333,8 @@ const YourRide = () => {
       };
       console.log("[sendLocationToServer] Payload:", payload);
 
-      const response = await axios.post(
-        "https://localhost:7053/api/updatelocation/update",
+      const response = await axiosInstance.post(
+        "/api/updatelocation/update",
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );

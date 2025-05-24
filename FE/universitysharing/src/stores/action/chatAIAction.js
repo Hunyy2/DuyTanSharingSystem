@@ -88,10 +88,10 @@ export const confirmAction = createAsyncThunk(
       let dataToSend = null;
       let config = {};
       let method = 'post';
-      let url = endpoint;
+      let url = new URL(endpoint).pathname;
 
       console.log('[confirmAction] Received params:', JSON.stringify(params, null, 2));
-
+      const token = localStorage.getItem("token");
       // Đảm bảo params là object, không phải mảng
       let normalizedParams = params;
       if (Array.isArray(params)) {
@@ -193,13 +193,13 @@ export const confirmAction = createAsyncThunk(
       // Gửi request tới endpoint
       let response;
       if (method === 'post') {
-        response = await axiosClient.post(url, dataToSend, config);
+        response = await axiosClient.post(url, dataToSend, config); // <-- Sử dụng 'url' đã xử lý
       } else if (method === 'put') {
-        response = await axiosClient.put(url, dataToSend, config);
+        response = await axiosClient.put(url, dataToSend, config); // <-- Sử dụng 'url' đã xử lý
       } else if (method === 'patch') {
-        response = await axiosClient.patch(url, dataToSend, config);
+        response = await axiosClient.patch(url, dataToSend, config); // <-- Sử dụng 'url' đã xử lý
       } else if (method === 'delete') {
-        response = await axiosClient.delete(url, config);
+        response = await axiosClient.delete(url, config); // <-- Sử dụng 'url' đã xử lý
       }
       console.log('[confirmAction] rediskey:', redis_key);
 
