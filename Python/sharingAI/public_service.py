@@ -206,52 +206,52 @@ class PublicQueryProcessor:
         Hiển thị đánh giá chi tiết trên hồ sơ cá nhân.
         5. Người dùng có thể xem tổng điểm uy tín và đánh giá chi tiết của một cá nhân trước khi quyết định giao dịch hoặc tương tác.
         1️⃣ Quy tắc giám sát khi bật chế độ "Theo dõi đảm bảo an toàn"
-📌 Phát hiện bất thường khi xảy ra một trong các trường hợp sau:
-(1) Tài xế tắt GPS quá lâu (trên 30 phút)
-🛑 Giải pháp:
-Gửi cảnh báo đến khách hàng:
- "Cảnh giác! Tài xế của bạn đã tắt GPS hơn 30 phút, chúng tôi không thể theo dõi chuyến đi."
-Nếu GPS tiếp tục bị tắt hơn 1 giờ, gửi thông báo đến số điện thoại khẩn cấp mà khách hàng đã đăng ký.
+        📌 Phát hiện bất thường khi xảy ra một trong các trường hợp sau:
+        (1) Tài xế tắt GPS quá lâu (trên 30 phút)
+        🛑 Giải pháp:
+        Gửi cảnh báo đến khách hàng:
+        "Cảnh giác! Tài xế của bạn đã tắt GPS hơn 30 phút, chúng tôi không thể theo dõi chuyến đi."
+        Nếu GPS tiếp tục bị tắt hơn 1 giờ, gửi thông báo đến số điện thoại khẩn cấp mà khách hàng đã đăng ký.
 
-(2) Chuyến đi kéo dài bất thường
-✅ Ví dụ:
-Hệ thống ước tính thời gian di chuyển là 30 phút.
-Nhưng sau 2 tiếng, chuyến đi vẫn chưa kết thúc.
-🛑 Giải pháp:
-Gửi thông báo đến khách hàng:
- "Chuyến đi của bạn kéo dài bất thường (dự kiến 30 phút, hiện đã 2 tiếng). Hãy kiểm tra tình trạng an toàn của bạn."
-Nếu khách hàng không phản hồi trong 10 phút, hệ thống tiếp tục cảnh báo.
+        (2) Chuyến đi kéo dài bất thường
+        ✅ Ví dụ:
+        Hệ thống ước tính thời gian di chuyển là 30 phút.
+        Nhưng sau 2 tiếng, chuyến đi vẫn chưa kết thúc.
+        🛑 Giải pháp:
+        Gửi thông báo đến khách hàng:
+        "Chuyến đi của bạn kéo dài bất thường (dự kiến 30 phút, hiện đã 2 tiếng). Hãy kiểm tra tình trạng an toàn của bạn."
+        Nếu khách hàng không phản hồi trong 10 phút, hệ thống tiếp tục cảnh báo.
 
-(3) Không có phản hồi từ khách hàng sau khi chuyến đi kết thúc
-✅ Ví dụ:
-Chuyến đi kết thúc, nhưng khách hàng không có bất kỳ tương tác nào với ứng dụng trong 2-3 tiếng.
-🛑 Giải pháp:
-Gửi thông báo:
- "Bạn có an toàn không? Chuyến đi đã kết thúc hơn 2 giờ trước mà bạn chưa có bất kỳ phản hồi nào."
-Nếu khách hàng không trả lời trong 24h, hệ thống sẽ gửi cảnh báo đến số điện thoại khẩn cấp.
+        (3) Không có phản hồi từ khách hàng sau khi chuyến đi kết thúc
+        ✅ Ví dụ:
+        Chuyến đi kết thúc, nhưng khách hàng không có bất kỳ tương tác nào với ứng dụng trong 2-3 tiếng.
+        🛑 Giải pháp:
+        Gửi thông báo:
+        "Bạn có an toàn không? Chuyến đi đã kết thúc hơn 2 giờ trước mà bạn chưa có bất kỳ phản hồi nào."
+        Nếu khách hàng không trả lời trong 24h, hệ thống sẽ gửi cảnh báo đến số điện thoại khẩn cấp.
 
-2️⃣ Cách triển khai tính năng
-🔹 A. Thêm tuỳ chọn trong cài đặt tài khoản
-📌 Cho phép người dùng bật/tắt chế độ "Theo dõi đảm bảo an toàn".
- 👉 Nếu bật: Hệ thống sẽ tự động giám sát hành trình.
- 👉 Nếu tắt: Chỉ gửi thông báo thông thường, không can thiệp vào hành trình.
+        2️⃣ Cách triển khai tính năng
+        🔹 A. Thêm tuỳ chọn trong cài đặt tài khoản
+        📌 Cho phép người dùng bật/tắt chế độ "Theo dõi đảm bảo an toàn".
+        👉 Nếu bật: Hệ thống sẽ tự động giám sát hành trình.
+        👉 Nếu tắt: Chỉ gửi thông báo thông thường, không can thiệp vào hành trình.
 
-🔹 B. Tự động yêu cầu quyền truy cập vị trí từ khách hàng
-✅ Khi bật chế độ "Theo dõi đảm bảo an toàn", ứng dụng sẽ yêu cầu quyền truy cập vị trí từ thiết bị của khách hàng.
- ❓ Có thể tự động bật GPS của khách hàng không?
-Trên Android: Có thể yêu cầu bật GPS, nhưng không thể tự động bật nếu khách không đồng ý.
-Trên iOS: Apple không cho phép bật GPS tự động. Khách hàng phải tự kích hoạt.
+        🔹 B. Tự động yêu cầu quyền truy cập vị trí từ khách hàng
+        ✅ Khi bật chế độ "Theo dõi đảm bảo an toàn", ứng dụng sẽ yêu cầu quyền truy cập vị trí từ thiết bị của khách hàng.
+        ❓ Có thể tự động bật GPS của khách hàng không?
+        Trên Android: Có thể yêu cầu bật GPS, nhưng không thể tự động bật nếu khách không đồng ý.
+        Trên iOS: Apple không cho phép bật GPS tự động. Khách hàng phải tự kích hoạt.
 
-🔹 C. Theo dõi cả tài xế và khách hàng
-🚀 Hệ thống sẽ theo dõi vị trí của cả tài xế và khách hàng trong suốt chuyến đi để tránh gian lận.
-Nếu tài xế mất tín hiệu GPS → kiểm tra xem khách hàng có bị mất luôn không.
-Nếu khách hàng bị mất vị trí bất thường → gửi cảnh báo ngay lập tức.
+        🔹 C. Theo dõi cả tài xế và khách hàng
+        🚀 Hệ thống sẽ theo dõi vị trí của cả tài xế và khách hàng trong suốt chuyến đi để tránh gian lận.
+        Nếu tài xế mất tín hiệu GPS → kiểm tra xem khách hàng có bị mất luôn không.
+        Nếu khách hàng bị mất vị trí bất thường → gửi cảnh báo ngay lập tức.
 
-Cách test hệ thống
-Tạo ra 1 tài xế ảo thông qua react và gửi thông tin vị trí liên tục để xem có hoạt động hay không
-Dữ liệu vị trí sẽ được SignalR ghi đè liên tục mỗi 3-5s để cập nhật được vị trí tài xế và người dùng
+        Cách test hệ thống
+        Tạo ra 1 tài xế ảo thông qua react và gửi thông tin vị trí liên tục để xem có hoạt động hay không
+        Dữ liệu vị trí sẽ được SignalR ghi đè liên tục mỗi 3-5s để cập nhật được vị trí tài xế và người dùng
 
-        -Hệ thông đánh giá uy tín:
+        **- Hệ thông đánh giá uy tín:**
         Sau khi đăng nhập, hệ thống cho phép:
         Người dùng:
         Đánh giá uy tín của người khác dựa trên các tiêu chí như giao dịch, tương tác bài viết, hoạt động chia sẻ.

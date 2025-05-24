@@ -1,4 +1,4 @@
-import { createAsyncThunk } from "@reduxjs/toolkit";
+import { createAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
 import axiosClient from "../../Service/axiosClient";
@@ -121,15 +121,20 @@ export const fetchRidePost = createAsyncThunk(
 // Tạo ride
 export const createRide = createAsyncThunk(
   "ride/createRide",
-  async (rideData, { rejectWithValue }) => {
+  async (rideData, { rejectWithValue, dispatch }) => {
     try {
       console.log("rideData", rideData);
       const response = await axiosClient.post("/api/ride/create", rideData);
+
       if (response.data.success) {
         toast.success(response.data.message || "Tạo chuyến đi thành công!");
+
+        // ✅ Dùng dispatch được lấy đúng cách ở đây
+        dispatch(setCurrentUserLocation(rideData));
       } else {
         toast.error(response.data.message || "Có lỗi xảy ra");
       }
+
       return response.data.data;
     } catch (error) {
       return rejectWithValue(
@@ -138,6 +143,7 @@ export const createRide = createAsyncThunk(
     }
   }
 );
+
 
 // Fetch rides theo userId từ API mới
 export const fetchRidesByUserId = createAsyncThunk(
@@ -258,6 +264,26 @@ export const fetchLocation = createAsyncThunk(
       return rejectWithValue(
         error.response?.data?.data || "Lỗi không xác định"
       );
+    }
+  }
+);
+export const setCurrentUserLocation = createAction('location/setCurrentUserLocation');
+
+export const sendLocationToServer = createAsyncThunk(
+  'location/sendLocationToServer',
+  async (locationData, { rejectWithValue, getState }) => {
+    try {
+      const token = getState().auth.accessToken; // Giả sử bạn có accessToken trong auth reducer
+      if (!token) {
+        throw new Error("No access token found");
+      }
+      // Ví dụ gọi API để cập nhật vị trí người dùng trên server
+      const response = await axiosClient.post('/api/user/location', locationData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data; // Server có thể trả về gì đó, hoặc chỉ status success
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
     }
   }
 );

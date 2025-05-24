@@ -22,7 +22,7 @@ namespace Infrastructure.Service
             IUnitOfWork unitOfWork)
         {
             _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
-            _pythonApiUrl = configuration["PythonApi:Url"] ?? "http://127.0.0.1:8000/api/query";
+            _pythonApiUrl = configuration["PythonApi:Url"] ?? "https://sharing-ai-btc8a3fth4d8bgfh.canadacentral-01.azurewebsites.net/api/query";
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _unitOfWork = unitOfWork;
         }

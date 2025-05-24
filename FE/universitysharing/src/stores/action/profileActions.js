@@ -169,7 +169,7 @@ export const updateUserInformation = createAsyncThunk(
       const response = await axiosInstance.put(
         "/api/UserProfile/upInformation",
         {
-          Phone: data.phoneNumber,
+          PhoneNumber: data.phoneNumber,
           PhoneRelative: data.phoneRelative,
           Gender: data.gender,
         },

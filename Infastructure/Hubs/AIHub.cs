@@ -17,7 +17,17 @@ public class AIHub : Hub
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _userContextService = userContextService;
     }
+    public override async Task OnConnectedAsync()
+    {
+        _logger.LogInformation("Client {ConnectionId} kết nối đến AIHub.", Context.ConnectionId);
+        await base.OnConnectedAsync(); // Rất quan trọng để SignalR xử lý nội bộ
+    }
 
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        _logger.LogInformation("Client {ConnectionId} ngắt kết nối khỏi AIHub. Lý do: {ExceptionMessage}", Context.ConnectionId, exception?.Message ?? "Không rõ");
+        await base.OnDisconnectedAsync(exception); // Rất quan trọng để SignalR xử lý nội bộ
+    }
     public async Task JoinConversation(string conversationId)
     {
         if (string.IsNullOrWhiteSpace(conversationId))

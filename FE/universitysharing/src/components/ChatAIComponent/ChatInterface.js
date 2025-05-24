@@ -812,7 +812,7 @@ const handleModalConfirm = useCallback(
         console.warn('[ChatInterface] chatHistoryId is undefined for streamId:', streamId);
       }
 
-      const endpointKey = endpoint.replace('https://localhost:7053', '');
+      const endpointKey = endpoint.replace('https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net', '');
       const messagesForEndpoint = successMessages[endpointKey] || successMessages['default'];
       const successMessage = messagesForEndpoint[Math.floor(Math.random() * messagesForEndpoint.length)];
 
@@ -830,7 +830,7 @@ const handleModalConfirm = useCallback(
       // Kiểm tra mã trạng thái từ server
       if (result.response && result.response.code === 200) {
   // Thành công: Tạo nội dung tin nhắn bao gồm successMessage và dữ liệu trả về
-  const endpointKey = endpoint.replace('https://localhost:7053', '');
+  const endpointKey = endpoint.replace('https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net', '');
   const messagesForEndpoint = successMessages[endpointKey] || successMessages['default'];
   const successMessage = messagesForEndpoint[Math.floor(Math.random() * messagesForEndpoint.length)];
 
@@ -876,12 +876,12 @@ const handleModalConfirm = useCallback(
           if (Array.isArray(value)) {
             return value
               .map((img, index) => {
-                const fullUrl = img.startsWith('http') ? img : `https://localhost:7053${img}`;
+                const fullUrl = img.startsWith('http') ? img : `https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net${img}`;
                 return `- ${displayName} ${index + 1}: ![${displayName} ${index + 1}](${fullUrl})`;
               })
               .join('\n');
           } else if (typeof value === 'string') {
-            const fullUrl = value.startsWith('http') ? value : `https://localhost:7053${value}`;
+            const fullUrl = value.startsWith('http') ? value : `https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net${value}`;
             return `- ${displayName}: ![${displayName}](${fullUrl})`;
           }
           return null;
@@ -889,7 +889,7 @@ const handleModalConfirm = useCallback(
 
         // Xử lý trường imageUrl (cho các endpoint như /api/Post/update-post)
         if (paramKey.toLowerCase() === 'imageurl' && typeof value === 'string') {
-          const fullUrl = value.startsWith('http') ? value : `https://localhost:7053${value}`;
+          const fullUrl = value.startsWith('http') ? value : `https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net${value}`;
           return `- ${displayName}: ![${displayName}](${fullUrl})`;
         }
 
@@ -902,7 +902,7 @@ const handleModalConfirm = useCallback(
     if (data.imageUrl && typeof data.imageUrl === 'string') {
       const fullUrl = data.imageUrl.startsWith('http')
         ? data.imageUrl
-        : `https://localhost:7053${data.imageUrl}`;
+        : `https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net${data.imageUrl}`;
       dataMessage += `\n- Hình ảnh: ![Hình ảnh](${fullUrl})`;
     }
 
@@ -933,13 +933,13 @@ const handleModalConfirm = useCallback(
           return `- Phạm vi: ${scopeOption ? scopeOption.label : value}`;
         }
         if (key === 'imageUrl' || key === 'image' || key === 'profileImage' || key === 'backgroundImage') {
-          const fullUrl = value.startsWith('http') ? value : `https://localhost:7053${value}`;
+          const fullUrl = value.startsWith('http') ? value : `https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net${value}`;
           return `- Hình ảnh: ![Hình ảnh](${fullUrl})`;
         }
         if (key === 'images' && Array.isArray(value)) {
           return value
             .map((img, index) => {
-              const fullUrl = img.startsWith('http') ? img : `https://localhost:7053${img}`;
+              const fullUrl = img.startsWith('http') ? img : `https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net${img}`;
               return `- Hình ảnh ${index + 1}: ![Hình ảnh ${index + 1}](${fullUrl})`;
             })
             .join('\n');
@@ -1170,7 +1170,7 @@ const extractImageUrl = (content) => {
   // Tìm kiếm đường dẫn hình ảnh trong nội dung
   const imagePathMatch = content.match(/Link ảnh: ?[`"]?(\/images\/posts\/[^\s`")\]\n]+)[`"]?/i);
   if (imagePathMatch) {
-    return `https://localhost:7053${imagePathMatch[1]}`;
+    return `https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net${imagePathMatch[1]}`;
   }
   return null;
 };

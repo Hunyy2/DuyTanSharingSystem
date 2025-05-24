@@ -1,13 +1,13 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "./index.css";
 import App from "./App";
+import "./index.css";
 import reportWebVitals from "./reportWebVitals";
 import store, { persistor } from "./stores/stores";
 
-import { PersistGate } from "redux-persist/integration/react";
 import { Provider } from "react-redux";
 import { BrowserRouter } from "react-router-dom";
+import { PersistGate } from "redux-persist/integration/react";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AxiosConfigProvider } from "./Service/axiosClient";
 const root = ReactDOM.createRoot(document.getElementById("root"));
