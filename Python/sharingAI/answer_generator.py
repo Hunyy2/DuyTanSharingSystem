@@ -802,8 +802,8 @@ class AnswerGenerator:
             - Nếu dữ liệu không có hãy trả lời: "Xin lỗi, tôi không tìm thấy thông tin bạn cần 😔." kèm theo một câu hỏi mở liên quan đến câu hỏi hiện tại của người dùng.
             - Trả lời bằng tiếng Việt.
             - Đặc biệt không được phép sử dụng các thuật ngữ trong lập trình như Id,các cột trong dữ liệu {{context}},phải chuyển đổi chúng sang một ngôn ngữ tự nhiên và hợp lý cho người dùng hiểu.
-            ví dụ: dữ liệu trong {{context}} chứa 'Id': 'https://localhost:7053/post/D2487B39-F5AA-4701-AD86-C3A1A77048C3', 'UserId': 'https://localhost:7053/profile/CFA82DCE-5902-4419-A6A1-3D8066BAD303', 'Content': 'hôm nay tôi vui quá', 'ImageUrl': '/images/posts/ad321db4-39a7-4b7c-b59a-e19a270bf860.jpg','ProfilePicture': '/images/profile/avatar/4de96800-48ec-4fed-abbb-0ee377c2f107.jpg'
-            thì bạn phải chuyển thành : link bài đăng: 'https://localhost:7053/post/D2487B39-F5AA-4701-AD86-C3A1A77048C3', Trang cá nhân của {{Tên người đó nếu có}}: 'https://localhost:7053/profile/CFA82DCE-5902-4419-A6A1-3D8066BAD303','/images/posts/ad321db4-39a7-4b7c-b59a-e19a270bf860.jpg',Ảnh đại diện: '/images/profile/avatar/4de96800-48ec-4fed-abbb-0ee377c2f107.jpg'
+            ví dụ: dữ liệu trong {{context}} chứa 'Id': 'https://duy-tan-sharing-system.vercel.app/profile/CFA82DCE-5902-4419-A6A1-3D8066BAD303', 'Content': 'hôm nay tôi vui quá', 'ImageUrl': '/images/posts/ad321db4-39a7-4b7c-b59a-e19a270bf860.jpg','ProfilePicture': '/images/profile/avatar/4de96800-48ec-4fed-abbb-0ee377c2f107.jpg'
+            thì bạn phải chuyển thành : link bài đăng: 'https://duy-tan-sharing-system.vercel.app/D2487B39-F5AA-4701-AD86-C3A1A77048C3', Trang cá nhân của {{Tên người đó nếu có}}: 'https://duy-tan-sharing-system.vercel.app/profile/CFA82DCE-5902-4419-A6A1-3D8066BAD303','/images/posts/ad321db4-39a7-4b7c-b59a-e19a270bf860.jpg',Ảnh đại diện: '/images/profile/avatar/4de96800-48ec-4fed-abbb-0ee377c2f107.jpg'
             - **CHÚ Ý**: 
                 1. Nếu dữ liệu không có hoặc không liên quan, bạn có thể trả lời dựa vào các câu hỏi trước đó trong lịch sử trò chuyện, nhưng không được tự động tạo dữ liệu mới hoặc giả mạo thông tin. Hãy trung thực và rõ ràng trong câu trả lời của bạn.
                 2. Bạn có thể trả lời các câu hỏi dựa trên dữ liệu từ website, ví dụ: "Người dùng hỏi trên chuyến đi đến Quang Trung, có những quán ăn nào không?" thì bạn có thể trả lời như: "Có một số quán ăn nổi tiếng như Phở Hòa, Bánh mì Huỳnh Hoa, Bún bò Huế,..." Nhưng phải dựa vào địa điểm đi và đến.
@@ -811,8 +811,11 @@ class AnswerGenerator:
                 4. `isOwner` không liên quan gì đến việc hiển thị link,url cả.
                 5. Dữ liệu được trả về chắc chắn liên quan đến câu hỏi {{question}} nên phải trả lời cho đúng. 
                 6. Không lặp lại các URL.
-                ví dụ thế này là sai:" **Link bài đăng:** [http://localhost:3000/post/772E761C-E421-4650-A623-CD45FA76B77A](http://localhost:3000/post/772E761C-E421-4650-A623-CD45FA76B77A)"
-                ví dụ đúng:  **Link bài đăng:** http://localhost:3000/post/772E761C-E421-4650-A623-CD45FA76B77A"
+                ví dụ thế này là sai:" **Link bài đăng:** [https://duy-tan-sharing-system.vercel.app/post/772E761C-E421-4650-A623-CD45FA76B77A](http://localhost:3000/post/772E761C-E421-4650-A623-CD45FA76B77A)"
+                ví dụ đúng:  **Link bài đăng:** https://duy-tan-sharing-system.vercel.app/post/772E761C-E421-4650-A623-CD45FA76B77A"
+                7. Nếu xuật hiện dữ liệu liên quan đến Hình ảnh, Video bạn phải tự nối chuỗi url với base_url của hệ thống, ví dụ: nếu base_url là "https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net" và dữ liệu có trường "ImageUrl": "/images/posts/ad321db4-39a7-4b7c-b59a-e19a270bf860.jpg" thì bạn phải trả về "https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net/images/posts/ad321db4-39a7-4b7c-b59a-e19a270bf860.jpg"
+                8. Phải luôn chuyển các trường trong context sang tiếng Việt, không được để nguyên tiếng Anh hoặc các từ viết tắt.
+                9. Không được hiển thị các ký tự trong code như `Id`, `UserId`, `Content`, `ImageUrl`, `ProfilePicture`,`IsOwner`... mà phải chuyển sang tiếng Việt tự nhiên. 
             Ví dụ nếu có lịch sử chat dạng:
             
             
@@ -934,7 +937,13 @@ class AnswerGenerator:
                 # Bỏ qua nếu không phải string
                 if not isinstance(value, str):
                     continue
-
+                # Nếu là đường dẫn ảnh bắt đầu bằng "/images/", thêm URL đầy đủ
+                if isinstance(value, str) and value.startswith("/images/"):
+                    record[field] = f"{NETCORE_API_URL}{value}"
+                    continue  # Không cần mapping nữa
+                if isinstance(value, str) and value.startswith("/videos/"):
+                    record[field] = f"{NETCORE_API_URL}{value}"
+                    continue  # Không cần mapping nữa
                 # 1. Mapping cụ thể theo bảng hiện tại
                 replaced = False
                 for table in relevant_tables:

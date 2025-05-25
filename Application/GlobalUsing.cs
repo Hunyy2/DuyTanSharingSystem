@@ -31,4 +31,6 @@ global using Application.DTOs.User;
 global using static Application.Common.Constaint;
 global using Application.DTOs.FriendShips;
 global using Application.DTOs.Post;
+global using Application.DTOs.Shares;
+global using Application.DTOs.Comments;
 global using Application.DTOs.Notification;

@@ -302,6 +302,7 @@ namespace Infrastructure.Data.Repositories
         public async Task<List<Post>> GetAllPostsForAdminAsync(int skip, int take, CancellationToken cancellationToken)
         {
             return await _context.Posts
+                .IgnoreQueryFilters()
                 .Include(p => p.User)
                 .Include(p => p.Reports)
                 .OrderByDescending(p => p.CreatedAt)

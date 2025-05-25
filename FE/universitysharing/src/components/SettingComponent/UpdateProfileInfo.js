@@ -180,7 +180,6 @@ const UpdateProfileInfo = ({ onBack }) => {
               value={phoneNumber}
               onChange={handlePhoneChange}
               required
-              placeholder="239 192 932"
               pattern="^0\d{2} \d{3} \d{3,4}$"
             />
           </div>
@@ -194,7 +193,6 @@ const UpdateProfileInfo = ({ onBack }) => {
               value={emergencyContact}
               onChange={handleEmergencyContactChange}
               required
-              placeholder="777 599 558"
               pattern="^0\d{2} \d{3} \d{3,4}$"
             />
           </div>

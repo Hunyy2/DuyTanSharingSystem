@@ -1,6 +1,4 @@
 ﻿
-using Application.DTOs.Shares;
-
 namespace Application.CQRS.Commands.Shares
 {
     public class SharePostCommandHandler : IRequestHandler<SharePostCommand, ResponseModel<ResultSharePostDto>>
@@ -65,18 +63,15 @@ namespace Application.CQRS.Commands.Shares
                 await _unitOfWork.PostRepository.AddAsync(sharedPost);
                 var postOwnerId = await _postService.GetPostOwnerId(originalPost.Id);
                 //Lưu vào Notification
-                var notification = new Notification(postOwnerId, userId, $"{user.FullName} đã chia sẻ bài viết của bạn", NotificationType.PostShared, null, $"/post/{originalPost.Id}");
-                await _unitOfWork.NotificationRepository.AddAsync(notification);
+                if (postOwnerId != userId)
+                {
+                    var notification = new Notification(postOwnerId, userId, $"{user.FullName} đã chia sẻ bài viết của bạn", NotificationType.PostShared, null, $"/post/{originalPost.Id}");
+                    await _unitOfWork.NotificationRepository.AddAsync(notification);
+                    await _notificationService.SendShareNotificationAsync(request.PostId, userId, postOwnerId, notification.Id);
+
+                }
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransactionAsync();
-
-
-                var message = $"{user.FullName} đã chia sẻ bài viết của bạn vào lúc {DateTime.Now.ToString("HH:mm dd/MM/yyyy")}";
-
-                if(userId != originalPost.UserId)
-                {
-                    await _notificationService.SendShareNotificationAsync(request.PostId, userId, postOwnerId, notification.Id);
-                }
 
                 if (request.redis_key != null)
                 {
