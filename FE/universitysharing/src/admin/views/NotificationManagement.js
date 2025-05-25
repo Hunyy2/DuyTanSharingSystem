@@ -21,10 +21,9 @@ const NotificationAdmin = () => {
 
   const columns = [
     {
-      title: "ID",
-      dataIndex: "id",
-      key: "id",
-      render: (text) => <span>{text.slice(0, 8)}...</span>,
+      title: "STT",
+      key: "stt",
+      render: (text, record, index) => index + 1,
     },
     {
       title: "Ride ID",
@@ -33,20 +32,27 @@ const NotificationAdmin = () => {
       render: (text) => <span>{text.slice(0, 8)}...</span>,
     },
     {
-      title: "Passenger ID",
-      dataIndex: "passengerId",
-      key: "passengerId",
-      render: (text) => <span>{text.slice(0, 8)}...</span>,
+      title: "Tên hành khách",
+      dataIndex: "passengerName",
+      key: "passengerName",
+      render: (text) => <span>{text || "Không có"}</span>,
     },
     {
-      title: "Message",
-      dataIndex: "message",
-      key: "message",
+      title: "Tên tài xế",
+      dataIndex: "driverName",
+      key: "driverName",
+      render: (text) => <span>{text || "Không có"}</span>,
     },
     {
       title: "Số điện thoại hành khách",
       dataIndex: "phonePassenger",
       key: "phonePassenger",
+      render: (text) => <span>{text || "Không có"}</span>,
+    },
+    {
+      title: "Số điện thoại tài xế",
+      dataIndex: "driverPhone",
+      key: "driverPhone",
       render: (text) => <span>{text || "Không có"}</span>,
     },
     {
@@ -56,22 +62,17 @@ const NotificationAdmin = () => {
       render: (text) => <span>{text || "Không có"}</span>,
     },
     {
+      title: "Message",
+      dataIndex: "message",
+      key: "message",
+    },
+    {
       title: "Loại cảnh báo",
       dataIndex: "alertType",
       key: "alertType",
       render: (type) => (
         <Tag color={type === 0 ? "red" : "orange"}>
           {type === 0 ? "Nghiêm trọng" : "Cảnh báo"}
-        </Tag>
-      ),
-    },
-    {
-      title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
-      render: (status) => (
-        <Tag color={status ? "green" : "red"}>
-          {status ? "Đã xử lý" : "Chưa xử lý"}
         </Tag>
       ),
     },

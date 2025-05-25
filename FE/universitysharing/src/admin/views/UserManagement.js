@@ -66,12 +66,6 @@ const UserManagement = () => {
   };
 
   const handleModalConfirm = async (untilISO) => {
-    if (!untilISO) {
-      dispatch({ type: "reportAdmintSlice/clearReportState" });
-      message.error("Vui lòng chọn thời gian hết hạn.");
-      return;
-    }
-
     try {
       if (modalAction === "block") {
         await dispatch(
@@ -84,6 +78,7 @@ const UserManagement = () => {
         ).unwrap();
         message.success("Tạm ngưng người dùng thành công!");
       }
+      // Chỉ đóng modal và reset trạng thái sau khi dispatch thành công
       setBlockModalVisible(false);
       setSelectedUserId(null);
       setModalAction(null);
@@ -121,134 +116,138 @@ const UserManagement = () => {
   };
 
   return (
-    <div className="user-management">
+    <>
       <AppHeader />
       <AppSidebar />
-      <h1>Quản lý người dùng</h1>
+      <div className="user-management">
+        <h1>Quản lý người dùng</h1>
 
-      {error && <div className="error-message">{error}</div>}
+        {error && <div className="error-message">{error}</div>}
 
-      {loading && <div className="loading">Đang tải dữ liệu...</div>}
+        {loading && <div className="loading">Đang tải dữ liệu...</div>}
 
-      {!loading && (
-        <div className="search-bar">
-          <FaSearch className="search-icon" />
-          <input
-            type="text"
-            placeholder="Nhập bằng tên hoặc email"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-      )}
+        {!loading && (
+          <div className="search-bar">
+            <FaSearch className="search-icon" />
+            <input
+              type="text"
+              placeholder="Nhập bằng tên hoặc email"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        )}
 
-      <BlockUserModal
-        visible={blockModalVisible}
-        onConfirm={handleModalConfirm}
-        onCancel={handleModalCancel}
-        userId={selectedUserId}
-        title={modalTitle}
-      />
+        <BlockUserModal
+          visible={blockModalVisible}
+          onConfirm={handleModalConfirm}
+          onCancel={handleModalCancel}
+          userId={selectedUserId}
+          title={modalTitle}
+        />
 
-      {!loading && (
-        <div className="users-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Họ Tên</th>
-                <th>Email</th>
-                <th>Ngày tạo</th>
-                <th>Xác thực</th>
-                <th>Điểm uy tín</th>
-                <th>Role</th>
-                <th>Trạng thái</th>
-                <th>Số liên lạc</th>
-                <th>Số người thân</th>
-                <th>Reports</th>
-                <th>Lần đăng nhập cuối</th>
-                <th>Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUsers.map((user) => (
-                <tr key={user.id}>
-                  <td>{user.fullName}</td>
-                  <td>{user.email}</td>
-                  <td>{new Date(user.createdAt).toLocaleDateString()}</td>
-                  <td>{user.isVerifiedEmail ? "Có" : "Không"}</td>
-                  <td>{user.trustScore}</td>
-                  <td>{user.role}</td>
-                  <td>{user.status}</td>
-                  <td className="phone-cell">
-                    <span>{maskPhoneNumber(user.phone, user.id, "phone")}</span>
-                    <button
-                      className="toggle-visibility"
-                      onClick={() => togglePhoneVisibility(user.id, "phone")}
-                    >
-                      {showPhoneNumbers[`${user.id}-phone`] ? (
-                        <FaEyeSlash />
-                      ) : (
-                        <FaEye />
-                      )}
-                    </button>
-                  </td>
-                  <td className="phone-cell">
-                    <span>
-                      {maskPhoneNumber(
-                        user.relativePhone,
-                        user.id,
-                        "relativePhone"
-                      )}
-                    </span>
-                    <button
-                      className="toggle-visibility"
-                      onClick={() =>
-                        togglePhoneVisibility(user.id, "relativePhone")
-                      }
-                    >
-                      {showPhoneNumbers[`${user.id}-relativePhone`] ? (
-                        <FaEyeSlash />
-                      ) : (
-                        <FaEye />
-                      )}
-                    </button>
-                  </td>
-                  <td>{user.totalReports}</td>
-                  <td>
-                    {user.lastLoginDate
-                      ? new Date(user.lastLoginDate).toLocaleDateString()
-                      : "N/A"}
-                  </td>
-                  <td className="actions">
-                    <button
-                      title="Chặn người dùng"
-                      onClick={() => showBlockModal(user.id, "block")}
-                      disabled={user.status === "Blocked"}
-                    >
-                      <FaBan />
-                    </button>
-                    <button
-                      title="Tạm ngưng người dùng"
-                      onClick={() => showBlockModal(user.id, "suspend")}
-                      disabled={user.status === "Suspended"}
-                    >
-                      <FaPause />
-                    </button>
-                    <button
-                      title="Kích hoạt người dùng"
-                      onClick={() => handleActivate(user.id)}
-                      disabled={user.status === "Active"}
-                    >
-                      <FaCheckCircle />
-                    </button>
-                  </td>
+        {!loading && (
+          <div className="users-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Họ Tên</th>
+                  <th>Email</th>
+                  <th>Ngày tạo</th>
+                  <th>Xác thực</th>
+                  <th>Điểm uy tín</th>
+                  <th>Role</th>
+                  <th>Trạng thái</th>
+                  <th>Số liên lạc</th>
+                  <th>Số người thân</th>
+                  <th>Reports</th>
+                  <th>Lần đăng nhập cuối</th>
+                  <th>Hành động</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+              </thead>
+              <tbody>
+                {filteredUsers.map((user) => (
+                  <tr key={user.id}>
+                    <td>{user.fullName}</td>
+                    <td>{user.email}</td>
+                    <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                    <td>{user.isVerifiedEmail ? "Có" : "Không"}</td>
+                    <td>{user.trustScore}</td>
+                    <td>{user.role}</td>
+                    <td>{user.status}</td>
+                    <td className="phone-cell">
+                      <span>
+                        {maskPhoneNumber(user.phone, user.id, "phone")}
+                      </span>
+                      <button
+                        className="toggle-visibility"
+                        onClick={() => togglePhoneVisibility(user.id, "phone")}
+                      >
+                        {showPhoneNumbers[`${user.id}-phone`] ? (
+                          <FaEyeSlash />
+                        ) : (
+                          <FaEye />
+                        )}
+                      </button>
+                    </td>
+                    <td className="phone-cell">
+                      <span>
+                        {maskPhoneNumber(
+                          user.relativePhone,
+                          user.id,
+                          "relativePhone"
+                        )}
+                      </span>
+                      <button
+                        className="toggle-visibility"
+                        onClick={() =>
+                          togglePhoneVisibility(user.id, "relativePhone")
+                        }
+                      >
+                        {showPhoneNumbers[`${user.id}-relativePhone`] ? (
+                          <FaEyeSlash />
+                        ) : (
+                          <FaEye />
+                        )}
+                      </button>
+                    </td>
+                    <td>{user.totalReports}</td>
+                    <td>
+                      {user.lastLoginDate
+                        ? new Date(user.lastLoginDate).toLocaleDateString()
+                        : "N/A"}
+                    </td>
+                    <td className="actions">
+                      <button
+                        title="Chặn người dùng"
+                        onClick={() => showBlockModal(user.id, "block")}
+                        disabled={user.status === "Blocked"}
+                      >
+                        <FaBan />
+                      </button>
+                      <button
+                        title="Tạm ngưng người dùng"
+                        onClick={() => showBlockModal(user.id, "suspend")}
+                        disabled={user.status === "Suspended"}
+                      >
+                        <FaPause />
+                      </button>
+                      <button
+                        title="Kích hoạt người dùng"
+                        onClick={() => handleActivate(user.id)}
+                        disabled={user.status === "Active"}
+                      >
+                        <FaCheckCircle />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 
