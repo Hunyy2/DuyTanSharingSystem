@@ -164,7 +164,7 @@ const Dashboard = () => {
                     })) || []
                   }
                   columns={columns}
-                  pagination={{ pageSize: 5 }}
+                  pagination={false}
                 />
               </Card>
             </>

@@ -480,8 +480,11 @@ const listPostSlice = createSlice({
           scope: action.payload.scope || 0,
         };
 
-        state.posts.unshift(newPost);
+        if (newPost.scope !== 1) {
+          state.posts.unshift(newPost);
+        }
 
+        // Always increment the share count of the original post
         if (newPost.originalPost?.postId) {
           const originalPost = state.posts.find(
             (p) => p.id === newPost.originalPost.postId
