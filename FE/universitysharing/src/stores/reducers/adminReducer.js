@@ -248,8 +248,11 @@ const reporAdmintSlice = createSlice({
         state.loading = false;
         state.success = true;
         state.error = null;
-        state.posts = state.posts.filter((post) => post.id !== action.payload);
-        state.totalCount -= 1;
+        state.posts = state.posts.map((post) =>
+          post.id === action.payload
+            ? { ...post, isDeleted: true, approvalStatus: 2 }
+            : post
+        );
       })
       .addCase(adDeletePost.rejected, (state, action) => {
         state.loading = false;

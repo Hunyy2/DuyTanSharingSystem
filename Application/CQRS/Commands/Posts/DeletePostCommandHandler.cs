@@ -1,11 +1,4 @@
-﻿using Application.Interface.ContextSerivce;
-using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace Application.CQRS.Commands.Posts
 {
     public class DeletePostCommandHandler : IRequestHandler<DeletePostCommand, ResponseModel<bool>>
@@ -36,7 +29,9 @@ namespace Application.CQRS.Commands.Posts
             await _unitOfWork.BeginTransactionAsync();
             try
             {
-                await _postRepository.DeleteAsync(post.Id);
+                post.AdDelete();
+                await _unitOfWork.PostRepository.UpdateAsync(post);
+                await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransactionAsync();
                 if (request.redis_key != null)
                 {
@@ -52,5 +47,4 @@ namespace Application.CQRS.Commands.Posts
             }
         }
     }
-
 }

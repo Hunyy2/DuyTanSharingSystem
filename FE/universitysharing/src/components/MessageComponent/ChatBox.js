@@ -55,12 +55,12 @@ const ChatBox = ({ friendId, onClose }) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiPickerRef = useRef(null);
   // Thêm hàm xử lý khi chọn emoji
-const onEmojiClick = (emojiObject) => {
-  if (emojiObject?.emoji) {
-    setNewMessage((prev) => prev + emojiObject.emoji);
-  }
-  setShowEmojiPicker(false);
-};
+  const onEmojiClick = (emojiObject) => {
+    if (emojiObject?.emoji) {
+      setNewMessage((prev) => prev + emojiObject.emoji);
+    }
+    setShowEmojiPicker(false);
+  };
 
   // Đóng emoji picker khi click ra ngoài
   useEffect(() => {
@@ -560,10 +560,10 @@ const onEmojiClick = (emojiObject) => {
       <div className="chat-header" onClick={() => setIsMinimized(!isMinimized)}>
         <div className="user-info">
           <img
-            src={activeFriend?.avatarFriend || avatarDefault}
-            alt={activeFriend?.fullNameFriend}
+            src={activeFriend?.pictureProfile || avatarDefault}
+            alt={activeFriend?.pictureProfile}
           />
-          <span>{activeFriend?.fullNameFriend}</span>
+          <span>{activeFriend?.fullName}</span>
           <span className="status-dot online"></span>
         </div>
         <div className="header-actions">
@@ -602,7 +602,14 @@ const onEmojiClick = (emojiObject) => {
                 }`}
               >
                 <div className="message-content">
-                  <p dangerouslySetInnerHTML={{ __html: message.content.replace(/:([a-zA-Z0-9+_]+):/g, (match, emoji) => `<span class="emoji">${emoji}</span>`) }} />
+                  <p
+                    dangerouslySetInnerHTML={{
+                      __html: message.content.replace(
+                        /:([a-zA-Z0-9+_]+):/g,
+                        (match, emoji) => `<span class="emoji">${emoji}</span>`
+                      ),
+                    }}
+                  />
                   <span className="message-time">
                     {new Date(message.sentAt).toLocaleTimeString([], {
                       hour: "2-digit",

@@ -137,7 +137,7 @@ namespace Application.Services
                 NotificationId = notificationId,
                 Message = message,
                 Avatar = avatar ?? "",
-                Url = $"/profile/{commenterId}",
+                Url = $"/post/{postId}",
                 SenderId = commenterId,
                 CreatedAt = FormatUtcToLocal(DateTime.UtcNow),
             };
@@ -387,7 +387,7 @@ namespace Application.Services
                     NotificationId = notification1.Id,
                     Message = commentMsg,
                     Avatar = avatar ?? "",
-                    Url = $"/profile/{responderId}",
+                    Url = $"/post/{postId}",
                     CreatedAt = FormatUtcToLocal(DateTime.UtcNow),
                     SenderId = responderId,
                 };
@@ -406,7 +406,7 @@ namespace Application.Services
                     NotificationId = notification2.Id,
                     Message = postMsg,
                     Avatar = avatar ?? "",
-                    Url = $"/profile/{responderId}",
+                    Url = $"/post/{postId}",
                     CreatedAt = FormatUtcToLocal(DateTime.UtcNow),
                     SenderId = responderId,
                 };
