@@ -1,37 +1,15 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import axiosClient from "../../Service/axiosClient"; // Đường dẫn cần điều chỉnh theo cấu trúc dự án
 
 // Lấy danh sách bài viết có báo cáo
 export const fetchReportedPosts = createAsyncThunk(
   "report/fetchReportedPosts",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
-      }
-      const response = await axios.get(
-        "https://localhost:7053/api/report/posts-report",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axiosClient.get("/api/report/posts-report");
       return response.data;
     } catch (error) {
-      if (error.response) {
-        if (error.response.status === 401) {
-          return rejectWithValue({ message: "Phiên đăng nhập hết hạn" });
-        }
-        return rejectWithValue(
-          error.response.data?.message ||
-            "Có lỗi xảy ra khi lấy danh sách báo cáo!"
-        );
-      } else if (error.request) {
-        return rejectWithValue({ message: "Không kết nối được với server" });
-      }
-      return rejectWithValue({ message: "Lỗi không xác định" });
+      return handleApiError(error, rejectWithValue);
     }
   }
 );
@@ -41,32 +19,10 @@ export const fetchUserUserReports = createAsyncThunk(
   "report/fetchUserUserReports",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
-      }
-      const response = await axios.get(
-        "https://localhost:7053/api/report/user-user-report",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axiosClient.get("/api/report/user-user-report");
       return response.data;
     } catch (error) {
-      if (error.response) {
-        if (error.response.status === 401) {
-          return rejectWithValue({ message: "Phiên đăng nhập hết hạn" });
-        }
-        return rejectWithValue(
-          error.response.data?.message ||
-            "Có lỗi xảy ra khi lấy danh sách báo cáo người dùng!"
-        );
-      } else if (error.request) {
-        return rejectWithValue({ message: "Không kết nối được với server" });
-      }
-      return rejectWithValue({ message: "Lỗi không xác định" });
+      return handleApiError(error, rejectWithValue);
     }
   }
 );
@@ -76,20 +32,10 @@ export const fetchUsers = createAsyncThunk(
   "admin/fetchUsers",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
-      }
-      const response = await axios.get(
-        "https://localhost:7053/api/Admin/GetallUser",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axiosClient.get("/api/Admin/GetallUser");
+
       if (response.data.success && response.data.data) {
-        const mappedUsers = response.data.data.map((user) => ({
+        return response.data.data.map((user) => ({
           id: user.id,
           fullName: user.fullName,
           email: user.email,
@@ -103,25 +49,13 @@ export const fetchUsers = createAsyncThunk(
           totalReports: user.totalReports,
           lastLoginDate: user.lastActive,
         }));
-        return mappedUsers;
       } else {
         return rejectWithValue({
           message: "Không thể tải danh sách người dùng.",
         });
       }
     } catch (error) {
-      if (error.response) {
-        if (error.response.status === 401) {
-          return rejectWithValue({ message: "Phiên đăng nhập hết hạn" });
-        }
-        return rejectWithValue(
-          error.response.data?.message ||
-            "Đã xảy ra lỗi khi lấy danh sách người dùng."
-        );
-      } else if (error.request) {
-        return rejectWithValue({ message: "Không kết nối được với server" });
-      }
-      return rejectWithValue({ message: "Lỗi không xác định" });
+      return handleApiError(error, rejectWithValue);
     }
   }
 );
@@ -131,31 +65,10 @@ export const fetchNotifications = createAsyncThunk(
   "admin/fetchNotifications",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
-      }
-      const response = await axios.get(
-        "https://localhost:7053/api/report/admin/ride-reports",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axiosClient.get("/api/report/admin/ride-reports");
       return response.data;
     } catch (error) {
-      if (error.response) {
-        if (error.response.status === 401) {
-          return rejectWithValue({ message: "Phiên đăng nhập hết hạn" });
-        }
-        return rejectWithValue(
-          error.response.data?.message || "Không thể tải thông báo."
-        );
-      } else if (error.request) {
-        return rejectWithValue({ message: "Không kết nối được với server" });
-      }
-      return rejectWithValue({ message: "Lỗi không xác định" });
+      return handleApiError(error, rejectWithValue);
     }
   }
 );
@@ -165,22 +78,11 @@ export const blockUser = createAsyncThunk(
   "admin/blockUser",
   async ({ userId, untilISO }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
-      }
-      const response = await axios.post(
-        `https://localhost:7053/api/Admin/${userId}/block?blockUntil=${encodeURIComponent(
-          untilISO
-        )}`,
-        null,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
+      const response = await axiosClient.post(
+        `/api/Admin/${userId}/block?blockUntil=${encodeURIComponent(untilISO)}`,
+        null
       );
+
       if (response.data.success) {
         return { userId, untilISO };
       } else {
@@ -189,17 +91,7 @@ export const blockUser = createAsyncThunk(
         });
       }
     } catch (error) {
-      if (error.response) {
-        if (error.response.status === 401) {
-          return rejectWithValue({ message: "Phiên đăng nhập hết hạn" });
-        }
-        return rejectWithValue(
-          error.response.data?.message || "Đã xảy ra lỗi khi chặn người dùng."
-        );
-      } else if (error.request) {
-        return rejectWithValue({ message: "Không kết nối được với server" });
-      }
-      return rejectWithValue({ message: "Lỗi không xác định" });
+      return handleApiError(error, rejectWithValue);
     }
   }
 );
@@ -209,22 +101,13 @@ export const suspendUser = createAsyncThunk(
   "admin/suspendUser",
   async ({ userId, untilISO }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
-      }
-      const response = await axios.post(
-        `https://localhost:7053/api/Admin/${userId}/suspend?suspendUntil=${encodeURIComponent(
+      const response = await axiosClient.post(
+        `/api/Admin/${userId}/suspend?suspendUntil=${encodeURIComponent(
           untilISO
         )}`,
-        null,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
+        null
       );
+
       if (response.data.success) {
         return { userId, untilISO };
       } else {
@@ -233,18 +116,7 @@ export const suspendUser = createAsyncThunk(
         });
       }
     } catch (error) {
-      if (error.response) {
-        if (error.response.status === 401) {
-          return rejectWithValue({ message: "Phiên đăng nhập hết hạn" });
-        }
-        return rejectWithValue(
-          error.response.data?.message ||
-            "Đã xảy ra lỗi khi tạm ngưng người dùng."
-        );
-      } else if (error.request) {
-        return rejectWithValue({ message: "Không kết nối được với server" });
-      }
-      return rejectWithValue({ message: "Lỗi không xác định" });
+      return handleApiError(error, rejectWithValue);
     }
   }
 );
@@ -254,20 +126,11 @@ export const activateUser = createAsyncThunk(
   "admin/activateUser",
   async (userId, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
-      }
-      const response = await axios.post(
-        `https://localhost:7053/api/Admin/${userId}/unblock`,
-        null,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
+      const response = await axiosClient.post(
+        `/api/Admin/${userId}/unblock`,
+        null
       );
+
       if (response.data.success) {
         return userId;
       } else {
@@ -276,18 +139,7 @@ export const activateUser = createAsyncThunk(
         });
       }
     } catch (error) {
-      if (error.response) {
-        if (error.response.status === 401) {
-          return rejectWithValue({ message: "Phiên đăng nhập hết hạn" });
-        }
-        return rejectWithValue(
-          error.response.data?.message ||
-            "Đã xảy ra lỗi khi kích hoạt người dùng."
-        );
-      } else if (error.request) {
-        return rejectWithValue({ message: "Không kết nối được với server" });
-      }
-      return rejectWithValue({ message: "Lỗi không xác định" });
+      return handleApiError(error, rejectWithValue);
     }
   }
 );
@@ -296,33 +148,14 @@ export const activateUser = createAsyncThunk(
 export const deletePost = createAsyncThunk(
   "report/deletePost",
   async (postId, { rejectWithValue }) => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
-    }
-
     try {
-      const response = await axios.patch(
-        `https://localhost:7053/api/report/delete-post-report/${postId}`,
-        null,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await axiosClient.patch(
+        `/api/report/delete-post-report/${postId}`,
+        null
       );
       return { postId, ...response.data };
     } catch (error) {
-      if (error.response) {
-        if (error.response.status === 401) {
-          return rejectWithValue({ message: "Phiên đăng nhập hết hạn" });
-        }
-        return rejectWithValue(error.response.data);
-      } else if (error.request) {
-        return rejectWithValue({ message: "Không kết nối được với server" });
-      }
-      return rejectWithValue({ message: "Lỗi không xác định" });
+      return handleApiError(error, rejectWithValue);
     }
   }
 );
@@ -331,32 +164,13 @@ export const deletePost = createAsyncThunk(
 export const deleteAllReports = createAsyncThunk(
   "report/deleteAllReports",
   async (postId, { rejectWithValue }) => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
-    }
-
     try {
-      const response = await axios.delete(
-        `https://localhost:7053/api/report/delete-all-report/${postId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await axiosClient.delete(
+        `/api/report/delete-all-report/${postId}`
       );
       return { postId, ...response.data };
     } catch (error) {
-      if (error.response) {
-        if (error.response.status === 401) {
-          return rejectWithValue({ message: "Phiên đăng nhập hết hạn" });
-        }
-        return rejectWithValue(error.response.data);
-      } else if (error.request) {
-        return rejectWithValue({ message: "Không kết nối được với server" });
-      }
-      return rejectWithValue({ message: "Lỗi không xác định" });
+      return handleApiError(error, rejectWithValue);
     }
   }
 );
@@ -366,39 +180,12 @@ export const fetchPostsByAdmin = createAsyncThunk(
   "adminPosts/fetchPostsByAdmin",
   async ({ pageNumber, pageSize }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
-      }
-
-      const response = await axios.get(
-        `https://localhost:7053/api/post/get-posts-by-admin?pageNumber=${pageNumber}&pageSize=${pageSize}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await axiosClient.get(
+        `/api/post/get-posts-by-admin?pageNumber=${pageNumber}&pageSize=${pageSize}`
       );
-
-      console.log("API Response:", response.data);
       return response.data.data;
     } catch (error) {
-      console.error("API Error:", error);
-      if (error.response) {
-        if (error.response.status === 401) {
-          return rejectWithValue({ message: "Phiên đăng nhập hết hạn" });
-        }
-        if (error.response.status === 403) {
-          return rejectWithValue({ message: "Bạn không có quyền truy cập" });
-        }
-        return rejectWithValue(
-          error.response.data?.message ||
-            "Có lỗi xảy ra khi lấy danh sách bài viết!"
-        );
-      } else if (error.request) {
-        return rejectWithValue({ message: "Không kết nối được với server" });
-      }
-      return rejectWithValue({ message: "Lỗi không xác định" });
+      return handleApiError(error, rejectWithValue);
     }
   }
 );
@@ -407,69 +194,42 @@ export const fetchPostsByAdmin = createAsyncThunk(
 export const approvePost = createAsyncThunk(
   "adminPosts/approvePost",
   async (postId, { rejectWithValue }) => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
-    }
-
     try {
-      const response = await axios.patch(
-        `https://localhost:7053/api/post/approve?PostId=${postId}`,
-        null,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await axiosClient.patch(
+        `/api/post/approve?PostId=${postId}`,
+        null
       );
       return { postId, ...response.data };
     } catch (error) {
-      if (error.response) {
-        if (error.response.status === 401) {
-          return rejectWithValue({ message: "Phiên đăng nhập hết hạn" });
-        }
-        return rejectWithValue(
-          error.response.data?.message || "Không thể duyệt bài viết!"
-        );
-      } else if (error.request) {
-        return rejectWithValue({ message: "Không kết nối được với server" });
-      }
-      return rejectWithValue({ message: "Lỗi không xác định" });
+      return handleApiError(error, rejectWithValue);
     }
   }
 );
 
-// Xóa bài viếts
+// Xóa bài viết
 export const adDeletePost = createAsyncThunk(
   "posts/deletePost",
   async (postID, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
-      }
-      await axios.delete(
-        `https://localhost:7053/api/Post/ad-delete?PostId=${postID}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await axiosClient.delete(`/api/Post/ad-delete?PostId=${postID}`);
       return postID;
     } catch (error) {
-      if (error.response) {
-        if (error.response.status === 401) {
-          return rejectWithValue({ message: "Phiên đăng nhập hết hạn" });
-        }
-        return rejectWithValue(
-          error.response.data?.message || "Không thể xóa bài viết!"
-        );
-      } else if (error.request) {
-        return rejectWithValue({ message: "Không kết nối được với server" });
-      }
-      return rejectWithValue({ message: "Lỗi không xác định" });
+      return handleApiError(error, rejectWithValue);
     }
   }
 );
+
+// Hàm xử lý lỗi chung
+const handleApiError = (error, rejectWithValue) => {
+  if (error.response) {
+    if (error.response.status === 401) {
+      return rejectWithValue({ message: "Phiên đăng nhập hết hạn" });
+    }
+    return rejectWithValue(
+      error.response.data?.message || "Đã xảy ra lỗi khi thực hiện yêu cầu."
+    );
+  } else if (error.request) {
+    return rejectWithValue({ message: "Không kết nối được với server" });
+  }
+  return rejectWithValue({ message: "Lỗi không xác định" });
+};

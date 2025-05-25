@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
 using static Domain.Common.Enums;
 
 namespace Domain.Entities
@@ -23,6 +19,7 @@ namespace Domain.Entities
         public RidePost? RidePost { get;private set; }
         public User? Driver { get; private set; }
         public User? Passenger { get; private set; }
+        public ICollection<RideReport>? RideReports { get; private set; } = new List<RideReport>();
         public ICollection<LocationUpdate>? LocationUpdates { get; private set; }
         public Rating? Rating { get; private set; }
         public Ride(Guid driverId, Guid passengerId, decimal? fare, int estimatedDuration, Guid ridePostId,bool isSafetyTrackingEnabled)

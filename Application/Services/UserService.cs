@@ -240,9 +240,9 @@ namespace Application.Services
             await _unitOfWork.SaveChangesAsync();
 
             // Map User entity to UserDto
-            var userDto = Mapping.MapToUserDto(user);
+            var userSup = Mapping.MapToUserDto(user);
 
-            return ResponseFactory.Success(userDto, "Suspend người dùng thành công", 200);
+            return ResponseFactory.Success(userSup, "Suspend người dùng thành công", 200);
         }
 
         public async Task<ResponseModel<UserDto>> UnblockUserAsync(Guid userId)
@@ -254,10 +254,10 @@ namespace Application.Services
                 return ResponseFactory.Fail<UserDto>("Người dùng không tồn tại", 404);
 
             // Kiểm tra trạng thái người dùng (nếu người dùng đã bị suspend hoặc không có thời gian block, không thể unblock)
-            if (user.Status == "Suspended")
-            {
-                return ResponseFactory.Fail<UserDto>("Người dùng đang bị suspend, không thể unblock", 400);
-            }
+            //if (user.Status == "Suspended")
+            //{
+            //    return ResponseFactory.Fail<UserDto>("Người dùng đang bị suspend, không thể unblock", 400);
+            //}
 
             // Cập nhật trạng thái người dùng thành "Active"
             user.MarkAsActive();

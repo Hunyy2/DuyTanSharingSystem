@@ -12,6 +12,7 @@ namespace Domain.Entities
         public bool Status { get; private set; } = false;
         public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
         public User? Passenger { get; private set; }
+        public Ride? Ride { get; private set; }
         public RideReport(Guid rideId, Guid passengerId, AlertTypeEnums alertType, string message)
         {
             RideId = rideId;
