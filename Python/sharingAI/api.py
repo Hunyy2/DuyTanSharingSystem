@@ -149,9 +149,7 @@ async def lifespan(app: FastAPI):
             password=os.getenv("REDIS_PASSWORD"),
             decode_responses=False,
         )
-        # redis = aioredis.from_url(
-        #     "redis://localhost", decode_responses=False
-        # )  # hoặc True nếu muốn auto decode bytes
+        # redis = aioredis.from_url("redis://localhost", decode_responses=False)
         logger.info(
             "Initialized DataLoader, AnswerGenerator, QueryProcessors, and Redis"
         )
@@ -341,6 +339,7 @@ async def query(request: QueryRequest, current_user: dict = Depends(get_current_
                     },
                     ensure_ascii=False,
                 ) + "\n"
+                return
             else:
 
                 generator = answer_generator.generate_answer_stream_async(

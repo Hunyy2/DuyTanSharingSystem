@@ -168,6 +168,18 @@ export const confirmAction = createAsyncThunk(
           } else if (key === 'Video' && value && value !== 'null') {
             formData.append('Video', value);
           } else if (value !== null && value !== undefined && value !== 'null') {
+            if (key === 'Scope') {
+              // Mapping tiếng Việt → enum số
+              const scopeMap = {
+                'công khai': 0,
+                'riêng tư': 1,
+                'bạn bè': 2,
+              };
+
+              const mappedScope = typeof value === 'string' ? scopeMap[value.toLowerCase()] : value;
+              formData.append('Scope', mappedScope);
+            }
+
             formData.append(key, value.toString());
           }
         });
@@ -233,3 +245,23 @@ export const stopAction = createAsyncThunk(
     }
   }
 );
+// Async thunk để xóa conversation
+export const deleteConversation = createAsyncThunk(
+  'chatAI/deleteConversation',
+  async ({ conversationId }, { rejectWithValue }) => {
+    try {
+      const response = await axiosClient.delete(`/api/ChatAI/conversation/${conversationId}`);
+      console.log('[deleteConversation] Response:', response.data);
+      const resData = response.data;
+      if (resData.code !== 200) {
+        return rejectWithValue(resData.message || 'Lỗi khi xóa hội thoại');
+      }
+      console.log('[deleteConversation] Conversation deleted successfully');
+      return resData.data; // Trả về dữ liệu đã xóa
+    } catch (error) {
+      console.error('[deleteConversation] Error:', error.response?.data || error.message);
+      return rejectWithValue(error.response?.data?.message || 'Lỗi khi xóa hội thoại');
+    }
+  }
+);
+

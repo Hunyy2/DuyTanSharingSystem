@@ -1,6 +1,6 @@
 import 'highlight.js/styles/atom-one-light.css';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Menu, Mic, Plus, Send, StopCircle } from 'react-feather';
+import { Menu, Mic, Plus, RefreshCw, Send, StopCircle } from 'react-feather';
 import ReactMarkdown from 'react-markdown';
 import { useDispatch, useSelector } from 'react-redux';
 import rehypeHighlight from 'rehype-highlight';
@@ -171,34 +171,54 @@ const preprocessMarkdown = (text) => {
 };
 
 // Sửa hàm convertLinksToMarkdown
+// Sửa hàm convertLinksToMarkdown
 const convertLinksToMarkdown = (content) => {
-  // Bảo vệ cú pháp hình ảnh markdown trước khi xử lý liên kết
-  const imagePlaceholder = '___IMAGE___';
-  const images = [];
+  if (!content) return content;
+
   let tempContent = content;
 
-  // Tìm và thay thế các cú pháp hình ảnh bằng placeholder
+  // 1. Chuyển đổi các hyperlink có URL hình ảnh từ server cụ thể thành cú pháp hình ảnh
+  // Ví dụ: [https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net/images/profile/avatar/abc.jpg](https://...)
+  // Hoặc: [một văn bản bất kỳ](https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net/images/...)
+  // Alt text sẽ là phần trong dấu ngoặc vuông []
   tempContent = tempContent.replace(
-    /!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g,
-    (match) => {
-      images.push(match);
-      return imagePlaceholder;
+    /\[(.*?)\]\((https?:\/\/(?:universharing-web-app-gaereaceg0drc5e3\.southeastasia-01\.azurewebsites\.net\/images\/[^\s)]+\.(?:jpg|jpeg|png|gif|webp)))\)/gi,
+    (match, p1, p2) => {
+      // p1 là nội dung trong [] (có thể là URL hoặc alt text)
+      // p2 là URL hình ảnh thực sự
+      const altText = p1 && p1.startsWith('http') ? 'Image' : p1; // Sử dụng 'Image' nếu alt text là URL, hoặc giữ nguyên
+      return `![${altText}](${p2})`;
     }
   );
 
-  // Chuyển các URL thành cú pháp liên kết markdown, nhưng không ảnh hưởng đến placeholder
-  const urlRegex = /(?:https?:\/\/[^\s]+)/g;
-  tempContent = tempContent.replace(urlRegex, (url) => {
-    if (tempContent.includes(imagePlaceholder)) {
-      return url; // Bỏ qua nếu URL nằm trong placeholder
-    }
-    return `[${url}](${url})`;
-  });
+  // 2. Chuyển đổi các URL hình ảnh trần (không có trong []) thành cú pháp hình ảnh
+  // Ví dụ: https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net/images/.../abc.jpg
+  // Đảm bảo không bắt các URL đã là một phần của cú pháp Markdown hợp lệ (ví dụ: ![alt](url) hoặc [text](url))
+  tempContent = tempContent.replace(
+    /(?<![!(\]])(https?:\/\/(?:universharing-web-app-gaereaceg0drc5e3\.southeastasia-01\.azurewebsites\.net\/images\/[^\s)]+\.(?:jpg|jpeg|png|gif|webp)))(?![\])])/gi,
+    '![]($1)' // Alt text để trống hoặc bạn có thể thêm logic để tự động tạo
+  );
 
-  // Khôi phục các cú pháp hình ảnh
-  images.forEach((image, index) => {
-    tempContent = tempContent.replace(imagePlaceholder, image);
-  });
+  // 3. Xử lý các trường hợp link ảnh bìa/ảnh đại diện được trả về dưới dạng list item với label
+  // Ví dụ: * **Ảnh đại diện:** [https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net/images/profile/avatar/a7489f28-cefc-4e92-b1f5-a0fbafcaeea7.jpg](https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net/images/profile/avatar/a7489f28-cefc-4e92-b1f5-a0fbafcaeea7.jpg)
+  tempContent = tempContent.replace(
+    /(\*\s*\*\*Ảnh (đại diện|bìa):\*\*)\s*\[(.*?)\]\((https?:\/\/(?:universharing-web-app-gaereaceg0drc5e3\.southeastasia-01\.azurewebsites\.net\/images\/profile\/(?:avatar|background)\/[^\s)]+\.(?:jpg|jpeg|png|gif|webp)))\)/gi,
+    (match, label, type, textPart, imageUrl) => {
+      // Giữ lại label (Ảnh đại diện/bìa) nhưng thêm ảnh sau đó
+      const altText = textPart && textPart.startsWith('http') ? type : textPart;
+      return `${label} ![](${imageUrl})`; // Đặt ảnh sau label
+    }
+  );
+
+
+  // Cuối cùng, nếu server trả về cụm từ "Link ảnh:"
+  // Regex này sẽ thay thế "Link ảnh: URL" bằng cú pháp hình ảnh.
+  // Đảm bảo nó không bị trùng lặp với các xử lý trên
+  tempContent = tempContent.replace(
+    /Link ảnh: ?[`"]?(\S+?\.(?:jpg|jpeg|png|gif|webp))[`"]?/gi,
+    '![]($1)'
+  );
+
 
   return tempContent;
 };
@@ -223,6 +243,9 @@ const ChatInterface = ({ conversationId, setConversationId, toggleSidebar, onNew
   const speechRecognitionRef = useRef(null);
   const silenceTimerRef = useRef(null);
   const queryAtMicStartRef = useRef('');
+  const [failedMessage, setFailedMessage] = useState(null); // Lưu query thất bại để gửi lại
+  const [timeoutId, setTimeoutId] = useState(null); // Lưu ID của timeout
+  const [retryQuery, setRetryQuery] = useState(null);
   const startSilenceTimer = useCallback(() => {
     clearTimeout(silenceTimerRef.current);
     silenceTimerRef.current = setTimeout(() => {
@@ -650,7 +673,7 @@ const ChatInterface = ({ conversationId, setConversationId, toggleSidebar, onNew
 
   const handleSendQuery = useCallback(() => {
     if (!query.trim() || isWaitingResponse) return;
-  
+    setRetryQuery(null);
     const userQuery = query.trim();
     const newStreamId = Date.now().toString();
     const userMessageId = `user-${newStreamId}`;
@@ -708,6 +731,33 @@ const ChatInterface = ({ conversationId, setConversationId, toggleSidebar, onNew
         if (streamConversationId && queryToSend && signalRService && isConnected) {
           console.log('[handleSendQuery] Starting stream with query:', queryToSend, 'streamId:', newStreamId);
           signalRService.sendStreamQuery(queryToSend, streamConversationId, newStreamId);
+          // 👉 Thêm timeout ở đây thay vì đợi handleChunk gọi
+        const fallbackTimeoutId = setTimeout(() => {
+          console.log('[ChatInterface] Fallback timeout: No chunk received after 120s');
+          setMessages((prev) => {
+            const aiMessageId = `ai-${newStreamId}`;
+            const updated = prev.map((msg) => {
+              if (msg.id === aiMessageId && msg.isStreaming) {
+                return {
+                  ...msg,
+                  content: 'Hệ thống đang gặp sự cố và không thể trả lời ngay lập tức. Vui lòng thử lại sau.',
+                  isStreaming: false,
+                  showDots: false,
+                  isError: true, // Đánh dấu là tin nhắn lỗi
+                  timestamp: new Date().toISOString(),
+                };
+              }
+              return msg;
+            });
+            setRetryQuery(userQuery); // Đặt retryQuery khi timeout
+            return updated;
+          });
+          setIsWaitingResponse(false);
+          setCurrentStreamId(null);
+        }, 120000);
+
+        setTimeoutId(fallbackTimeoutId);
+
         } else {
           throw new Error('Cannot start stream: Missing required parameters');
         }
@@ -727,26 +777,49 @@ const ChatInterface = ({ conversationId, setConversationId, toggleSidebar, onNew
         }
       })
       .catch((err) => {
-        console.error('[handleSendQuery] Error sending message:', err);
-        setIsWaitingResponse(false);
-        setCurrentStreamId(null);
-        setMessages((prev) => [
-          ...prev.filter((msg) => msg.id !== aiMessageId),
-          {
-            id: `error-${Date.now()}`,
-            content: 'Đã xảy ra lỗi khi gửi tin nhắn. Vui lòng thử lại.',
-            isUser: false,
-            isStreaming: false,
-            showDots: false,
-            isError: true,
-            timestamp: new Date().toISOString(),
-          },
-        ]);
-        chunkBufferRef.current = '';
-        processedChunks.current.clear();
-        pendingMessageRef.current = null;
-      });
+      console.error('[handleSendQuery] Error sending message:', err);
+      setIsWaitingResponse(false);
+      setCurrentStreamId(null);
+      setRetryQuery(userQuery); // Thêm dòng này
+      setMessages((prev) => [
+        ...prev.filter((msg) => msg.id !== aiMessageId),
+        {
+          id: `error-${Date.now()}`,
+          content: 'Đã xảy ra lỗi khi gửi tin nhắn. Vui lòng thử lại.',
+          isUser: false,
+          isStreaming: false,
+          showDots: false,
+          isError: true,
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+      chunkBufferRef.current = '';
+      processedChunks.current.clear();
+      pendingMessageRef.current = null;
+    });
   }, [query, isWaitingResponse, dispatch, conversationId, signalRService, setConversationId, isConnected, messages]);
+
+  const handleRetry = useCallback(() => {
+  if (!retryQuery) return;
+
+  // Xóa tin nhắn lỗi cuối cùng
+  setMessages(prev => {
+    const newMessages = [...prev];
+    if (newMessages.length > 0 && newMessages[newMessages.length - 1].isError) {
+      newMessages.pop();
+    }
+    return newMessages;
+  });
+
+  // Gửi lại query
+  setQuery(retryQuery);
+  setTimeout(() => {
+    const sendButton = document.querySelector('.send-button');
+    if (sendButton && !sendButton.disabled) {
+      sendButton.click();
+    }
+  }, 100);
+}, [retryQuery]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -757,6 +830,7 @@ const ChatInterface = ({ conversationId, setConversationId, toggleSidebar, onNew
 
   const handleNewChat = useCallback(() => {
     console.log('[ChatInterface] Starting new chat');
+     setRetryQuery(null);
     setMessages([]);
     setCurrentStreamId(null);
     chunkBufferRef.current = '';
@@ -1178,25 +1252,38 @@ const extractImageUrl = (content) => {
 const processContent = (content) => {
   if (!content) return content;
 
-  const imageUrl = extractImageUrl(content);
-  console.log('[processContent] Extracted image URL:', imageUrl);
+  let cleanedContent = content;
 
-  // Thay thế đoạn "Có hình ảnh đính kèm. (Link ảnh: ...)" bằng cú pháp markdown cho hình ảnh trong danh sách
-  let processedContent = content
+  // Loại bỏ các đoạn văn bản cụ thể không mong muốn
+  cleanedContent = cleanedContent
     .replace(/\(bạn có thể xem hình ảnh tại đây:.*?\)/g, '')
     .replace(/\[Đây là link đến hình ảnh bài viết.*?\]/g, '')
-    .replace(
-      /Có hình ảnh đính kèm\.\s*\(Link ảnh:.*?`?\)/g,
-      imageUrl ? `\n* ![Bài đăng](${imageUrl})` : ''
-    )
+    .replace(/Có hình ảnh đính kèm\.\s*\(Link ảnh:.*?`?\)/g, '')
+    // Regex này có thể loại bỏ cả URL ảnh nếu không cẩn thận.
+    // Chúng ta sẽ bỏ qua nó hoặc điều chỉnh nếu cần thiết.
+    // Tạm thời comment lại để kiểm tra:
+    // .replace(/(?<!\!\[.*?)Link ảnh: ?[`"]?(\S+?\.(?:jpg|jpeg|png|gif|webp|mp4))[`"]?(?!\))/gi, '')
+
+    // Regex này loại bỏ "***Hình ảnh:*** ". Chúng ta cần cân nhắc nếu muốn giữ lại tiêu đề này hoặc không.
+    // Nếu bạn muốn giữ lại tiêu đề "Ảnh đại diện" hoặc "Ảnh bìa" từ phản hồi server, thì không nên loại bỏ nó ở đây.
+    // Phản hồi server của bạn có "* **Ảnh đại diện:**" và "* **Ảnh bìa:**"
+    // Regex này sẽ loại bỏ chúng nếu nó khớp với định dạng "Hình ảnh:".
+    // Tạm thời comment lại hoặc chỉ loại bỏ nếu chắc chắn nó không ảnh hưởng đến các nhãn ảnh.
+    // .replace(/(\*|_)\s*\*\*Hình ảnh:\*\*\s*(?!\!)/g, ''); // Có thể gây ra lỗi nếu bạn muốn hiển thị nhãn "Ảnh đại diện:"
+
+    // Giữ lại các regex làm sạch khác nếu chúng không ảnh hưởng đến ảnh
+    .replace(/\*\*\s*Chi tiết bài đăng:\s*\*\*/g, '**Chi tiết bài đăng:**') // Làm sạch định dạng
+    .replace(/\[\*\*Chi tiết bài đăng:\*\*\]/g, '**Chi tiết bài đăng:**') // Làm sạch định dạng
+    .replace(/\*\*Link ảnh:.*?\*\*/g, '') // Loại bỏ cụm "**Link ảnh:**" nếu nó xuất hiện
+    .replace(/\s*\n\s*\n\s*/g, '\n\n') // Thay thế nhiều dòng trống bằng một dòng
     .trim();
 
-  // Xóa các dòng "Hình ảnh: ..." còn lại trước khi thêm cú pháp markdown
-  processedContent = processedContent.replace(/(\*|_)\s*\*\*Hình ảnh:\*\*\s*(?!\!)/g, '');
-
-  console.log('[processContent] Processed content:', processedContent);
-  return processedContent;
+  return cleanedContent;
 };
+// Hàm hỗ trợ escape các ký tự đặc biệt trong regex
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 const renderMessage = useCallback(
   (message, index) => {
@@ -1217,7 +1304,7 @@ const renderMessage = useCallback(
         >
           <ConfirmationModal
             results={modifiedMessage.results}
-            streamId={modifiedMessage.streamId} 
+            streamId={modifiedMessage.streamId}
             onConfirm={handleModalConfirm}
             onEdit={handleModalEdit}
             onCancel={() => handleModalCancel(modifiedMessage.streamId)}
@@ -1234,6 +1321,7 @@ const renderMessage = useCallback(
       );
     }
 
+
     return (
       <div
         key={`${message.id}-${index}`}
@@ -1248,18 +1336,27 @@ const renderMessage = useCallback(
                 rehypePlugins={[rehypeHighlight]}
                 components={{
                   img: ({ src, alt }) => (
-                    <img
-                      src={src}
-                      alt={alt}
-                      className="post-media-image"
+                    <img 
+                      src={src} 
+                      alt={alt || 'Hình ảnh'} 
+                      style={{ 
+                        maxWidth: '100%', 
+                        maxHeight: '300px', 
+                        margin: '8px 0',
+                        borderRadius: '4px',
+                        border: '1px solid #eee'
+                      }}
                       onError={(e) => {
-                        console.error('[renderMessage] Image failed to load:', src);
                         e.target.onerror = null;
                         e.target.src = '/placeholder-image.png';
                       }}
-                      style={{ maxWidth: '100%', maxHeight: '300px', margin: '8px 0' }}
                     />
                   ),
+                  a: ({ href, children }) => (
+                    <a href={href} target="_blank" rel="noopener noreferrer">
+                      {children}
+                    </a>
+                  )
                 }}
               >
                 {convertLinksToMarkdown(processContent(message.content))}
@@ -1285,7 +1382,7 @@ const renderMessage = useCallback(
       </div>
     );
   },
-  [handleModalConfirm, handleModalEdit, handleModalCancel, conversationId]
+  [handleModalConfirm, handleModalEdit, handleModalCancel, conversationId, handleRetry]
 );
   
 
@@ -1300,7 +1397,7 @@ const renderMessage = useCallback(
           <Menu size={20} />
         </button>
         <h2 className="chat-title">
-          {conversationId ? currentConversation?.title || 'Cuộc trò chuyện' : 'Chat AI'}
+          {conversationId ? currentConversation?.title || 'Sharing AI' : 'Sharing AI'}
         </h2>
         <button onClick={handleNewChat} className="new-chat-button">
           <Plus size={20} />
@@ -1308,18 +1405,35 @@ const renderMessage = useCallback(
       </div>
 
       <div className="chat-messages">
-        {messages.length > 0 ? (
-          <>{renderedMessages}</>
-        ) : (
+      {messages.length > 0 ? (
+        <>
+          {renderedMessages}
+
+          {retryQuery && messages.some(msg => msg.isError) && (
+            <div className="message-bubble retry-message">
+              <button 
+                onClick={handleRetry}
+                className="retry-button"
+                data-testid="retry-button"
+                title="Thử lại"
+              >
+                <RefreshCw size={18} />
+              </button>
+            </div>
+          )}
+
+        </>
+      ) : (
           <div className="welcome-screen">
             <div className="welcome-content">
-              <h3>Chào mừng đến với Chat AI</h3>
-              <p>Hãy bắt đầu cuộc trò chuyện mới hoặc chọn từ lịch sử</p>
+              <h3>Chào mừng đến với Sharing AI</h3>
+              <p>Tôi có thể giúp gì cho bạn?</p>
             </div>
           </div>
         )}
-        <div ref={messagesEndRef} />
-      </div>
+      <div ref={messagesEndRef} />
+    </div>
+
 
       <div className="chat-input-container">
         <div className="chat-input">

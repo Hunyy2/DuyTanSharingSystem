@@ -1,5 +1,5 @@
 import { createReducer } from '@reduxjs/toolkit';
-import { fetchChatHistory, fetchConversations, sendQuery } from '../action/chatAIAction';
+import { deleteConversation, fetchChatHistory, fetchConversations, sendQuery } from '../action/chatAIAction';
 
 const initialState = {
   conversations: [],
@@ -15,20 +15,20 @@ export const chatAIReducer = createReducer(initialState, (builder) => {
   builder
     // Fetch Conversations
     .addCase(fetchConversations.pending, (state) => {
-      state.isLoading = true;
-      state.error = null;
+        state.isLoading = true;
+        state.error = null;
     })
     .addCase(fetchConversations.fulfilled, (state, action) => {
-      state.isLoading = false;
-      const { conversations, nextCursor } = action.payload;
-      state.conversations = action.meta.arg.lastConversationId
-        ? [...state.conversations, ...conversations]
-        : conversations;
-      state.nextCursor = nextCursor || null;
+        state.isLoading = false;
+        const { conversations, nextCursor } = action.payload;
+        state.conversations = action.meta.arg.lastConversationId
+            ? [...state.conversations, ...conversations]
+            : conversations;
+        state.nextCursor = nextCursor || null;
     })
     .addCase(fetchConversations.rejected, (state, action) => {
-      state.isLoading = false;
-      state.error = action.payload || 'Lỗi khi lấy danh sách hội thoại';
+        state.isLoading = false;
+        state.error = action.payload || 'Lỗi khi lấy danh sách hội thoại';
     })
     // Fetch Chat History
     .addCase(fetchChatHistory.pending, (state, action) => {
@@ -88,5 +88,27 @@ export const chatAIReducer = createReducer(initialState, (builder) => {
           timestamp,
         });
       }
+    })
+     // Delete Conversation
+    .addCase(deleteConversation.pending, (state) => {
+        state.isLoading = true; // Có thể set isLoading hoặc một state loading riêng cho việc xóa
+        state.error = null;
+    })
+    .addCase(deleteConversation.fulfilled, (state, action) => {
+        state.isLoading = false;
+        // Lấy conversationId từ action.meta.arg thay vì action.payload
+        const conversationId = action.meta.arg.conversationId; 
+        state.conversations = state.conversations.filter(
+            (conv) => conv.conversationId !== conversationId
+        );
+        if (state.currentConversationId === conversationId) {
+            state.currentConversationId = null;
+            state.chatHistory = [];
+            state.currentConversation = null;
+        }
+    })
+    .addCase(deleteConversation.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload || 'Lỗi khi xóa hội thoại';
     });
 });

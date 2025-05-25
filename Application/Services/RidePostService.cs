@@ -3,6 +3,7 @@ using static Domain.Common.Helper;
 using Application.Interface.Api;
 using static Application.DTOs.RidePost.GetAllRidePostForOwnerDto;
 using Application.DTOs.Ride;
+using Domain.Entities;
 
 
 
@@ -279,6 +280,11 @@ namespace Application.Services
             foreach (var ride in driverRidePosts)
             {
                 var (start, end, locationStart, locationEnd) = await _unitOfWork.RidePostRepository.GetLatLonByRidePostIdAsync(ride.RidePostId);
+                var ridepost = await _unitOfWork.RidePostRepository.GetByIdAsync(ride.RidePostId);
+                if (ridepost == null)
+                {
+                    continue; // Bỏ qua nếu không tìm thấy ride post
+                }
                 // Kiểm tra xem chuyến đi đã được đánh giá bởi passenger chưa
                 bool hasRating = ride.PassengerId != Guid.Empty && await _unitOfWork.RatingRepository
                      .AnyAsync(r => r.RideId == ride.Id && r.RatedByUserId == ride.PassengerId && r.UserId == ride.DriverId);
@@ -288,8 +294,8 @@ namespace Application.Services
                     PassengerId = ride.PassengerId,
                     DriverId = ride.DriverId,
                     RideId = ride.Id,
-                    StartTime = FormatUtcToLocal(ride.StartTime ?? DateTime.UtcNow),
-                    EndTime = FormatUtcToLocal(ride.EndTime ?? DateTime.UtcNow),
+                    StartTime = FormatUtcToLocal(ridepost.StartTime),
+                    EndTime = FormatUtcToLocal(ridepost.StartTime.AddMinutes(ride.EstimatedDuration)),
                     LatLonStart = start,
                     LatLonEnd = end,
                     StartLocation = locationStart,
@@ -305,6 +311,11 @@ namespace Application.Services
             // Xử lý rides của passenger
             foreach (var ride in passengerRidePosts)
             {
+                var ridepost = await _unitOfWork.RidePostRepository.GetByIdAsync(ride.RidePostId);
+                if (ridepost == null)
+                {
+                    continue; // Bỏ qua nếu không tìm thấy ride post
+                }
                 var (start, end, startL, endL) = await _unitOfWork.RidePostRepository.GetLatLonByRidePostIdAsync(ride.RidePostId);
                 // Kiểm tra xem passenger đã đánh giá chuyến đi chưa
                 bool hasRating = await _unitOfWork.RatingRepository
@@ -316,8 +327,8 @@ namespace Application.Services
                     PassengerId = ride.PassengerId,
                     DriverId = ride.DriverId,
                     RideId = ride.Id,
-                    StartTime = FormatUtcToLocal(ride.StartTime ?? DateTime.UtcNow),
-                    EndTime = FormatUtcToLocal(ride.EndTime ?? DateTime.UtcNow),
+                    StartTime = FormatUtcToLocal(ridepost.StartTime),
+                    EndTime = FormatUtcToLocal(ridepost.StartTime.AddMinutes(ride.EstimatedDuration)),
                     LatLonStart = start,
                     LatLonEnd = end,
                     StartLocation = startL,
