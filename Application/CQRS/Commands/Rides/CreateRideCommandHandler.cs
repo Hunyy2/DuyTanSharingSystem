@@ -108,10 +108,9 @@ namespace Application.CQRS.Commands.Rides
                     DriverId = ride.DriverId,
                     PassengerId = userId,
                     RidePostId = ride.RidePostId,
-                    StartTime = ride.StartTime.HasValue
-                    ? FormatUtcToLocal(ride.StartTime.Value) : null,
+                    StartTime = FormatUtcToLocal(ridePost.StartTime) ,
                     CreatedAt = FormatUtcToLocal(ride.CreatedAt),
-                    EndTime = ride.EndTime.HasValue ? FormatUtcToLocal(ride.EndTime.Value) : null,
+                    EndTime =  FormatUtcToLocal(ridePost.StartTime.AddMinutes(ride.EstimatedDuration)) ,
                     EstimatedDuration = ride.EstimatedDuration,
                     Fare = ride.Fare ?? 0,
                     Status = ride.Status,

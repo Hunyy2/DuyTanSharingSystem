@@ -67,8 +67,8 @@ namespace DuyTanSharingSystem.Controllers
         [HttpPost("{userId}/suspend")]
         public async Task<IActionResult> SuspendUserAsync(Guid userId, [FromQuery] DateTime suspendUntil)
         {           
-                await _userService.SuspendUserAsync(userId, suspendUntil);
-                return Ok();          
+             var result=   await _userService.SuspendUserAsync(userId, suspendUntil);
+                return Ok(result);          
         }
 
         /// <summary>

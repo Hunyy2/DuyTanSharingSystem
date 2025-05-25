@@ -10,9 +10,11 @@ namespace Application.DTOs.UpdateLocation
     {
         public Guid? Id { get; set; }
         public Guid RideId { get; set; }
+        public Guid UserId { get; set; }
         public double Latitude { get; set; }
         public double Longitude { get; set; }
         public string? Timestamp { get; set; }
         public string? RideStatus { get; set; }
+        public bool IsDriver { get; set; }
     }
 }
