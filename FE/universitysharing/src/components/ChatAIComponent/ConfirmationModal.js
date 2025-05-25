@@ -56,6 +56,12 @@ const paramDisplayMap = {
     PhoneRelativeNumber: 'Số điện thoại người thân',
     Gender: 'Giới tính',
   },
+  '/api/Post/delete': {
+    PostId: 'ID bài đăng',
+  },
+  '/api/Comment/DeleteComment': {
+     CommentId: 'ID bình luận',
+  },
 };
 
 const genderOptions = [

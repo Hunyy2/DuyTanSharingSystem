@@ -14,8 +14,8 @@ namespace Application.DTOs.Ride
         public Guid DriverId { get; set; }
         public string StartLocation { get; set; } = string.Empty;
         public string EndLocation { get; set; } = string.Empty;
-        public string? StartTime { get; set; } = string.Empty;
-        public string? EndTime { get; set; } = string.Empty;
+        public string StartTime { get; set; } = string.Empty;
+        public string EndTime { get; set; } = string.Empty;
         public string LatLonStart { get; set; } = string.Empty;
         public string LatLonEnd { get; set; } = string.Empty;
         public int EstimatedDuration { get; set; }

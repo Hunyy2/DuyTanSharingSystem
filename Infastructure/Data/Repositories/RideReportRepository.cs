@@ -21,6 +21,9 @@ namespace Infrastructure.Data.Repositories
         {
             return await _context.RideReports
                .Where(r => alertTypes.Contains(r.AlertType))
+               .Include(r => r.Passenger)
+               .Include(r => r.Ride)
+                 .ThenInclude(ride => ride.Driver)
                .ToListAsync();
         }
 

@@ -1,16 +1,4 @@
 ﻿using Application.DTOs.UpdateLocation;
-using Application.Interface.ContextSerivce;
-using Application.Interface.Hubs;
-using Application.Model.Events;
-using Domain.Entities;
-using MediatR;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using static Domain.Common.Enums;
-using static Domain.Common.Helper;
 
 namespace Application.CQRS.Commands.UpdateLocation
 {
@@ -47,10 +35,10 @@ namespace Application.CQRS.Commands.UpdateLocation
             {
                 return ResponseFactory.Fail<UpdateLocationDto>("Không tìm thấy chuyến đi", 404);
             }
-            if(ride.Status == StatusRideEnum.Completed)
+            if (ride.Status == StatusRideEnum.Completed)
             {
                 return ResponseFactory.Fail<UpdateLocationDto>("Chuyến đi đã hoàn thành", 400);
-            }   
+            }
             var ridePost = await _unitOfWork.RidePostRepository.GetByIdAsync(ride.RidePostId);
             if (ridePost == null)
             {
@@ -87,8 +75,8 @@ namespace Application.CQRS.Commands.UpdateLocation
                 if (isDriver || isSafetyTrackingEnabled)
                 {
                     string notificationMessage = isDriver
-                            ? $"Tài xế đã cập nhật vị trí tại: {cleanLocation}"
-                            : $"Hành khách đã cập nhật vị trí tại: {cleanLocation}";
+                                ? $"Tài xế đã cập nhật vị trí tại: {cleanLocation}"
+                                : $"Hành khách đã cập nhật vị trí tại: {cleanLocation}";
                     if (lastLocation == null || !lastLocation.Any())
                     {
                         locationUpdate = new LocationUpdate(request.RideId, userId, request.Latitude, request.Longitude, isDriver);
@@ -126,11 +114,26 @@ namespace Application.CQRS.Commands.UpdateLocation
                     //    ridePost.EndLocation
                     //);
 
-                    // Cập nhật thời gian bắt đầu nếu chưa có
+                    // Cập nhật thời gian bắt đầu nếu chưa có VÀ đã di chuyển được 50m
                     if (ride.StartTime == null)
                     {
-                        ride.UpdateStartTime();
-                        await _unitOfWork.RideRepository.UpdateAsync(ride);
+                        var startCoords = ParseLatLon(ridePost.LatLonStart);
+
+                        if (startCoords != null && startCoords.Length == 2)
+                        {
+                            double initialLat = startCoords[0];
+                            double initialLon = startCoords[1];
+
+                            // Tính khoảng cách từ điểm bắt đầu của bài đăng đến vị trí hiện tại (km)
+                            double distanceMovedKm = CalculateDistance(initialLat, initialLon, request.Latitude, request.Longitude);
+
+                            // Nếu đã di chuyển được 50 mét (0.05 km)
+                            if (distanceMovedKm >= 0.05)
+                            {
+                                ride.UpdateStartTime(); // Cập nhật thời gian bắt đầu
+                                await _unitOfWork.RideRepository.UpdateAsync(ride);
+                            }
+                        }
                     }
                 }
                 if (request.IsNearDestination)
@@ -141,15 +144,15 @@ namespace Application.CQRS.Commands.UpdateLocation
                         ride.UpdateStatus(StatusRideEnum.Completed);
                         await _unitOfWork.RideRepository.UpdateAsync(ride);
 
-                         await _notificationService.SendNotificationUpdateLocationAsync(
-                        ride.DriverId, // Tài xế
-                        ride.PassengerId, // Hành khách
-                        request.Latitude,
-                        request.Longitude,
-                        "",
-                        true,
-                        ridePost.EndLocation
-                    );
+                        await _notificationService.SendNotificationUpdateLocationAsync(
+                          ride.DriverId, // Tài xế
+                          ride.PassengerId, // Hành khách
+                          request.Latitude,
+                          request.Longitude,
+                          "",
+                          true,
+                          ridePost.EndLocation
+                      );
                     }
                     else
                     {
@@ -190,7 +193,7 @@ namespace Application.CQRS.Commands.UpdateLocation
             double Δλ = (lon2 - lon1) * Math.PI / 180;
 
             double a = Math.Sin(Δφ / 2) * Math.Sin(Δφ / 2) +
-                       Math.Cos(φ1) * Math.Cos(φ2) * Math.Sin(Δλ / 2) * Math.Sin(Δλ / 2);
+                             Math.Cos(φ1) * Math.Cos(φ2) * Math.Sin(Δλ / 2) * Math.Sin(Δλ / 2);
             double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
             return R * c / 1000; // Khoảng cách tính bằng km
         }

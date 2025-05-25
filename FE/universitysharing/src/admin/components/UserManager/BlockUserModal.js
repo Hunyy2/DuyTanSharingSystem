@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Modal, DatePicker } from "antd";
+import { Modal, DatePicker, message } from "antd";
 import moment from "moment";
 
 const BlockUserModal = ({ visible, onConfirm, onCancel, userId, title }) => {
@@ -7,7 +7,8 @@ const BlockUserModal = ({ visible, onConfirm, onCancel, userId, title }) => {
 
   const handleConfirm = () => {
     if (!blockUntil) {
-      return; // onConfirm sẽ xử lý lỗi
+      message.error("Vui lòng chọn thời gian hết hạn.");
+      return;
     }
     onConfirm(blockUntil.toISOString());
     setBlockUntil(null); // Reset sau khi xác nhận
@@ -20,12 +21,13 @@ const BlockUserModal = ({ visible, onConfirm, onCancel, userId, title }) => {
 
   return (
     <Modal
-      title={title || "Chọn thời gian hết hạn"} // Tiêu đề tùy chỉnh
+      title={title || "Chọn thời gian hết hạn"}
       visible={visible}
       onOk={handleConfirm}
       onCancel={handleCancel}
       okText="Xác nhận"
       cancelText="Hủy"
+      okButtonProps={{ disabled: !blockUntil }} // Vô hiệu hóa nút "Xác nhận" nếu chưa chọn thời gian
     >
       <DatePicker
         showTime
@@ -34,6 +36,7 @@ const BlockUserModal = ({ visible, onConfirm, onCancel, userId, title }) => {
         placeholder="Chọn thời gian hết hạn"
         style={{ width: "100%" }}
         disabledDate={(current) => current && current < moment().startOf("day")}
+        value={blockUntil} // Liên kết giá trị với state
       />
     </Modal>
   );
