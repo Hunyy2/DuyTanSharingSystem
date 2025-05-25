@@ -123,7 +123,7 @@ const YourRide = () => {
   const navigate = useNavigate();
 
   const [mapReady, setMapReady] = useState(false); // Thêm state để kiểm tra bản đồ sẵn sàng
-
+  const [otherUserPosition, setOtherUserPosition] = useState(null);
   // Refs for managing intervals and connections
   const mapRef = useRef(null);
   const intervalRef = useRef(null);
@@ -136,6 +136,52 @@ const YourRide = () => {
     useSelector((state) => state.rides);
   // Lấy authData từ useAuth
   const { userId: authUserId, isAuthenticated, isLoading } = useAuth();
+
+const otherUserIcon = new L.Icon({
+  iconUrl:
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png", // Marker màu vàng
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+});
+useEffect(() => {
+    const currentRide = getCurrentRide();
+    if (locations && locations.length > 0 && userId && currentRide) {
+      // Lọc ra vị trí của người dùng không phải là người dùng hiện tại
+      const otherUserLocation = locations
+        .filter(loc => loc.userId !== userId)
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0]; // Lấy vị trí mới nhất
+
+      if (otherUserLocation) {
+        setOtherUserPosition({
+          lat: otherUserLocation.latitude,
+          lon: otherUserLocation.longitude,
+          // Xác định xem người kia có phải là tài xế không
+          isDriver: otherUserLocation.userId === currentRide.driverId,
+          timestamp: otherUserLocation.timestamp,
+        });
+        console.log("[YourRide] Vị trí người dùng khác:", otherUserLocation);
+      }
+    }
+  }, [locations, userId]); // Chạy lại khi locations hoặc userId thay đổi
+
+useEffect(() => {
+    const currentRide = getCurrentRide();
+    if (currentRide && currentRide.rideId) {
+      // Gọi fetchLocation lần đầu ngay lập tức
+      dispatch(fetchLocation(currentRide.rideId));
+
+      // Thiết lập interval để gọi lại sau mỗi 20 giây
+      const fetchInterval = setInterval(() => {
+        console.log("[YourRide] Đang lấy vị trí định kỳ...");
+        dispatch(fetchLocation(currentRide.rideId));
+      }, 60000); // 20 giây
+
+      // Dọn dẹp interval khi component unmount hoặc chuyến đi thay đổi
+      return () => clearInterval(fetchInterval);
+    }
+  }, [dispatch, driverRides, passengerRides]); // Chỉ chạy lại khi rides thay đổi để lấy rideId
+
   const checkLocationPermission = (callback) => {
     if (!navigator.geolocation) {
       toast.error("Thiết bị không hỗ trợ định vị!", {
@@ -244,23 +290,36 @@ const YourRide = () => {
   // Update map bounds when current ride or position changes
   useEffect(() => {
     const currentRide = getCurrentRide();
-    if (currentRide && currentPosition && mapReady) {
+    if (currentRide && mapReady) {
       const start = parseLatLon(currentRide.latLonStart);
       const end = parseLatLon(currentRide.latLonEnd);
+
       if (start && end) {
-        const bounds = L.latLngBounds([
-          start,
-          end,
-          [currentPosition.lat, currentPosition.lon],
-        ]).pad(0.2);
-        setMapBounds(bounds);
-        if (mapRef.current) {
-          mapRef.current.flyToBounds(bounds, { maxZoom: 16, duration: 1 });
-          console.log("[YourRide] Fly to bounds:", bounds);
+        const points = [start, end]; // Bắt đầu với điểm đầu và cuối
+
+        if (currentPosition) {
+          points.push([currentPosition.lat, currentPosition.lon]);
+        }
+        if (otherUserPosition) {
+          points.push([otherUserPosition.lat, otherUserPosition.lon]);
+        }
+
+        // Chỉ tạo bounds nếu có ít nhất một điểm hợp lệ
+        if (points.length >= 1) {
+             // Kiểm tra xem tất cả các điểm có hợp lệ không
+            const validPoints = points.filter(p => p && !isNaN(p[0]) && !isNaN(p[1]));
+            if(validPoints.length > 0) {
+                const bounds = L.latLngBounds(validPoints).pad(0.2);
+                setMapBounds(bounds);
+                if (mapRef.current) {
+                  mapRef.current.flyToBounds(bounds, { maxZoom: 16, duration: 1 });
+                  console.log("[YourRide] Fly to bounds (bao gồm cả hai):", bounds);
+                }
+            }
         }
       }
     }
-  }, [currentPosition, mapReady]);
+  }, [currentPosition, otherUserPosition, mapReady]);
 
   // Center map on current position when following
   useEffect(() => {
@@ -909,19 +968,23 @@ const remainingDistance =
             >
               <div className="details-grid">
                 <div className="detail-item">
-                  <label>
-                    <FiCalendar /> Bắt đầu:
-                  </label>
-                  <span>
-                    {new Date(currentRide.startTime).toLocaleString()}
-                  </span>
-                </div>
-                <div className="detail-item">
-                  <label>
-                    <FiCalendar /> Kết thúc:
-                  </label>
-                  <span>{new Date(currentRide.endTime).toLocaleString()}</span>
-                </div>
+                <label>
+                  <FiCalendar /> Bắt đầu:
+                </label>
+                <span>
+                  {/* Chỉ hiển thị thời gian nếu currentRide.startTime tồn tại, ngược lại hiển thị "Đang chờ..." */}
+                  {currentRide.startTime ? new Date(currentRide.startTime).toLocaleString() : "Đang chờ..."}
+                </span>
+              </div>
+              <div className="detail-item">
+                <label>
+                  <FiCalendar /> Kết thúc:
+                </label>
+                <span>
+                  {/* Tương tự cho thời gian kết thúc */}
+                  {currentRide.endTime ? new Date(currentRide.endTime).toLocaleString() : "Đang chờ..."}
+                </span>
+              </div>
                 <div className="detail-item">
                   <label>
                     <FiClock /> Thời gian dự kiến:
@@ -1018,6 +1081,19 @@ const remainingDistance =
                             icon={movingCarIcon}
                           >
                             <Popup>Vị trí hiện tại</Popup>
+                          </Marker>
+                        )}
+                        {otherUserPosition && (
+                          <Marker
+                            position={[otherUserPosition.lat, otherUserPosition.lon]}
+                            icon={otherUserIcon} // Sử dụng icon mới
+                          >
+                            <Popup>
+                              {/* Hiển thị đúng vai trò của người kia */}
+                              Vị trí của {otherUserPosition.isDriver ? 'Tài xế' : 'Hành khách'}
+                              <br />
+                              Cập nhật: {new Date(otherUserPosition.timestamp).toLocaleTimeString()}
+                            </Popup>
                           </Marker>
                         )}
                         {routePaths[currentRide.rideId] && (
