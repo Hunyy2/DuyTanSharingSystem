@@ -31,7 +31,12 @@ namespace Domain.Entities
         public bool IsSharedPost { get;private set; } = false;
         public Guid? OriginalPostId { get;private set; }
         public Post OriginalPost { get;private set; } = null!;
-        
+
+        public void AdDelete()
+        {
+            ApprovalStatus = ApprovalStatusEnum.Rejected;
+            IsDeleted = true;
+        }
         public void SoftDelete()
         {
             IsDeleted = true;
