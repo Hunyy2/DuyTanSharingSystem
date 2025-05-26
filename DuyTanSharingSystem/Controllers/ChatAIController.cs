@@ -88,6 +88,17 @@ namespace DuyTanSharingSystem.Controllers
             });
             return Ok(response);    
         }
+        [HttpDelete("conversation/{conversationId}")]
+        public async Task<IActionResult> DeleteConversation(Guid conversationId)
+        {
+            var command = new DeleteConversationCommand { ConversatiionId = conversationId };
+            var response = await _mediator.Send(command);
+            if (response == null)
+            {
+                return BadRequest("Failed to delete conversation");
+            }
+            return Ok(response);
+        }
 
 
         [HttpPost("stop-action")]

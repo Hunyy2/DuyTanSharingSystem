@@ -377,6 +377,7 @@ export const sharePost = createAsyncThunk(
         isSharedPost: true,
         postType: 1,
         privacy: apiData.privacy,
+        scope: apiData.scope,
         originalPost: {
           postId: apiData.originalPost.postId,
           content: apiData.originalPost.content,
@@ -384,7 +385,7 @@ export const sharePost = createAsyncThunk(
           createAt: apiData.originalPost.createAt,
           imageUrl: apiData.originalPost.imageUrl || null,
           videoUrl: apiData.originalPost.videoUrl || null,
-          scope: apiData.scope,
+          scope: apiData.originalPost.scope,
         },
       };
     } catch (error) {

@@ -23,11 +23,14 @@ namespace Application
                 Id = rideReport.Id,
                 RideId = rideReport.RideId,
                 PassengerId = rideReport.PassengerId,
+                DriverId = rideReport.Ride?.DriverId ?? Guid.Empty,
                 PhonePassenger = rideReport.Passenger?.Phone,               
                 RelativePhonePassenger = rideReport.Passenger?.RelativePhone,
+                NameDriver = rideReport.Ride?.Driver?.FullName,
+                PhoneDriver = rideReport.Ride?.Driver?.Phone,
+                NamePassenger = rideReport.Passenger?.FullName,
                 Message = rideReport.Message,
                 AlertType = rideReport.AlertType,
-                Status = rideReport.Status,
                 CreatedAt = rideReport.CreatedAt
             };
         }
@@ -125,6 +128,7 @@ namespace Application
                 OriginalPostId = originalPost.Id,
                 OriginalPost = new OriginalPostDto(originalPost),
                 Privacy = share.Privacy,
+                Scope = post.Scope,
             };
         }
 

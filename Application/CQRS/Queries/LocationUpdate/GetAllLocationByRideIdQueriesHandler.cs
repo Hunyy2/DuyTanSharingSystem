@@ -1,11 +1,11 @@
-﻿using Application.CQRS.Queries.LocationUpdate;
+﻿using Application.DTOs.UpdateLocation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.DTOs.UpdateLocation
+namespace Application.CQRS.Queries.LocationUpdate
 {
     public class GetAllLocationByRideIdQueriesHandler
         : IRequestHandler<GetAllLocationByRideIdQueries, ResponseModel<List<UpdateLocationDto>>>
@@ -29,9 +29,11 @@ namespace Application.DTOs.UpdateLocation
                 .Select(location => new UpdateLocationDto
                 {
                     RideId = location!.RideId, // '!' đảm bảo với compiler là không null
+                    UserId = location.UserId,
                     Latitude = location.Latitude,
                     Longitude = location.Longitude,
-                    Timestamp =FormatUtcToLocal(location.Timestamp)
+                    Timestamp =FormatUtcToLocal(location.Timestamp),
+                    IsDriver = location.IsDriver,
                 })
                 .OrderByDescending(dto => dto.Timestamp)
                 .ToList();

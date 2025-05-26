@@ -9,9 +9,21 @@ namespace Infrastructure.Data.Repositories
         {
         }
 
-        public override Task<bool> DeleteAsync(Guid id)
+        public override async Task<bool> DeleteAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var conversation = await _context.AIConversations.FindAsync(id);
+            var chatHistories = await _context.AIChatHistories
+                .Where(x => x.ConversationId == id)
+                .ToListAsync();
+            if (chatHistories.Any())
+            {
+                _context.AIChatHistories.RemoveRange(chatHistories);
+            }
+            if (conversation == null)
+                return false;
+            _context.AIConversations.Remove(conversation);
+            
+            return true;
         }
 
         public async Task<AIConversation?> GetByIdAsync(Guid? id)

@@ -1,22 +1,4 @@
-﻿using Application.DTOs.Comments;
-
-
-using Application.DTOs.Shares;
-using Application.Interface;
-using Application.Interface.Api;
-using Application.Interface.ContextSerivce;
-using Application.Interface.Hubs;
-using Application.Services;
-using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-
-
-
+﻿
 namespace Application.CQRS.Commands.Comments
 {
     public class CommentPostCommandHandler : IRequestHandler<CommentPostCommand, ResponseModel<ResultCommentDto>>
@@ -83,14 +65,11 @@ namespace Application.CQRS.Commands.Comments
                     await _unitOfWork.NotificationRepository.AddAsync(notification);
                     await _notificationService.SendCommentNotificationAsync(request.PostId, userId, postOwnerId, notification.Id);
                 }
-
-
                 if (request.redis_key != null)
                 {
                     var key = $"{request.redis_key}";
                     await _redisService.RemoveAsync(key);
                 }
-
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransactionAsync();
                 return ResponseFactory.Success(Mapping.MapToResultCommentPostDto(comment, user.FullName, user.ProfilePicture), "Bình luận bài viết thành công", 200);

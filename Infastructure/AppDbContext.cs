@@ -90,6 +90,12 @@ namespace Infrastructure
                 .HasForeignKey(r => r.PassengerId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<RideReport>()
+                .HasOne(rr => rr.Ride)
+                .WithMany(r => r.RideReports)
+                .HasForeignKey(rr => rr.RideId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<Like>()
                 .HasOne(l => l.User)
                 .WithMany(u => u.Likes)
