@@ -1,6 +1,8 @@
+@import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@700;800&display=swap&font-display=swap");
+
 // Variables
-$primary-color: #667eea;
-$secondary-color: #764ba2;
+$primary-color: #7f9cf5; // Sáng hơn
+$secondary-color: #9f7aea; // Sáng hơn
 $accent-color: #f093fb;
 $text-dark: #2d3748;
 $text-light: #718096;
@@ -17,8 +19,8 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
 @mixin glass-effect {
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(15px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); // Thay thế backdrop-filter
 }
 
 @mixin hover-lift {
@@ -30,7 +32,11 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @mixin section-spacing {
-  padding: 120px 0;
+  padding: 100px 0;
+
+  @media (max-width: 768px) {
+    padding: 60px 15px;
+  }
 }
 
 // Base styles
@@ -41,7 +47,7 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body {
-  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   line-height: 1.6;
   color: $text-dark;
   overflow-x: hidden;
@@ -54,22 +60,48 @@ body {
 // Hero Section
 .hero-section {
   min-height: 100vh;
-  @include gradient-bg;
   display: flex;
   align-items: center;
   position: relative;
   overflow: hidden;
   padding: 0 40px;
+  background: linear-gradient(
+    45deg,
+    #405de6,
+    #5851db,
+    #833ab4,
+    #c13584,
+    #e1306c,
+    #fd1d1d,
+    #f56040,
+    #f77737,
+    #fcaf45,
+    #ffdc80
+  );
+  background-size: 400%;
+  animation: colorShift 15s ease infinite;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: radial-gradient(circle at 30% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 70% 20%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+    background: radial-gradient(
+        circle at 30% 50%,
+        rgba(255, 255, 255, 0.1) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 70% 20%,
+        rgba(255, 255, 255, 0.05) 0%,
+        transparent 50%
+      );
+  }
+
+  &.animate {
+    animation: fadeInUp 0.8s ease-out forwards;
   }
 
   .hero-content {
@@ -77,34 +109,58 @@ body {
     margin: 0 auto;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 80px;
+    gap: 60px;
     align-items: center;
     position: relative;
     z-index: 2;
 
     @media (max-width: 768px) {
       grid-template-columns: 1fr;
-      gap: 40px;
+      gap: 30px;
       text-align: center;
     }
   }
 
   .hero-title {
-    font-size: 4rem;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-family: "Be Vietnam Pro", "Inter", sans-serif;
     font-weight: 800;
-    color: $white;
-    margin-bottom: 24px;
-    line-height: 1.1;
+    font-size: 3.5rem;
+    color: #ffffff; // Fallback
+    background: linear-gradient(90deg, #ffffff, #e0f7fa);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 20px;
 
     @media (max-width: 768px) {
-      font-size: 2.5rem;
+      font-size: 2.8rem;
+      line-height: 1.2;
+      flex-direction: column;
+      gap: 10px;
+    }
+  }
+
+  .hero-logo {
+    width: 400px;
+    height: 400px;
+    object-fit: contain;
+
+    @media (max-width: 768px) {
+      width: 60px;
+      height: 60px;
     }
   }
 
   .hero-subtitle {
     font-size: 1.4rem;
-    color: rgba(255, 255, 255, 0.9);
+    color: #f7fafc;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-bottom: 40px;
     font-weight: 400;
     line-height: 1.5;
@@ -138,9 +194,14 @@ body {
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
       transform: perspective(1000px) rotateY(-5deg) rotateX(5deg);
       transition: $transition;
+      object-fit: cover;
 
       &:hover {
         transform: perspective(1000px) rotateY(-2deg) rotateX(2deg) scale(1.02);
+      }
+
+      @media (max-width: 768px) {
+        max-width: 80%;
       }
     }
   }
@@ -148,6 +209,7 @@ body {
 
 // Button Styles
 .btn-primary {
+  bottom: 100px;
   padding: 16px 32px;
   @include gradient-bg;
   color: $white;
@@ -163,13 +225,18 @@ body {
   overflow: hidden;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
     transition: left 0.5s;
   }
 
@@ -188,10 +255,12 @@ body {
 }
 
 .btn-secondary {
+  position: relative;
+  bottom: 100px;
   padding: 16px 32px;
   background: transparent;
-  color: $white;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: #f7fafc;
+  border: 2px solid rgba(255, 255, 255, 0.5);
   border-radius: 50px;
   font-weight: 600;
   font-size: 1.1rem;
@@ -201,8 +270,8 @@ body {
   display: inline-block;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.7);
     transform: translateY(-2px);
   }
 }
@@ -211,6 +280,10 @@ body {
 .features-section {
   @include section-spacing;
   background: $light-bg;
+
+  &.animate {
+    animation: fadeInUp 0.8s ease-out forwards;
+  }
 
   .section-title {
     text-align: center;
@@ -221,7 +294,7 @@ body {
     position: relative;
 
     &::after {
-      content: '';
+      content: "";
       position: absolute;
       bottom: -10px;
       left: 50%;
@@ -243,12 +316,12 @@ body {
     margin: 0 auto;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 60px;
+    gap: 40px;
     align-items: flex-start;
 
     @media (max-width: 768px) {
       grid-template-columns: 1fr;
-      gap: 40px;
+      gap: 20px;
     }
   }
 
@@ -272,17 +345,34 @@ body {
     transition: $transition;
     border: 2px solid transparent;
 
-    &:hover, &.active {
+    &:hover,
+    &.active {
       @include gradient-bg;
       color: $white;
       transform: translateY(-5px);
       box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
     }
 
-    .feature-icon {
-      font-size: 3rem;
+    // Căn giữa nội dung bên trong feature-card
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .feature-image {
+      width: 100%;
+      max-width: 200px;
+      height: 180px;
+      object-fit: contain;
+      border-radius: 8px;
       margin-bottom: 20px;
-      display: block;
+      background: #f0f0f0; // Nền nhẹ nếu ảnh có nền trong suốt
+      padding: 10px;
+      transition: $transition;
+
+      &:hover {
+        transform: scale(1.05);
+        opacity: 0.9;
+      }
     }
 
     h3 {
@@ -322,6 +412,10 @@ body {
   @include section-spacing;
   background: $white;
 
+  &.animate {
+    animation: fadeInUp 0.8s ease-out forwards;
+  }
+
   .section-title {
     text-align: center;
     font-size: 3rem;
@@ -331,7 +425,7 @@ body {
     position: relative;
 
     &::after {
-      content: '';
+      content: "";
       position: absolute;
       bottom: -10px;
       left: 50%;
@@ -352,12 +446,12 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 40px;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
 
     @media (max-width: 768px) {
       grid-template-columns: 1fr;
-      gap: 30px;
+      gap: 20px;
     }
   }
 
@@ -425,14 +519,22 @@ body {
   position: relative;
   overflow: hidden;
 
+  &.animate {
+    animation: fadeInUp 0.8s ease-out forwards;
+  }
+
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    background: radial-gradient(
+      circle at 50% 50%,
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 70%
+    );
   }
 
   .cta-content {
@@ -454,7 +556,7 @@ body {
 
     p {
       font-size: 1.3rem;
-      color: rgba(255, 255, 255, 0.9);
+      color: #f7fafc;
       margin-bottom: 40px;
       line-height: 1.6;
 
@@ -489,14 +591,172 @@ body {
     }
   }
 }
+.testimonials-section {
+  @include section-spacing;
+  background: $white;
 
+  &.animate {
+    animation: fadeInUp 0.8s ease-out forwards;
+  }
+
+  .section-title {
+    text-align: center;
+    font-size: 3rem;
+    font-weight: 700;
+    color: $text-dark;
+    margin-bottom: 80px;
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      @include gradient-bg;
+      border-radius: 2px;
+    }
+
+    @media (max-width: 768px) {
+      font-size: 2.2rem;
+      margin-bottom: 60px;
+    }
+  }
+
+  .testimonials-container {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    flex: 1;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+  }
+
+  .testimonial-card {
+    background: $white;
+    padding: 40px;
+    border-radius: $border-radius;
+    box-shadow: $box-shadow;
+    @include hover-lift;
+    position: relative;
+
+    &::before {
+      content: '"';
+      position: absolute;
+      top: 20px;
+      left: 30px;
+      font-size: 4rem;
+      color: $primary-color;
+      opacity: 0.3;
+      font-family: Georgia, serif;
+    }
+
+    p {
+      font-size: 1.1rem;
+      color: $text-light;
+      line-height: 1.7;
+      margin-bottom: 30px;
+      font-style: italic;
+    }
+
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+
+      img {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid $primary-color;
+      }
+
+      div {
+        h4 {
+          font-weight: 600;
+          color: $text-dark;
+          margin-bottom: 5px;
+        }
+
+        span {
+          color: $text-light;
+          font-size: 0.9rem;
+        }
+      }
+    }
+  }
+
+  .arrow-btn {
+    background: $primary-color;
+    color: $white;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: $transition;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+
+    &:hover {
+      background: $secondary-color;
+      transform: scale(1.1);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+
+  .prev-btn {
+    position: absolute;
+    left: -60px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    @media (max-width: 768px) {
+      left: 10px;
+    }
+  }
+
+  .next-btn {
+    position: absolute;
+    right: -60px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    @media (max-width: 768px) {
+      right: 10px;
+    }
+  }
+}
 // Responsive Design
 @media (max-width: 1024px) {
   .hero-section {
     padding: 0 30px;
   }
 
-  .features-section, .testimonials-section, .cta-section {
+  .features-section,
+  .testimonials-section,
+  .cta-section {
     padding: 80px 30px;
   }
 }
@@ -507,8 +767,10 @@ body {
     text-align: center;
   }
 
-  .features-section, .testimonials-section, .cta-section {
-    padding: 60px 20px;
+  .features-section,
+  .testimonials-section,
+  .cta-section {
+    padding: 60px 15px;
   }
 
   .features-container {
@@ -521,6 +783,18 @@ body {
 }
 
 // Animations
+@keyframes colorShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 @keyframes slideInLeft {
   from {
     opacity: 0;
@@ -572,20 +846,24 @@ html {
   scroll-behavior: smooth;
 }
 
-// Custom scrollbar
-::-webkit-scrollbar {
+// Custom scrollbar cho intro
+::-webkit-scrollbar-intro {
   width: 8px;
 }
 
-::-webkit-scrollbar-track {
+::-webkit-scrollbar-track-intro {
   background: $light-bg;
 }
 
-::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb-intro {
   @include gradient-bg;
   border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, darken($primary-color, 10%) 0%, darken($secondary-color, 10%) 100%);
+::-webkit-scrollbar-thumb-intro:hover {
+  background: linear-gradient(
+    135deg,
+    darken($primary-color, 10%) 0%,
+    darken($secondary-color, 10%) 100%
+  );
 }
