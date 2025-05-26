@@ -32,7 +32,9 @@ const Header = ({ usersProfile }) => {
     (state) => state.notifications.unreadCount
   );
   const { signalRService } = useSignalR();
-
+  //hiện nút chat
+  const messengerState = useSelector((state) => state.messenges || {});
+  const isRejectChatbox = messengerState?.isMessengerView;
   // Fetch unread notification count on component mount
   useEffect(() => {
     dispatch(fetchUnreadNotificationCount());
@@ -175,15 +177,17 @@ const Header = ({ usersProfile }) => {
         </div>
 
         <div className="rightHeader" ref={rightRef}>
-          <button
-            id="messenger-button"
-            className={`icon-button ${modalState.messenger ? "active" : ""}`}
-            onClick={() => toggleModal("messenger")}
-            aria-label="Messenger"
-          >
-            <FiMessageSquare className="icon" />
-            {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
-          </button>
+          {!isRejectChatbox && (
+            <button
+              id="messenger-button"
+              className={`icon-button ${modalState.messenger ? "active" : ""}`}
+              onClick={() => toggleModal("messenger")}
+              aria-label="Messenger"
+            >
+              <FiMessageSquare className="icon" />
+              {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
+            </button>
+          )}
 
           <button
             className={`icon-button ${modalState.notify ? "active" : ""}`}

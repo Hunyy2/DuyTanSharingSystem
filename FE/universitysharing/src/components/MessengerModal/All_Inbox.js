@@ -1,23 +1,14 @@
-// import React from "react";
-
-// const AllInbox = ({ inboxRead, countInbox, onlineUsers, isLoading }) => {
-//   return (
-//     <>
-//       <div className="chat-list_inbox">Hiển thị tin nhắn</div>
-//     </>
-//   );
-// };
-// export default AllInbox;
-
 import React from "react";
 import avatartDefault from "../../assets/AvatarDefaultFill.png";
 import Spinner from "../../utils/Spinner";
+import "../../styles/MessageView/ChatList.scss";
 
 const AllInbox = ({
   inboxRead = [],
   countInbox = {},
-  onlineUsers = {},
+  onlineUsers,
   isLoading = false,
+  handleSelectedFriend,
 }) => {
   const chatList = inboxRead.length > 0 ? inboxRead : [];
 
@@ -54,8 +45,20 @@ const AllInbox = ({
           const unreadCount = countInbox[friendId] || 0;
           const isOnline = onlineUsers?.[friendId] ?? false;
 
+          // console.warn("isOnline>>", isOnline);
           return (
-            <div key={index} className="chat-list__item">
+            <div
+              key={index}
+              className="chat-list__item"
+              onClick={() =>
+                handleSelectedFriend({
+                  friendId: friendId,
+                  fullName: fullName,
+                  pictureProfile: avatar,
+                  conversationId: chat.conversationId,
+                })
+              }
+            >
               <div className="chat-list__avatar-wrapper">
                 <img
                   src={avatar}

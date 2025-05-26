@@ -9,6 +9,7 @@ import {
   FiX,
 } from "react-icons/fi";
 import avatarWeb from "../../assets/AvatarDefault.png";
+import dieImage from "../../assets/Imgae Not found.png";
 import { fetchLikes } from "../../stores/action/likeAction";
 import { fetchShares } from "../../stores/action/shareAction";
 import "../../styles/headerHome.scss";
@@ -299,12 +300,15 @@ const AllPosts = ({
           // Hiển thị tối đa 1 ảnh nếu có video, hoặc 2 ảnh nếu không có video
           if (totalMedia > 2 && index > (hasVideo ? 0 : 1)) return null;
           if (hasVideo && index > 0) return null; // Chỉ hiển thị 1 ảnh nếu có video
-
           return (
             <div className="media-item" key={index}>
               <img
                 src={fullUrl}
                 alt={`Post media ${index}`}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = dieImage; // ảnh fallback
+                }}
                 onClick={() => handleOpenCommentModal(post, index)}
               />
               {showOverlay && (

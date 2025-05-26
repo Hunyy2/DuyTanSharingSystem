@@ -54,7 +54,7 @@ const AuthForm = ({ type, onSubmit, loading, error }) => {
           <input
             type="email"
             name="email"
-            placeholder="Email"
+            placeholder="Vui lòng nhập đúng định dạng xxxx@dtu.edu.vn"
             onChange={handleChange}
             required
             autoComplete="email"

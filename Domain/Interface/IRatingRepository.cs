@@ -13,5 +13,6 @@ namespace Domain.Interface
         public Task<int> GetPassengerRatingScoreAsync(Guid userId);
 
         Task<bool> AnyAsync(Expression<Func<Rating, bool>> predicate);
+        Task<int> CountAsync(Func<Rating, bool> predicate);
     }
 }

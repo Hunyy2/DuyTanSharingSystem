@@ -155,7 +155,9 @@ const YourRide = () => {
       // Lọc vị trí của người dùng khác và lấy bản ghi mới nhất
       const otherUserLocation = locations
         .filter((loc) => loc.userId !== userId)
+
         .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+
 
       if (
         otherUserLocation &&
@@ -1113,6 +1115,7 @@ const YourRide = () => {
                             <Popup>Vị trí hiện tại</Popup>
                           </Marker>
                         )}
+
                         {otherUserPosition &&
                           !isNaN(otherUserPosition.lat) &&
                           !isNaN(otherUserPosition.lon) && (
@@ -1136,6 +1139,7 @@ const YourRide = () => {
                               </Popup>
                             </Marker>
                           )}
+
                         {routePaths[currentRide.rideId] && (
                           <Polyline
                             positions={routePaths[currentRide.rideId]}

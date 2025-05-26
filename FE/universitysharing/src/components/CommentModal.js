@@ -50,6 +50,7 @@ const CommentModal = ({ post, onClose, usersProfile }) => {
       url.startsWith("http")
         ? url.trim()
         : `${baseUrl}${url.trim()}`
+
     ),
     ...(hasVideo ? [post.videoUrl] : []),
   ];
