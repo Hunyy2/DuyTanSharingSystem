@@ -47,7 +47,7 @@ const CommentModal = ({ post, onClose, usersProfile }) => {
     ...imageUrls.map((url) =>
       url.startsWith("http")
         ? url.trim()
-        : `https://localhost:7053${url.trim()}`
+        : `${process.env.REACT_APP_BASE_URL}${url.trim()}`
     ),
     ...(hasVideo ? [post.videoUrl] : []),
   ];

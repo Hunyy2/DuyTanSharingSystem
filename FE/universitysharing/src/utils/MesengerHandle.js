@@ -8,6 +8,7 @@ import {
 import { setTyping, clearTyping } from "../stores/reducers/typingReducer";
 import { sendMessages } from "../stores/action/messageAction";
 import { useSignalR } from "../Service/SignalRProvider";
+import { resetTyping } from "../stores/reducers/typingReducer";
 import { toast } from "react-toastify";
 export const useChatHandle = () => {
   const dispatch = useDispatch();
@@ -82,8 +83,9 @@ export const useChatHandle = () => {
 
       setNewMessage("");
       setIsUserTyping(false);
+      dispatch(resetTyping()); // 👈 Reset toàn bộ trạng thái đang gõ
     } catch (err) {
-      console.error("[ChatHandle] Lỗi khi gửi:", err.message);
+      // console.error("[ChatHandle] Lỗi khi gửi:", err.message);
       toast.error(`Không thể gửi tin nhắn: ${err.message}`);
     } finally {
       setIsSending(false);
@@ -195,7 +197,7 @@ export const useMessageReceiver = () => {
   }, [isConnected, conversationId, dispatch]);
 };
 
-//Lắng nghe sự kiện tin nhắn người khác đưa đến
+//Lắng nghe sự kiện tin nhắn người khác đưa đến không cần join vào cuộc hội thoại
 export const useMessageReceiverData = () => {
   const dispatch = useDispatch();
   const { signalRService, isConnected } = useSignalR();
