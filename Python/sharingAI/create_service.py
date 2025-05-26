@@ -54,12 +54,12 @@ class CreateQueryProcessor:
         self.ans = AnswerGenerator()
         self.data_loader = DataLoader()
         self.table_prompt_generator = TablePromptGenerator()
-        # self.redis = aioredis.from_url(
-        #     f"rediss://{os.getenv('REDIS_HOST')}",
-        #     password=os.getenv("REDIS_PASSWORD"),
-        #     decode_responses=False,
-        # )
-        self.redis = aioredis.from_url("redis://localhost", decode_responses=False)
+        self.redis = aioredis.from_url(
+            f"rediss://{os.getenv('REDIS_HOST')}",
+            password=os.getenv("REDIS_PASSWORD"),
+            decode_responses=False,
+        )
+        # self.redis = aioredis.from_url("redis://localhost", decode_responses=False)
 
     def default_encoder(self, obj):
         if isinstance(obj, decimal.Decimal):
