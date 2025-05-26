@@ -46,7 +46,7 @@ namespace Application.CQRS.Commands.Users
                     await _unitOfWork.RollbackTransactionAsync();
                     return ResponseFactory.Fail<UserResponseDto>("Failed to send verification email", 404);
                 }
-                // 💾 Lưu token vào DB
+                 //💾 Lưu token vào DB
                 //DateTime.UtcNow.AddHours(1)
                 var saveToken = new EmailVerificationToken(user.Id, tokenSend, DateTime.UtcNow.AddHours(1));
                 await _unitOfWork.EmailTokenRepository.AddAsync(saveToken);

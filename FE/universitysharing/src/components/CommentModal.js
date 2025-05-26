@@ -1,21 +1,21 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import "../styles/CommentOverlay.scss";
-import "../styles/MoblieReponsive/CommentModalMobile/CommentModalMobile.scss";
-import logoweb from "../assets/Logo white.png";
-import avatarDefaut from "../assets/AvatarDefault.png";
-import defaultPostImage from "../assets/ImgDefault.png";
-import ContentPostComment from "./CommentModel_Component/ContenPostComment";
-import CommentList from "./CommentModel_Component/CommentList";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { FiChevronLeft, FiChevronRight, FiSend } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import avatarDefaut from "../assets/AvatarDefault.png";
+import defaultPostImage from "../assets/ImgDefault.png";
+import logoweb from "../assets/Logo white.png";
 import {
-  commentPost,
   addCommentPost,
+  commentPost,
   likeComment,
 } from "../stores/action/listPostActions";
-import getUserIdFromToken from "../utils/JwtDecode";
-import { FiSend, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { closeCommentModal } from "../stores/reducers/listPostReducers";
+import "../styles/CommentOverlay.scss";
+import "../styles/MoblieReponsive/CommentModalMobile/CommentModalMobile.scss";
+import getUserIdFromToken from "../utils/JwtDecode";
+import CommentList from "./CommentModel_Component/CommentList";
+import ContentPostComment from "./CommentModel_Component/ContenPostComment";
 
 // Debounce function to limit comment submission rate
 const debounce = (func, delay) => {
@@ -43,11 +43,14 @@ const CommentModal = ({ post, onClose, usersProfile }) => {
 
   const imageUrls = post.imageUrl ? post.imageUrl.split(",") : [];
   const hasVideo = !!post.videoUrl;
+  const baseUrl = process.env.REACT_APP_BASE_URL;
+  console.log("Base URL:", baseUrl);
   const mediaItems = [
     ...imageUrls.map((url) =>
       url.startsWith("http")
         ? url.trim()
-        : `${process.env.REACT_APP_BASE_URL}${url.trim()}`
+        : `${baseUrl}${url.trim()}`
+
     ),
     ...(hasVideo ? [post.videoUrl] : []),
   ];
@@ -124,40 +127,68 @@ const CommentModal = ({ post, onClose, usersProfile }) => {
   };
 
   // Debounced handleAddComment to prevent multiple submissions
-  const debouncedHandleAddComment = useCallback(
-    debounce(async () => {
-      const text = commentTextRef.current.trim();
-      if (!text || isSending) return;
+  // const debouncedHandleAddComment = useCallback(
+  //   debounce(async () => {
+  //     const text = commentTextRef.current.trim();
+  //     if (!text || isSending) return;
 
-      setIsSending(true);
-      try {
-        const result = await dispatch(
-          addCommentPost({
-            postId: post.id,
-            content: text,
-            userId: userId,
-          })
-        ).unwrap();
-        if (result.success) {
-          commentTextRef.current = "";
-          document.querySelector("textarea").value = "";
-          if (commentEndRef.current) {
-            setTimeout(() => {
-              commentEndRef.current.scrollIntoView({
-                behavior: "smooth",
-                block: "end",
-              });
-            }, 100);
-          }
-        }
-      } catch (error) {
-        console.error("Error adding comment:", error);
-      } finally {
-        setIsSending(false);
+  //     setIsSending(true);
+  //     try {
+  //       const result = await dispatch(
+  //         addCommentPost({
+  //           postId: post.id,
+  //           content: text,
+  //           userId: userId,
+  //         })
+  //       ).unwrap();
+  //       if (result.success) {
+  //         commentTextRef.current = "";
+  //         document.querySelector("textarea").value = "";
+  //         if (commentEndRef.current) {
+  //           setTimeout(() => {
+  //             commentEndRef.current.scrollIntoView({
+  //               behavior: "smooth",
+  //               block: "end",
+  //             });
+  //           }, 100);
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error("Error adding comment:", error);
+  //     } finally {
+  //       setIsSending(false);
+  //     }
+  //   }, 500), // 500ms debounce delay
+  //   [dispatch, post.id, userId, isSending]
+  // );
+
+  const handleAddComment = async () => {
+    const text = commentTextRef.current.trim();
+    if (!text || isSending) return;
+
+    setIsSending(true);
+    try {
+      await dispatch(
+        addCommentPost({
+          postId: post.id,
+          content: text,
+          userId: userId,
+        })
+      );
+      commentTextRef.current = "";
+      document.querySelector("textarea").value = "";
+      if (commentEndRef.current) {
+        setTimeout(() => {
+          commentEndRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "end",
+          });
+        }, 100);
       }
-    }, 500), // 500ms debounce delay
-    [dispatch, post.id, userId, isSending]
-  );
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : mediaItems.length - 1));
@@ -240,13 +271,9 @@ const CommentModal = ({ post, onClose, usersProfile }) => {
             type="text"
             placeholder="Viết bình luận..."
             onChange={handleInputChange}
-            onKeyPress={(e) => e.key === "Enter" && debouncedHandleAddComment()}
+            onKeyPress={(e) => e.key === "Enter" && handleAddComment()}
           />
-          <button
-            type="submit"
-            onClick={debouncedHandleAddComment}
-            disabled={isSending}
-          >
+          <button type="submit" onClick={handleAddComment} disabled={isSending}>
             {isSending ? <div className="spinner"></div> : <FiSend size={20} />}
           </button>
         </div>

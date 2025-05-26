@@ -19,6 +19,7 @@ namespace Application.DTOs.Reposts
         public string? NameDriver { get; set; }
         public string? RelativePhonePassenger { get; set; }
         public string? PhoneDriver { get; set; }
+        public string? RelativePhoneDriver { get; set; }
         public AlertTypeEnums AlertType { get; set; } 
         public DateTime CreatedAt { get; set; }
     }

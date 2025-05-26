@@ -1213,7 +1213,7 @@ A natural language response in plain text, asking for the missing information or
         - Use a friendly, engaging tone, like chatting with a friend.
         - If no results are found, respond with "Không tìm thấy dữ liệu phù hợp với bạn 😔" in a friendly way.
         - Ensure the response is concise and easy to understand.
-
+        **Bạn có thể chuyển dữ liệu sang dạng bảng nếu cần thiết, nhưng phải đảm bảo rằng dữ liệu vẫn dễ đọc và hiểu.**
         **Output Format**:
         A natural language response (plain text) listing the results and asking the user to choose one.
 

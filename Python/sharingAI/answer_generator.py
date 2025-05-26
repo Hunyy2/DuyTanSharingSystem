@@ -126,7 +126,7 @@ class AnswerGenerator:
             ### 🔍 Classification Rules:
             - **CREATE**:
             - User wants to **add** or **generate** new information.
-            - Examples: "Tôi muốn đăng bài", "Tôi muốn like", "Tôi muốn comment", "Tham gia chuyến đi", "Trả lời comment","Ghép chuyến đi","Chấp nhận chuyến đi", "Thêm bạn", v.v.
+            - Examples: "Tôi muốn đăng bài", "Tôi muốn like", "Tôi muốn comment", "Tôi muốn tham gia chuyến đi", "Trả lời comment","Ghép chuyến đi","Chấp nhận chuyến đi", "Thêm bạn", v.v.
             - ➤ Return: `type = CREATE`, with related table(s).
 
             - **UPDATE**:
@@ -138,7 +138,13 @@ class AnswerGenerator:
             - User wants to **remove** or **undo** an existing item.
             - Examples: "Xóa bài viết", "Xóa comment", "Hủy chuyến đi", "Bỏ like", "Hủy kết bạn", v.v.
             - ➤ Return: `type = DELETE`, with related table(s).
-
+            - **SEARCH**:
+            - User wants to **retrieve** or **look up** information without modifying it.
+            - Examples: "Tìm kiếm bài viết", "Xem danh sách bạn bè", "Lấy thông tin chuyến đi", "Xem thông báo", "Tìm kiếm chuyến đi", "Thông tin của tôi", "Tìm kiếm chuyến đi", "Tìm kiếm bài đăng", "Tìm kiếm bình luận", "Tìm kiếm người dùng","Tìm kiếm Bài đăng", "Xem thông tin chuyến đi", "Xem thông tin người dùng", "Tìm kiếm thông báo", "Tìm kiếm báo cáo", "Tìm kiếm bạn bè", "Tìm kiếm bình luận", "Tìm kiếm chuyến đi đã tham gia", "Tìm kiếm chuyến đi đã lái xe", v.v. 
+            - ➤ Return: `type = SEARCH`, with relevant table(s) if applicable.
+            - **FALSE**:
+            - User asks a question unrelated to the database or system.
+            - Examples: "Hôm nay là ngày gì?", "Thời tiết hôm nay như thế nào?", "Tôi muốn biết về hệ thống này", "Có quán ăn nào gần đây không?", "Có siêu thị nào gần đây không?", "Làm sao tôi có thể tham gia chuyến đi?", "Làm sao tôi có thể đăng bài?", "Làm sao tôi có thể tìm kiếm chuyến đi?", "Làm sao tôi có thể tìm kiếm bài đăng?", "Làm sao tôi có thể tìm kiếm bình luận?", "Làm sao tôi có thể tìm kiếm người dùng?", "Làm sao tôi có thể tìm kiếm thông báo?", "Làm sao tôi có thể tìm kiếm báo cáo?", "Làm sao tôi có thể tìm kiếm bạn bè?", "Làm sao tôi có thể tìm kiếm bình luận?", "Làm sao tôi có thể tìm kiếm chuyến đi đã tham gia?", "Làm sao tôi có thể tìm kiếm chuyến đi đã lái xe?", "Hệ thống vận hành như thế nào?", "Hướng dẫn sử dụng hệ thống", "Cách đăng ký tài khoản", "Cách đăng nhập vào hệ thống", "Cách thay đổi mật khẩu", "Cách cập nhật thông tin cá nhân", "Cách tìm kiếm chuyến đi", "Cách tìm kiếm bài đăng", "Cách tìm kiếm bình luận", "Cách tìm kiếm người dùng", "Cách tìm kiếm thông báo", "Cách tìm kiếm báo cáo", "Cách tìm kiếm bạn bè", "Cách tìm kiếm bình luận", "Cách tìm kiếm chuyến đi đã tham gia", "Cách tìm kiếm chuyến đi đã lái xe",vv.
             ---
 
             🛑 **IMPORTANT: If user intent involves CREATE, UPDATE, or DELETE**, you MUST return:
@@ -205,7 +211,7 @@ class AnswerGenerator:
             - Khi người dùng đề cập đến "chuyến thứ X" (ví dụ: "chuyến thứ 3"), bạn PHẢI xác định đúng ID của chuyến đi tương ứng từ `context` trong `chat_history`.
             - Kiểm tra trường `Id` trong `context` (thường là UUID, không phải URL như `http://localhost:3000/sharing-ride`).
             - Nếu không tìm thấy ID rõ ràng, trả về `ids` rỗng (`[]`) và ghi chú trong `alert` rằng cần thêm thông tin.
-            3.  `type`: SEARCH or DIFF (if the question is related to the data or the system's tables).
+            3.  `type`: SEARCH (if the question is related to the data or the system's tables).
                 - type will be false if the user asks questions that are not related to the system, and in that case, `relevant_tables` will be null.
                 ** If the {{query}} question is related to the tutorial system, the type will also be FALSE:
                 **example:** Where to update profile, where to post about cars, where to change password, increase reputation points, how to make friends,...etc...
@@ -214,15 +220,24 @@ class AnswerGenerator:
                 Example (User asks: "Tôi muốn biết về các bảng trong cơ sở dữ liệu này")
                 Example (User asks: "Có quán ăn nào trên chuyến đi từ Quang Trung đến Nguyễn Văn Linh không?")
                 Example (User asks: "Thời tiết hôm nay như thế nào")
+                `Type` FALSE if the question is not related to the data or the system's tables, and in that case, `relevant_tables` will be null.
+                **Example Query**
+                Example (User asks: "Giới thiệu về hệ thống này")
+                Example (User asks: "Có quán ăn sáng nào ngon trên đoạn đường từ lúc khởi hành đến lúc kết thúc không?")
+                Example (User asks: "Bây giờ là mấy giờ?")
+                Example (User asks: "Có quán ăn nào gần đây không?")
+                Example (User asks: "Có siêu thị nào gần đây không?")
+                ...etc.
             4.  `alert`: "You don't have permission to access this data" if the user is not authorized to access the data, otherwise null for `sql` and `params`,`type` equals False.
             Return a JSON object with the following structure:
             {{
             "normalized_query": "<spelling-corrected query in Vietnamese>",
             "relevant_tables": ["<table_name>", ...],
             "ids": [{{"id": "<id_value>", "type": "<id_type>"}}, ...]
-            "type":SEARCH or DIFF or FALSE
+            "type":SEARCH or FALSE
             "alert":"some kind of warning"
             }}
+            **Quan trọng:** Nếu không xác định được yêu cầu, câu hỏi, hay câu các yêu cầu liên quan đến cập nhật thông tin của người khác, xóa thông tin của người khác, hoặc tạo mới thông tin của người khác, bạn phải trả về `type` là `FALSE`.
             """,
         )
 
@@ -728,7 +743,11 @@ class AnswerGenerator:
         full_response_for_logging = ""
         print("context", context)
         # Lấy query_columns từ context hoặc từ kết quả truy vấn
-        query_columns = [key for key in context[0].keys()] if context else []
+        query_columns = (
+            [key for key in context[0].keys()]
+            if context and isinstance(context[0], dict)
+            else []
+        )
         results = self._determine_is_own_data(
             context, user_id, tables, role, query_columns
         )
@@ -816,9 +835,7 @@ class AnswerGenerator:
                 7. Nếu xuật hiện dữ liệu liên quan đến Hình ảnh, Video bạn phải tự nối chuỗi url với base_url của hệ thống, ví dụ: nếu base_url là "https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net" và dữ liệu có trường "ImageUrl": "/images/posts/ad321db4-39a7-4b7c-b59a-e19a270bf860.jpg" thì bạn phải trả về "https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net/images/posts/ad321db4-39a7-4b7c-b59a-e19a270bf860.jpg"
                 8. Phải luôn chuyển các trường trong context sang tiếng Việt, không được để nguyên tiếng Anh hoặc các từ viết tắt.
                 9. Không được hiển thị các ký tự trong code như `Id`, `UserId`, `Content`, `ImageUrl`, `ProfilePicture`,`IsOwner`... mà phải chuyển sang tiếng Việt tự nhiên. 
-            Ví dụ nếu có lịch sử chat dạng:
-            
-            
+                **10. Bạn có thể chuyển dữ liệu sang dạng bảng cho các dữ liệu trả về danh sách, và sử dụng các tiêu đề của bảng bằng ngôn ngữ tự nhiên chứ đừng ghi thuộc tính và giá trị, vì người dùng không phải là lập trình viên để hiểu điều đó**
         """
         prompt = PromptTemplate(
             input_variables=["chat_history", "context", "question"],
