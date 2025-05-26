@@ -138,19 +138,19 @@ const YourRide = () => {
   // Lấy authData từ useAuth
   const { userId: authUserId, isAuthenticated, isLoading } = useAuth();
 
-const otherUserIcon = new L.Icon({
-  iconUrl:
-    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png", // Marker màu vàng
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-});
-useEffect(() => {
+  const otherUserIcon = new L.Icon({
+    iconUrl:
+      "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png", // Marker màu vàng
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+  });
+  useEffect(() => {
     const currentRide = getCurrentRide();
     if (locations && locations.length > 0 && userId && currentRide) {
       // Lọc ra vị trí của người dùng không phải là người dùng hiện tại
       const otherUserLocation = locations
-        .filter(loc => loc.userId !== userId)
+        .filter((loc) => loc.userId !== userId)
         .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0]; // Lấy vị trí mới nhất
 
       if (otherUserLocation) {
@@ -166,7 +166,7 @@ useEffect(() => {
     }
   }, [locations, userId]); // Chạy lại khi locations hoặc userId thay đổi
 
-useEffect(() => {
+  useEffect(() => {
     const currentRide = getCurrentRide();
     if (currentRide && currentRide.rideId) {
       // Gọi fetchLocation lần đầu ngay lập tức
@@ -310,16 +310,18 @@ useEffect(() => {
 
         // Chỉ tạo bounds nếu có ít nhất một điểm hợp lệ
         if (points.length >= 1) {
-             // Kiểm tra xem tất cả các điểm có hợp lệ không
-            const validPoints = points.filter(p => p && !isNaN(p[0]) && !isNaN(p[1]));
-            if(validPoints.length > 0) {
-                const bounds = L.latLngBounds(validPoints).pad(0.2);
-                setMapBounds(bounds);
-                if (mapRef.current) {
-                  mapRef.current.flyToBounds(bounds, { maxZoom: 16, duration: 1 });
-                  console.log("[YourRide] Fly to bounds (bao gồm cả hai):", bounds);
-                }
+          // Kiểm tra xem tất cả các điểm có hợp lệ không
+          const validPoints = points.filter(
+            (p) => p && !isNaN(p[0]) && !isNaN(p[1])
+          );
+          if (validPoints.length > 0) {
+            const bounds = L.latLngBounds(validPoints).pad(0.2);
+            setMapBounds(bounds);
+            if (mapRef.current) {
+              mapRef.current.flyToBounds(bounds, { maxZoom: 16, duration: 1 });
+              console.log("[YourRide] Fly to bounds (bao gồm cả hai):", bounds);
             }
+          }
         }
       }
     }
@@ -988,23 +990,27 @@ useEffect(() => {
             >
               <div className="details-grid">
                 <div className="detail-item">
-                <label>
-                  <FiCalendar /> Bắt đầu:
-                </label>
-                <span>
-                  {/* Chỉ hiển thị thời gian nếu currentRide.startTime tồn tại, ngược lại hiển thị "Đang chờ..." */}
-                  {currentRide.startTime ? new Date(currentRide.startTime).toLocaleString() : "Đang chờ..."}
-                </span>
-              </div>
-              <div className="detail-item">
-                <label>
-                  <FiCalendar /> Kết thúc:
-                </label>
-                <span>
-                  {/* Tương tự cho thời gian kết thúc */}
-                  {currentRide.endTime ? new Date(currentRide.endTime).toLocaleString() : "Đang chờ..."}
-                </span>
-              </div>
+                  <label>
+                    <FiCalendar /> Bắt đầu:
+                  </label>
+                  <span>
+                    {/* Chỉ hiển thị thời gian nếu currentRide.startTime tồn tại, ngược lại hiển thị "Đang chờ..." */}
+                    {currentRide.startTime
+                      ? new Date(currentRide.startTime).toLocaleString()
+                      : "Đang chờ..."}
+                  </span>
+                </div>
+                <div className="detail-item">
+                  <label>
+                    <FiCalendar /> Kết thúc:
+                  </label>
+                  <span>
+                    {/* Tương tự cho thời gian kết thúc */}
+                    {currentRide.endTime
+                      ? new Date(currentRide.endTime).toLocaleString()
+                      : "Đang chờ..."}
+                  </span>
+                </div>
                 <div className="detail-item">
                   <label>
                     <FiClock /> Thời gian dự kiến:
@@ -1105,14 +1111,23 @@ useEffect(() => {
                         )}
                         {otherUserPosition && (
                           <Marker
-                            position={[otherUserPosition.lat, otherUserPosition.lon]}
+                            position={[
+                              otherUserPosition.lat,
+                              otherUserPosition.lon,
+                            ]}
                             icon={otherUserIcon} // Sử dụng icon mới
                           >
                             <Popup>
                               {/* Hiển thị đúng vai trò của người kia */}
-                              Vị trí của {otherUserPosition.isDriver ? 'Tài xế' : 'Hành khách'}
+                              Vị trí của{" "}
+                              {otherUserPosition.isDriver
+                                ? "Tài xế"
+                                : "Hành khách"}
                               <br />
-                              Cập nhật: {new Date(otherUserPosition.timestamp).toLocaleTimeString()}
+                              Cập nhật:{" "}
+                              {new Date(
+                                otherUserPosition.timestamp
+                              ).toLocaleTimeString()}
                             </Popup>
                           </Marker>
                         )}

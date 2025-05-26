@@ -12,6 +12,8 @@ import {
   blockUser,
   suspendUser,
   activateUser,
+  fetchRidesByStatus,
+  fetchRideDetails,
 } from "../action/adminActions";
 
 const reporAdmintSlice = createSlice({
@@ -23,6 +25,9 @@ const reporAdmintSlice = createSlice({
     userUserReports: [],
     users: [],
     notifications: [],
+    rides: [],
+    rideDetails: null,
+    rideTotalCount: 0,
     loading: false,
     success: false,
     error: null,
@@ -35,6 +40,11 @@ const reporAdmintSlice = createSlice({
     clearPostState: (state) => {
       state.success = false;
       state.error = null;
+    },
+    clearRideState: (state) => {
+      state.success = false;
+      state.error = null;
+      state.rideDetails = null;
     },
   },
   extraReducers: (builder) => {
@@ -258,9 +268,46 @@ const reporAdmintSlice = createSlice({
         state.loading = false;
         state.error = action.payload.message || "Không thể xóa bài viết";
         state.success = false;
+      })
+      // Lấy danh sách chuyến đi theo trạng thái
+      .addCase(fetchRidesByStatus.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(fetchRidesByStatus.fulfilled, (state, action) => {
+        state.loading = false;
+        state.rides = action.payload?.rides || [];
+        state.rideTotalCount = action.payload?.totalRecords || 0;
+        state.success = true;
+        state.error = null;
+      })
+      .addCase(fetchRidesByStatus.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload.message;
+        state.success = false;
+      })
+
+      // Lấy chi tiết chuyến đi
+      .addCase(fetchRideDetails.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(fetchRideDetails.fulfilled, (state, action) => {
+        state.loading = false;
+        state.rideDetails = action.payload;
+        state.success = true;
+        state.error = null;
+      })
+      .addCase(fetchRideDetails.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload.message;
+        state.success = false;
       });
   },
 });
 
-export const { clearReportState, clearPostState } = reporAdmintSlice.actions;
+export const { clearReportState, clearPostState, clearRideState } =
+  reporAdmintSlice.actions;
 export default reporAdmintSlice.reducer;

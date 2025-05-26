@@ -33,8 +33,6 @@ const AdminPostManagement = () => {
     success = false,
   } = useSelector((state) => state.reportAdmintSlice || {});
 
-  console.log("Redux State:", { posts, totalCount, loading, error, success });
-
   useEffect(() => {
     dispatch(fetchPostsByAdmin({ pageNumber: currentPage, pageSize }));
   }, [dispatch, currentPage]);

@@ -399,3 +399,40 @@ const handleApiError = (error, rejectWithValue) => {
   }
   return rejectWithValue({ message: "Lỗi không xác định" });
 };
+
+// Lấy danh sách chuyến đi theo trạng thái (Accepted hoặc Completed)
+export const fetchRidesByStatus = createAsyncThunk(
+  "adminRides/fetchRidesByStatus",
+  async ({ status, pageNumber, pageSize }, { rejectWithValue }) => {
+    try {
+      const response = await axiosClient.get(
+        `/api/Admin/rides-by-status?Status=${status}&page=${pageNumber}&pageSize=${pageSize}`
+      );
+      return response.data;
+    } catch (error) {
+      return handleApiError(error, rejectWithValue);
+    }
+  }
+);
+
+// Lấy chi tiết chuyến đi theo ID
+export const fetchRideDetails = createAsyncThunk(
+  "adminRides/fetchRideDetails",
+  async (rideId, { rejectWithValue }) => {
+    try {
+      console.log("Fetching ride details for ID:", rideId);
+      const response = await axiosClient.get(
+        `/api/Admin/ride-details/${rideId}`
+      );
+      console.log("API response:", response.data);
+      // Kiểm tra dữ liệu trả về
+      if (!response.data) {
+        return rejectWithValue({ message: "Không có dữ liệu trả về từ API" });
+      }
+      return response.data;
+    } catch (error) {
+      console.error("API error:", error);
+      return handleApiError(error, rejectWithValue);
+    }
+  }
+);

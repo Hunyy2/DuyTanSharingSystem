@@ -7,6 +7,8 @@ import {
   fetchUserTrend,
   fetchInteractionActivity,
   fetchUserStatsScore,
+  fetchRatingStatistics,
+  fetchRideStatusStatistics,
 } from "../action/dashboardActions";
 
 const dashboardSlice = createSlice({
@@ -34,6 +36,13 @@ const dashboardSlice = createSlice({
       labels: [],
       datasets: { likes: [], comments: [], shares: [] },
     },
+    ratingStatistics: {
+      poorPercentage: 0,
+      averagePercentage: 0,
+      goodPercentage: 0,
+      excellentPercentage: 0,
+    },
+    rideStatusStatistics: [],
     userStatsScore: { labels: [], data: [] },
     loading: false,
     error: null,
@@ -132,6 +141,31 @@ const dashboardSlice = createSlice({
         state.loading = false;
         state.error = action.payload?.message || "Lỗi không xác định";
         state.recentPosts = []; // Đặt lại recentPosts để tránh lỗi
+      })
+      .addCase(fetchRatingStatistics.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchRatingStatistics.fulfilled, (state, action) => {
+        state.loading = false;
+        state.ratingStatistics = action.payload;
+      })
+      .addCase(fetchRatingStatistics.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Thêm reducer cho fetchRideStatusStatistics
+      .addCase(fetchRideStatusStatistics.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchRideStatusStatistics.fulfilled, (state, action) => {
+        state.loading = false;
+        state.rideStatusStatistics = action.payload;
+      })
+      .addCase(fetchRideStatusStatistics.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });

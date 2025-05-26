@@ -38,6 +38,8 @@ import SharingRideView from "./views/SharingRideView";
 import YourRideView from "./views/YourRideView";
 
 import Dashboard from "./admin/views/DashBoardView";
+import AdminRideDetails from "./admin/views/AdminRideDetails";
+import AdminRideManagement from "./admin/views/AdminRideManagement";
 import UserReport from "./admin/views/UserReportManagerView";
 
 import { DeeplinkCommentModal } from "./stores/action/deepLinkAction";
@@ -150,6 +152,11 @@ function App() {
                   element={<NotificationAdmin />}
                 />
                 <Route path="/admin/dashboard" element={<Dashboard />} />
+                <Route path="/admin/rides" element={<AdminRideManagement />} />
+                <Route
+                  path="/admin/ride-details/:rideId"
+                  element={<AdminRideDetails />}
+                />
                 <Route path="/admin/userreport" element={<UserReport />} />
                 <Route
                   path="/admin/postmanager"
