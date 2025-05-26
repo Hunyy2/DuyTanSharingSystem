@@ -37,9 +37,9 @@ import SettingsView from "./views/SettingsView";
 import SharingRideView from "./views/SharingRideView";
 import YourRideView from "./views/YourRideView";
 
-import Dashboard from "./admin/views/DashBoardView";
 import AdminRideDetails from "./admin/views/AdminRideDetails";
 import AdminRideManagement from "./admin/views/AdminRideManagement";
+import Dashboard from "./admin/views/DashBoardView";
 import UserReport from "./admin/views/UserReportManagerView";
 
 import { DeeplinkCommentModal } from "./stores/action/deepLinkAction";
@@ -135,7 +135,7 @@ function App() {
               <>
                 {/* Route không cần xác thực */}
                 <Route path="/LandingPage" element={<LandingPage />} />
-                <Route path="/" element={<Login />} />
+                <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/forgotpassword" element={<ForgotPass />} />
