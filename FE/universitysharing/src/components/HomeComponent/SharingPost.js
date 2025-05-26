@@ -11,7 +11,7 @@ const SharedPost = ({ post }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const userId = getUserIdFromToken();
-const baseUrl = process.env.REACT_APP_BASE_URL;
+  const baseUrl = process.env.REACT_APP_BASE_URL;
   // Mở comment modal
   const handleOpenCommentModal = (post, index = 0) => {
     navigate(`/post/${post.postId}`, { state: { background: location } });
@@ -54,7 +54,6 @@ const baseUrl = process.env.REACT_APP_BASE_URL;
     const imageUrls = post.imageUrl ? post.imageUrl.split(",") : [];
     const hasVideo = !!post.videoUrl;
     const totalMedia = imageUrls.length + (hasVideo ? 1 : 0);
-
     if (totalMedia === 0) return null;
 
     return (
@@ -113,7 +112,7 @@ const baseUrl = process.env.REACT_APP_BASE_URL;
       <div className="post-share" key={post.id}>
         {/* Header Post */}
         <div className="header-post-share">
-          <div  className="AvaName-share">
+          <div className="AvaName-share">
             <img
               className="avtardefaut-share"
               src={post.originalPost.author.profilePicture || avatarWeb}
