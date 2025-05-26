@@ -376,3 +376,10 @@
     width: 100% !important;
   }
 }
+.sort-name-friendly {
+  display: inline-block;
+  max-width: 100px; /* hoặc kích thước bạn muốn */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

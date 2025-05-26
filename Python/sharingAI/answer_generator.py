@@ -71,12 +71,12 @@ class AnswerGenerator:
         # self.chain = self._create_chain()
         self.sql_cache_locks = defaultdict(Lock)
         self.table_prompt_generator = TablePromptGenerator()
-        # self.redis = aioredis.from_url(
-        #     f"rediss://{os.getenv('REDIS_HOST')}",
-        #     password=os.getenv("REDIS_PASSWORD"),
-        #     decode_responses=False,
-        # )
-        self.redis = aioredis.from_url("redis://localhost", decode_responses=False)
+        self.redis = aioredis.from_url(
+            f"rediss://{os.getenv('REDIS_HOST')}",
+            password=os.getenv("REDIS_PASSWORD"),
+            decode_responses=False,
+        )
+        # self.redis = aioredis.from_url("redis://localhost", decode_responses=False)
         self.mappings = {
             "Posts": "/post/{id}",
             "RidePosts": "/sharing-ride",

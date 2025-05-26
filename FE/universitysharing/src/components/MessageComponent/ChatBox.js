@@ -12,6 +12,7 @@ import {
 import { FiSend } from "react-icons/fi";
 import avatarDefault from "../../assets/AvatarDefault.png";
 import "../../styles/MessageView/ChatBox.scss";
+import "../../styles/MoblieReponsive/ChatBoxMobile/chatBoxMoblie.scss";
 import getUserIdFromToken from "../../utils/JwtDecode";
 import {
   getConversationss,
@@ -134,7 +135,9 @@ const ChatBox = ({
             src={selectFriend?.pictureProfile || avatarDefault}
             alt="Friend"
           />
-          <span>{selectFriend?.fullName || "University Sharing"}</span>
+          <span className="sort-name-friendly">
+            {selectFriend?.fullName || "University Sharing"}
+          </span>
           <span className="status-dot online"></span>
         </div>
         <div className="header-actions">

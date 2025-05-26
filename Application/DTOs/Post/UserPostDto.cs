@@ -15,10 +15,9 @@ namespace Application.DTOs.Post
         public UserPostDto() { }
         public UserPostDto(Domain.Entities.User user)
         {
-            const string baseUrl = "https://localhost:7053";
             UserId = user.Id;
             UserName = user.FullName ?? "Người dùng ẩn danh";
-            ProfilePicture = user.ProfilePicture != null ? $"{baseUrl}{user.ProfilePicture}" : null; // ✅ Thêm Base URL
+            ProfilePicture = user.ProfilePicture != null ? $"{Constaint.baseUrl}{user.ProfilePicture}" : null; // ✅ Thêm Base URL
         }
     }
 }

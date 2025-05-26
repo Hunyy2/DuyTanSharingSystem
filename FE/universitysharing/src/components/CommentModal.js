@@ -50,6 +50,7 @@ const CommentModal = ({ post, onClose, usersProfile }) => {
       url.startsWith("http")
         ? url.trim()
         : `${baseUrl}${url.trim()}`
+
     ),
     ...(hasVideo ? [post.videoUrl] : []),
   ];
@@ -126,40 +127,68 @@ const CommentModal = ({ post, onClose, usersProfile }) => {
   };
 
   // Debounced handleAddComment to prevent multiple submissions
-  const debouncedHandleAddComment = useCallback(
-    debounce(async () => {
-      const text = commentTextRef.current.trim();
-      if (!text || isSending) return;
+  // const debouncedHandleAddComment = useCallback(
+  //   debounce(async () => {
+  //     const text = commentTextRef.current.trim();
+  //     if (!text || isSending) return;
 
-      setIsSending(true);
-      try {
-        const result = await dispatch(
-          addCommentPost({
-            postId: post.id,
-            content: text,
-            userId: userId,
-          })
-        ).unwrap();
-        if (result.success) {
-          commentTextRef.current = "";
-          document.querySelector("textarea").value = "";
-          if (commentEndRef.current) {
-            setTimeout(() => {
-              commentEndRef.current.scrollIntoView({
-                behavior: "smooth",
-                block: "end",
-              });
-            }, 100);
-          }
-        }
-      } catch (error) {
-        console.error("Error adding comment:", error);
-      } finally {
-        setIsSending(false);
+  //     setIsSending(true);
+  //     try {
+  //       const result = await dispatch(
+  //         addCommentPost({
+  //           postId: post.id,
+  //           content: text,
+  //           userId: userId,
+  //         })
+  //       ).unwrap();
+  //       if (result.success) {
+  //         commentTextRef.current = "";
+  //         document.querySelector("textarea").value = "";
+  //         if (commentEndRef.current) {
+  //           setTimeout(() => {
+  //             commentEndRef.current.scrollIntoView({
+  //               behavior: "smooth",
+  //               block: "end",
+  //             });
+  //           }, 100);
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error("Error adding comment:", error);
+  //     } finally {
+  //       setIsSending(false);
+  //     }
+  //   }, 500), // 500ms debounce delay
+  //   [dispatch, post.id, userId, isSending]
+  // );
+
+  const handleAddComment = async () => {
+    const text = commentTextRef.current.trim();
+    if (!text || isSending) return;
+
+    setIsSending(true);
+    try {
+      await dispatch(
+        addCommentPost({
+          postId: post.id,
+          content: text,
+          userId: userId,
+        })
+      );
+      commentTextRef.current = "";
+      document.querySelector("textarea").value = "";
+      if (commentEndRef.current) {
+        setTimeout(() => {
+          commentEndRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "end",
+          });
+        }, 100);
       }
-    }, 500), // 500ms debounce delay
-    [dispatch, post.id, userId, isSending]
-  );
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : mediaItems.length - 1));
@@ -242,13 +271,9 @@ const CommentModal = ({ post, onClose, usersProfile }) => {
             type="text"
             placeholder="Viết bình luận..."
             onChange={handleInputChange}
-            onKeyPress={(e) => e.key === "Enter" && debouncedHandleAddComment()}
+            onKeyPress={(e) => e.key === "Enter" && handleAddComment()}
           />
-          <button
-            type="submit"
-            onClick={debouncedHandleAddComment}
-            disabled={isSending}
-          >
+          <button type="submit" onClick={handleAddComment} disabled={isSending}>
             {isSending ? <div className="spinner"></div> : <FiSend size={20} />}
           </button>
         </div>
