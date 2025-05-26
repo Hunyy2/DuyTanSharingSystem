@@ -52,10 +52,12 @@ import NotificationAdmin from "./admin/views/NotificationManagement";
 import LocationTracker from "./components/RideComponent/LocationTracker"; // Import component mới
 import Site404 from "./views/404Site";
 
+
 import ChatBoxGlobal from "./components/ChatBoxGlobal";
 
 
 import LandingPage from "./views/IntroductView";
+
 
 function App() {
   const { isAuthenticated, userRole, isLoading } = useAuth();
