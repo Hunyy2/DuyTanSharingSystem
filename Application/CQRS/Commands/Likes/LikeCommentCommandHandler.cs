@@ -42,10 +42,10 @@ namespace Application.CQRS.Commands.Likes
             {
                 return ResponseFactory.Fail<bool>("Không tìm thấy bài viết chứa bình luận này!", 404);
             }
-            if (userId != comment.UserId || userId != post.UserId)
-            {
-                return ResponseFactory.Fail<bool>("Bạn không có quyền làm việc này", 401);
-            }
+            //if (userId != comment.UserId || userId != post.UserId)
+            //{
+            //    return ResponseFactory.Fail<bool>("Bạn không có quyền làm việc này", 401);
+            //}
             try
             {
                 string redisKey = "likeComment_events";

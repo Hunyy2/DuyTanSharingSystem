@@ -61,7 +61,7 @@ namespace Infrastructure.Data.Repositories
             pageSize = Math.Min(pageSize, MAX_PAGE_SIZE);
 
             var query = _context.Rides
-                .Where(r => r.DriverId == driverId && r.Status == StatusRideEnum.Completed)
+                .Where(r => r.DriverId == driverId )
                 .AsQueryable();
 
             if (lastPostId.HasValue)
