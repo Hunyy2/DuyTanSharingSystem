@@ -187,19 +187,16 @@ const YourRide = () => {
   useEffect(() => {
     const currentRide = getCurrentRide();
     if (currentRide && currentRide.rideId) {
-      // Gọi fetchLocation lần đầu ngay lập tức
-      dispatch(fetchLocation(currentRide.rideId));
-
-      // Thiết lập interval để gọi lại sau mỗi 20 giây
-      const fetchInterval = setInterval(() => {
-        console.log("[YourRide] Đang lấy vị trí định kỳ...");
         dispatch(fetchLocation(currentRide.rideId));
-      }, 20000); // 20 giây
 
-      // Dọn dẹp interval khi component unmount hoặc chuyến đi thay đổi
-      return () => clearInterval(fetchInterval);
+        const fetchInterval = setInterval(() => {
+            console.log("[YourRide] Đang lấy vị trí định kỳ...");
+            dispatch(fetchLocation(currentRide.rideId));
+        }, 20000); // 60 giây
+        return () => clearInterval(fetchInterval);
+
     }
-  }, [dispatch, driverRides, passengerRides]); // Chỉ chạy lại khi rides thay đổi để lấy rideId
+}, [dispatch, driverRides, passengerRides]); // Chỉ chạy lại khi rides thay đổi để lấy rideId
 
   const checkLocationPermission = (callback) => {
     if (!navigator.geolocation) {
@@ -526,50 +523,39 @@ const YourRide = () => {
 
   // Periodically send location for current ride
   useEffect(() => {
-    const currentRide = getCurrentRide();
-    if (!currentPosition || !currentRide || !userId) return;
+  const currentRide = getCurrentRide();
+  if (!currentPosition || !currentRide || !userId) return;
 
-    const rideId = currentRide.rideId;
-    const endLatLon = parseLatLon(currentRide.latLonEnd);
-    const { lat, lon } = currentPosition;
-    const isDriver = currentRide.driverId === userId;
+  const rideId = currentRide.rideId;
+  const endLatLon = parseLatLon(currentRide.latLonEnd);
+  const { lat, lon } = currentPosition;
+  // isDriver đã được xác định ở trên
 
-    // Log tọa độ điểm đến để kiểm tra
-    console.log("[YourRide] endLatLon:", endLatLon);
+  // Đã bỏ kiểm tra điều kiện isSafetyTrackingEnabled
+  // Điều này giả định cả tài xế và hành khách nên luôn gửi vị trí
+  intervalRef.current = setInterval(() => {
+    if (
+      lastSentPosition &&
+      calculateDistance(
+        lastSentPosition.lat,
+        lastSentPosition.lon,
+        lat,
+        lon
+      ) < 0.05
+    ) {
+      console.log("Vị trí không thay đổi (< 50m), bỏ qua việc gửi...");
+      return;
+    }
 
-    intervalRef.current = setInterval(() => {
-      // Kiểm tra khoảng cách với vị trí đã gửi trước đó
-      if (
-        lastSentPosition &&
-        calculateDistance(
-          lastSentPosition.lat,
-          lastSentPosition.lon,
-          lat,
-          lon
-        ) < 0.05 // 50m
-      ) {
-        console.log("Position unchanged (< 50m), skipping send...");
-        return;
-      }
+    const distanceToEnd = endLatLon
+      ? calculateDistance(lat, lon, endLatLon[0], endLatLon[1])
+      : Infinity;
+    const isNearDestination = distanceToEnd <= 1;
 
-      const distanceToEnd = endLatLon
-        ? calculateDistance(lat, lon, endLatLon[0], endLatLon[1])
-        : Infinity;
-      const isNearDestination = distanceToEnd <= 1;
-      console.log(
-        "[YourRide] distanceToEnd:",
-        distanceToEnd,
-        "isNearDestination:",
-        isNearDestination
-      );
-
-      if (isDriver || currentRide.isSafetyTrackingEnabled) {
-        sendLocationToServer(rideId, lat, lon, isNearDestination);
-      }
-    }, 20000);
-
-    return () => clearInterval(intervalRef.current);
-  }, [currentPosition, driverRides, passengerRides, lastSentPosition, userId]);
+    sendLocationToServer(rideId, lat, lon, isNearDestination);
+  }, 20000); // Gửi mỗi 20 giây
+  return () => clearInterval(intervalRef.current);
+}, [currentPosition, driverRides, passengerRides, lastSentPosition, userId]);
 
   // Fetch route from GraphHopper API
   const fetchRoute = async (rideId, startLatLon, endLatLon) => {
