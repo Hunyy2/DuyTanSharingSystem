@@ -363,3 +363,10 @@ $sidebar-width: 280px;
     display: none;
   }
 }
+
+.loading-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

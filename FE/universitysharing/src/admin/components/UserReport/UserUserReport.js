@@ -10,13 +10,16 @@ const UserUserReport = ({ reports }) => {
   const dispatch = useDispatch();
 
   const handleAcceptReport = (reportedUserId) => {
-    fetch(`https://localhost:7053/api/report/user-reports/${reportedUserId}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        // Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    })
+    fetch(
+      `${process.env.REACT_APP_BASE_URL}/api/report/user-reports/${reportedUserId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          // Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    )
       .then((response) => {
         if (!response.ok) throw new Error("Failed to delete reports");
         dispatch(fetchUserUserReports());
@@ -28,7 +31,7 @@ const UserUserReport = ({ reports }) => {
 
   const handleRejectReport = (reportedUserId) => {
     fetch(
-      `https://localhost:7053/api/report/accept-by-user/${reportedUserId}`,
+      `${process.env.REACT_APP_BASE_URL}/api/report/accept-by-user/${reportedUserId}`,
       {
         method: "POST",
         headers: {

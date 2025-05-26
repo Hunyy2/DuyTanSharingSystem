@@ -212,7 +212,12 @@
         font-size: 18px;
       }
     }
-
+    .like-number-ride-post {
+      background: #f5f5f5;
+      padding: 6px 12px;
+      border-radius: 20px;
+      transition: background 0.3s ease;
+    }
     .accept-ride-post {
       background: #1877f2;
       color: #ffffff;
