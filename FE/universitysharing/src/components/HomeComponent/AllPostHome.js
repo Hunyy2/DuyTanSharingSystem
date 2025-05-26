@@ -293,7 +293,6 @@ const AllPosts = ({
           const fullUrl = url.startsWith("http")
   ? url.trim()
   : `${baseUrl}${url.trim()}`;
-
           // Hiển thị overlay trên ảnh thứ 2 nếu có > 2 media, hoặc trên ảnh đầu tiên nếu có video và > 1 ảnh
           const showOverlay = totalMedia > 2 && index === (hasVideo ? 0 : 1);
 

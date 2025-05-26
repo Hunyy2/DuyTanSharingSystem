@@ -52,9 +52,11 @@ import NotificationAdmin from "./admin/views/NotificationManagement";
 import LocationTracker from "./components/RideComponent/LocationTracker"; // Import component mới
 import Site404 from "./views/404Site";
 
-import LandingPage from "./views/IntroductView";
 
 import ChatBoxGlobal from "./components/ChatBoxGlobal";
+
+
+import LandingPage from "./views/IntroductView";
 
 
 function App() {
