@@ -33,9 +33,12 @@ namespace Application.CQRS.Commands.Comments
                 {
                     return ResponseFactory.Fail<CommentPostDto>("Không tìm thấy bình luận này", 404);
                 }
-
-                // Kiểm tra xem user có quyền chỉnh sửa comment hay không
-                if (comment.UserId != userId)
+                if (userId != comment.UserId || userId != post.UserId)
+                {
+                    return ResponseFactory.Fail<CommentPostDto>("Bạn không có quyền làm việc này", 401);
+                }
+            // Kiểm tra xem user có quyền chỉnh sửa comment hay không
+            if (comment.UserId != userId)
                 {
                     return ResponseFactory.Fail<CommentPostDto>("Bạn không có quyền chỉnh sửa bình luận này", 403);
                 }

@@ -91,11 +91,12 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         role = payload.get(
             "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
         )
+        name = payload.get("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")
         if not user_id or not role:
             raise HTTPException(
                 status_code=401, detail="Invalid token: Missing user_id or role"
             )
-        return {"user_id": user_id, "role": role}
+        return {"user_id": user_id, "role": role, "name": name}
     except ExpiredSignatureError:
         logger.error("Token has expired")
         raise HTTPException(status_code=401, detail="Token has expired")
@@ -144,12 +145,12 @@ async def lifespan(app: FastAPI):
         update_service = UpdateQueryProcessor()
         delete_service = DeleteQueryProcessor()
         public_service = PublicQueryProcessor()
-        redis = await aioredis.from_url(
-            f"rediss://{os.getenv('REDIS_HOST')}",
-            password=os.getenv("REDIS_PASSWORD"),
-            decode_responses=False,
-        )
-        # redis = aioredis.from_url("redis://localhost", decode_responses=False)
+        # redis = await aioredis.from_url(
+        #     f"rediss://{os.getenv('REDIS_HOST')}",
+        #     password=os.getenv("REDIS_PASSWORD"),
+        #     decode_responses=False,
+        # )
+        redis = aioredis.from_url("redis://localhost", decode_responses=False)
         logger.info(
             "Initialized DataLoader, AnswerGenerator, QueryProcessors, and Redis"
         )
@@ -253,7 +254,7 @@ async def query(request: QueryRequest, current_user: dict = Depends(get_current_
         normalized_query = intent_result["normalized_query"]
         ids = intent_result["ids"] or []
         alert = intent_result["alert"]
-
+    logger.info(f"Loại hành động: {action_type}")
     normalized_chat_history = [
         item
         for item in chat_history
@@ -313,7 +314,7 @@ async def query(request: QueryRequest, current_user: dict = Depends(get_current_
                 response_chunks = []
 
                 async for chunk in public_service._stream_response(
-                    question=request.query, chat_history=trimmed_chat_history
+                    question=request.query, chat_history=chat_history
                 ):
                     response_chunks.append(chunk)
                     yield json.dumps(

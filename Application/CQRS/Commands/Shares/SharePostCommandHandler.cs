@@ -52,12 +52,12 @@ namespace Application.CQRS.Commands.Shares
                 // **Tạo bài Post mới có IsSharedPost = true**
                 var sharedPost = Post.CreateShare(userId, originalPost, request.Privacy, request.Content ?? "");
                 //Kiểm tra nội dung bài viết có chứa từ ngữ không chấp nhận
-                if (!await _geminiService.ValidatePostContentAsync(sharedPost.Content))
-                {
-                    sharedPost.RejectAI();
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ResponseFactory.Fail<ResultSharePostDto>("Warning! Content is not accepted! If you violate it again, your reputation will be deducted!!", 400);
-                }
+                //if (!await _geminiService.ValidatePostContentAsync(sharedPost.Content))
+                //{
+                //    sharedPost.RejectAI();
+                //    await _unitOfWork.RollbackTransactionAsync();
+                //    return ResponseFactory.Fail<ResultSharePostDto>("Warning! Content is not accepted! If you violate it again, your reputation will be deducted!!", 400);
+                //}
                 sharedPost.ApproveAI();
                 sharedPost.IsShare();
                 await _unitOfWork.PostRepository.AddAsync(sharedPost);

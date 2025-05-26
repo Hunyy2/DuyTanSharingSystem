@@ -1,6 +1,6 @@
 ﻿using Application.DTOs.ChatAI;
 using Application.Interface.ChatAI;
-
+ 
 
 namespace Application.Services
 {
@@ -48,7 +48,7 @@ namespace Application.Services
                         Id = h.Id,
                         Query = h.Query,
                         Answer = h.Answer,
-                        Timestamp = h.Timestamp
+                        Timestamp =FormatUtcToLocal(h.Timestamp)
                     }).ToList()
                 };
 

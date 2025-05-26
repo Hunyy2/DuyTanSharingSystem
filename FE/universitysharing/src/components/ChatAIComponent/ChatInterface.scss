@@ -398,3 +398,53 @@
     max-height: 200px;
   }
 }
+// Thêm vào cuối tệp ChatInterface.scss
+
+.chat-messages {
+  .message-bubble.ai-message {
+    .message-content {
+      // Đảm bảo bảng không bị tràn ra ngoài nếu nội dung quá rộng
+      overflow-x: auto; 
+      
+      table {
+        width: 100%; // Bảng chiếm toàn bộ chiều rộng của phần nội dung tin nhắn
+        border-collapse: collapse; // Gộp các đường viền của các ô lại thành một
+        margin: 10px 0; // Tạo khoảng cách 10px ở trên và dưới bảng
+        font-size: 0.95em; // Kích thước chữ nhỏ hơn một chút để bảng gọn gàng hơn
+        
+        // Thêm đường viền cho toàn bộ bảng
+        border: 1px solid #dee2e6; 
+
+        th, td {
+          border: 1px solid #dee2e6; // Đường viền cho từng ô (cell)
+          padding: 10px 12px; // Khoảng cách bên trong mỗi ô
+          text-align: left; // Căn chỉnh văn bản sang trái
+          vertical-align: top; // Căn chỉnh nội dung lên trên cùng của ô
+        }
+
+        th {
+          background-color: #e9ecef; // Màu nền cho hàng tiêu đề của bảng
+          font-weight: 600; // Tiêu đề in đậm hơn
+          color: #343a40; // Màu chữ cho tiêu đề
+        }
+
+        // Tạo hiệu ứng màu nền xen kẽ cho các hàng để dễ đọc hơn
+        tr:nth-child(even) {
+          background-color: #f8f9fa; 
+        }
+
+        // Loại bỏ màu nền xen kẽ cho hàng tiêu đề nếu có
+        tr:first-child {
+          background-color: #e9ecef;
+        }
+
+        // Định dạng cho các liên kết bên trong bảng
+        a {
+          color: #007bff; // Màu xanh mặc định cho liên kết
+          text-decoration: underline; // Gạch chân liên kết
+          word-break: break-all; // Giúp ngắt dòng các URL dài
+        }
+      }
+    }
+  }
+}
