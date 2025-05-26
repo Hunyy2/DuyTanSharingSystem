@@ -1,6 +1,7 @@
 ﻿using Application.Interface.ContextSerivce;
 using Application.Interface.Hubs;
 using Application.Model.Events;
+using Domain.Entities;
 
 
 namespace Application.CQRS.Commands.Likes
@@ -30,7 +31,10 @@ namespace Application.CQRS.Commands.Likes
             {
                 return ResponseFactory.Fail<bool>("PostId là bắt buộc", 400);
             }
-
+            if (userId != request.PostId)
+            {
+                return ResponseFactory.Fail<bool>("Bạn không có quyền làm việc này", 401);
+            }
             // 📌 Lưu vào Redis trước, worker sẽ xử lý sau
             string redisKey = "like_events";
             bool isAdded = await _redisService.AddAsync(redisKey,new Like(userId,request.PostId), TimeSpan.FromMinutes(10));

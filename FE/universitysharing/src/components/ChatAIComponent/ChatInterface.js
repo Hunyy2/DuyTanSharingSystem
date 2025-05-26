@@ -97,15 +97,11 @@ const successMessages = {
 const paramDisplayMap = {
   '/api/Post/create': {
     Content: 'Nội dung bài đăng',
-    Images: 'Hình ảnh kèm theo',
-    Video: 'Video kèm theo',
     Scope: 'Phạm vi bài đăng',
   },
   '/api/Post/update-post': {
     PostId: 'ID bài đăng',
     Content: 'Nội dung bài đăng',
-    Images: 'Hình ảnh kèm theo',
-    Video: 'Video kèm theo',
     Scope: 'Phạm vi bài đăng',
   },
   '/api/Ride/create': {

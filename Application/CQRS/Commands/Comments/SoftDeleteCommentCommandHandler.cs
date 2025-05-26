@@ -1,5 +1,6 @@
 ﻿using Application.DTOs.Comments;
 using Application.Interface.ContextSerivce;
+using Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,6 +52,10 @@ namespace Application.CQRS.Commands.Comments
                 return ResponseFactory.Fail<bool>("Người dùng không tồn tại", 404);
             if (user.Status == "Suspended")
                 return ResponseFactory.Fail<bool>("Tài khoản đang bị tạm ngưng", 403);
+            if (userId != comment.UserId)
+            {
+                return ResponseFactory.Fail<bool>("Bạn không có quyền làm việc này", 401);
+            }
             await _unitOfWork.BeginTransactionAsync();
 
             try

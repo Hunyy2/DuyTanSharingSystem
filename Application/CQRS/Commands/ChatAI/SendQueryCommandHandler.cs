@@ -88,7 +88,7 @@ namespace Application.CQRS.Commands.ChatAI
                     Id = h.Id,
                     Query = h.Query ?? string.Empty,
                     Answer = h.Answer ?? string.Empty,
-                    Timestamp = h.Timestamp
+                    Timestamp =FormatUtcToLocal( h.Timestamp)
                 }).OrderBy(m => m.Timestamp).ToList()
             };
         }

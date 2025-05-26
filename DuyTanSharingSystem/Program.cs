@@ -14,7 +14,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
         policy => policy
-            .WithOrigins("http://localhost:3000", "https://localhost:3000", "http://localhost:5000", "http://127.0.0.1:5000", "http://192.168.1.5:5000", "http://localhost:5173", "https://sharingsystem.nnhdev.id.vn", "https://duy-tan-sharing-system.vercel.app") // ⚡ Chỉ cho phép frontend truy cập
+            .WithOrigins("http://localhost:3000", "https://localhost:3000", "http://localhost:5000", "http://127.0.0.1:5000", "http://192.168.1.5:5000", "http://localhost:5173", "https://sharingsystem.nnhdev.id.vn", "https://duy-tan-sharing-system.vercel.app", "https://nnhdev.id.vn") // ⚡ Chỉ cho phép frontend truy cập
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials()); // ⚡ Bật chế độ gửi cookie/token

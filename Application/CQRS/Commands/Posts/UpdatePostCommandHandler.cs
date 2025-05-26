@@ -34,7 +34,10 @@ namespace Application.CQRS.Commands.Posts
                 return ResponseFactory.Fail<UpdatePostDto>("Người dùng không tồn tại", 404);
             if (user.Status == "Suspended")
                 return ResponseFactory.Fail<UpdatePostDto>("Tài khoản đang bị tạm ngưng", 403);
-
+            if (userId != user.Id || userId != post.UserId)
+            {
+                return ResponseFactory.Fail<UpdatePostDto>("Bạn không có quyền làm việc này", 401);
+            }
             await _unitOfWork.BeginTransactionAsync();
             try
             {

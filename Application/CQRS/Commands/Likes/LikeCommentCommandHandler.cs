@@ -1,5 +1,6 @@
 ﻿using Application.Interface.ContextSerivce;
 using Application.Model.Events;
+using Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,9 +37,14 @@ namespace Application.CQRS.Commands.Likes
             }
             //Kiểm tra post có tồn tại không
             var post = await _unitOfWork.PostRepository.GetByIdAsync(comment.PostId);
+            
             if (post == null || post.Id == Guid.Empty)
             {
                 return ResponseFactory.Fail<bool>("Không tìm thấy bài viết chứa bình luận này!", 404);
+            }
+            if (userId != comment.UserId || userId != post.UserId)
+            {
+                return ResponseFactory.Fail<bool>("Bạn không có quyền làm việc này", 401);
             }
             try
             {
