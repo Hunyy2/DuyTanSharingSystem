@@ -73,7 +73,7 @@ namespace Application.CQRS.Commands.UpdateLocation
                 {
                     // Tạo bản ghi vị trí mới
                     locationUpdate = new LocationUpdate(request.RideId, userId, request.Latitude, request.Longitude, isDriver);
-                    await _unitOfWork.LocationUpdateRepository.AddAsync(locationUpdate);
+                    //await _unitOfWork.LocationUpdateRepository.AddAsync(locationUpdate);
 
                     // Lưu sự kiện vị trí vào Redis
                     await _redisService.AddAsync("update_location_events", locationUpdate);
