@@ -54,7 +54,7 @@ namespace Application.BackgroundServices
                         throw;
                     }
                 }
-                await Task.Delay(60000, stoppingToken); // Chạy lại sau 60 giây
+                await Task.Delay(10000, stoppingToken); // Chạy lại sau 60 giây
             }
         }
     }

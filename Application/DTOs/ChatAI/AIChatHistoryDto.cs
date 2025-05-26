@@ -6,6 +6,6 @@ namespace Application.DTOs.ChatAI
         public Guid Id { get; set; }
         public string Query { get;  set; } = string.Empty;
         public string Answer { get;  set; } = string.Empty;
-        public DateTime Timestamp { get;  set; }
+        public string Timestamp { get;  set; } = string.Empty;
     }
 }

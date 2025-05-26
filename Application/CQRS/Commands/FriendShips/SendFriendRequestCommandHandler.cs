@@ -1,19 +1,4 @@
-﻿using Application.Common;
-using Application.DTOs.FriendShips;
-using Application.DTOs.Post;
-using Application.Interface.ContextSerivce;
-using Application.Interface.Hubs;
-using Domain.Entities;
-using Microsoft.Extensions.Hosting;
-using Microsoft.ML;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Domain.Common.Enums;
-using static Domain.Common.Helper;
-
+﻿
 namespace Application.CQRS.Commands.Friends
 {
     public class SendFriendRequestCommandHandler : IRequestHandler<SendFriendRequestCommand, ResponseModel<ResultSendFriendDto>>
@@ -64,8 +49,9 @@ namespace Application.CQRS.Commands.Friends
                     await _unitOfWork.BeginTransactionAsync();
                     try
                     {
-                        existingFriendship.Reactivate(); // ✅ theo DDD
-                        await _unitOfWork.FriendshipRepository.UpdateAsync(existingFriendship);
+                        await _unitOfWork.FriendshipRepository.DeleteAsync(existingFriendship.Id);
+                        var newFriendship = new Friendship(userId, request.FriendId);
+                        await _unitOfWork.FriendshipRepository.AddAsync(newFriendship);
 
                         var notification = new Notification(request.FriendId,
                             userId,

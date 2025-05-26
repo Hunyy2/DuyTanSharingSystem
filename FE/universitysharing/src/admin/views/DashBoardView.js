@@ -1,5 +1,15 @@
-import React, { useEffect } from "react";
-import { Layout, Card, Row, Col, Table, Typography, Divider, Spin } from "antd";
+import React, { useEffect, useState } from "react";
+import {
+  Layout,
+  Card,
+  Row,
+  Col,
+  Table,
+  Typography,
+  Divider,
+  Spin,
+  Radio,
+} from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchDashboardOverview,
@@ -9,12 +19,16 @@ import {
   fetchUserTrend,
   fetchInteractionActivity,
   fetchUserStatsScore,
+  fetchRatingStatistics, // Thêm action mới
+  fetchRideStatusStatistics, // Thêm action mới
 } from "../../stores/action/dashboardActions";
 import AppHeader from "../components/HeaderBar";
 import AppSidebar from "../components/SideBarMenu";
 import UserTrendChart from "../components/DashBoard/UserTrendChart";
 import InteractionActivityChart from "../components/DashBoard/InteractionActivityChart";
 import UserStatsScoreChart from "../components/DashBoard/UserStatsScoreChart";
+import RatingStatisticsChart from "../components/DashBoard/RatingStatisticsChart"; // Thêm component mới
+import RideStatusStatisticsChart from "../components/DashBoard/RideStatusStatisticsChart"; // Thêm component mới
 import { toast } from "react-toastify";
 
 const { Content } = Layout;
@@ -63,20 +77,28 @@ const columns = [
 
 const Dashboard = () => {
   const dispatch = useDispatch();
-  const { overview, recentPosts, loading, error } = useSelector(
-    (state) => state.dashboard
-  );
+  const {
+    overview,
+    recentPosts,
+    ratingStatistics,
+    rideStatusStatistics,
+    loading,
+    error,
+  } = useSelector((state) => state.dashboard);
+
+  const [groupBy, setGroupBy] = useState("day"); // Mặc định nhóm theo ngày
 
   useEffect(() => {
     dispatch(fetchDashboardOverview());
     dispatch(fetchUserStats());
-
     dispatch(fetchReportStats());
     dispatch(fetchRecentPosts({ pageNumber: 1, pageSize: 5 }));
     dispatch(fetchUserTrend({ timeRange: "month" }));
     dispatch(fetchInteractionActivity());
     dispatch(fetchUserStatsScore());
-  }, [dispatch]);
+    dispatch(fetchRatingStatistics()); // Gọi action mới
+    dispatch(fetchRideStatusStatistics({ groupBy })); // Gọi action mới
+  }, [dispatch, groupBy]);
 
   useEffect(() => {
     if (error) {
@@ -149,6 +171,37 @@ const Dashboard = () => {
                 <Col span={12}>
                   <Card title="Phân bổ người dùng theo độ uy tín">
                     <UserStatsScoreChart />
+                  </Card>
+                </Col>
+                <Col span={12}>
+                  <Card title="Thống kê phần trăm đánh giá chuyến đi">
+                    <RatingStatisticsChart
+                      ratingStatistics={ratingStatistics}
+                    />
+                  </Card>
+                </Col>
+              </Row>
+
+              <Divider />
+
+              <Row gutter={[16, 16]}>
+                <Col span={24}>
+                  <Card
+                    title="Thống kê số lượng chuyến đi theo trạng thái"
+                    extra={
+                      <Radio.Group
+                        value={groupBy}
+                        onChange={(e) => setGroupBy(e.target.value)}
+                      >
+                        <Radio.Button value="day">Theo ngày</Radio.Button>
+                        <Radio.Button value="week">Theo tuần</Radio.Button>
+                        <Radio.Button value="month">Theo tháng</Radio.Button>
+                      </Radio.Group>
+                    }
+                  >
+                    <RideStatusStatisticsChart
+                      rideStatusStatistics={rideStatusStatistics}
+                    />
                   </Card>
                 </Col>
               </Row>

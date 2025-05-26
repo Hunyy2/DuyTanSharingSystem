@@ -138,50 +138,67 @@ const YourRide = () => {
   // Lấy authData từ useAuth
   const { userId: authUserId, isAuthenticated, isLoading } = useAuth();
 
-const otherUserIcon = new L.Icon({
-  iconUrl:
-    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png", // Marker màu vàng
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-});
-useEffect(() => {
+  const otherUserIcon = new L.Icon({
+    iconUrl:
+      "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png", // Marker màu vàng
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+  });
+  useEffect(() => {
     const currentRide = getCurrentRide();
-    if (locations && locations.length > 0 && userId && currentRide) {
-      // Lọc ra vị trí của người dùng không phải là người dùng hiện tại
-      const otherUserLocation = locations
-        .filter(loc => loc.userId !== userId)
-        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0]; // Lấy vị trí mới nhất
+    console.log("[YourRide] userId:", userId);
+    console.log("[YourRide] locations:", locations);
+    console.log("[YourRide] currentRide:", currentRide);
 
-      if (otherUserLocation) {
+    if (locations && locations.length > 0 && userId && currentRide) {
+      // Lọc vị trí của người dùng khác và lấy bản ghi mới nhất
+      const otherUserLocation = locations
+        .filter((loc) => loc.userId !== userId)
+
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+
+
+      if (
+        otherUserLocation &&
+        !isNaN(otherUserLocation.latitude) &&
+        !isNaN(otherUserLocation.longitude)
+      ) {
         setOtherUserPosition({
           lat: otherUserLocation.latitude,
           lon: otherUserLocation.longitude,
-          // Xác định xem người kia có phải là tài xế không
-          isDriver: otherUserLocation.userId === currentRide.driverId,
+          isDriver: otherUserLocation.isDriver, // Sử dụng isDriver từ API
           timestamp: otherUserLocation.timestamp,
         });
-        console.log("[YourRide] Vị trí người dùng khác:", otherUserLocation);
+        console.log(
+          "[YourRide] Cập nhật otherUserPosition:",
+          otherUserLocation
+        );
+      } else {
+        console.warn(
+          "[YourRide] Không tìm thấy vị trí hợp lệ của người dùng khác hoặc tọa độ không hợp lệ"
+        );
       }
+    } else {
+      console.warn(
+        "[YourRide] Thiếu dữ liệu: locations, userId hoặc currentRide"
+      );
     }
-  }, [locations, userId]); // Chạy lại khi locations hoặc userId thay đổi
+  }, [locations, userId, driverRides, passengerRides]); // Thêm driverRides, passengerRides để cập nhật khi currentRide thay đổi
 
-useEffect(() => {
+  useEffect(() => {
     const currentRide = getCurrentRide();
     if (currentRide && currentRide.rideId) {
-      // Gọi fetchLocation lần đầu ngay lập tức
-      dispatch(fetchLocation(currentRide.rideId));
-
-      // Thiết lập interval để gọi lại sau mỗi 20 giây
-      const fetchInterval = setInterval(() => {
-        console.log("[YourRide] Đang lấy vị trí định kỳ...");
         dispatch(fetchLocation(currentRide.rideId));
-      }, 60000); // 20 giây
 
-      // Dọn dẹp interval khi component unmount hoặc chuyến đi thay đổi
-      return () => clearInterval(fetchInterval);
+        const fetchInterval = setInterval(() => {
+            console.log("[YourRide] Đang lấy vị trí định kỳ...");
+            dispatch(fetchLocation(currentRide.rideId));
+        }, 20000); // 60 giây
+        return () => clearInterval(fetchInterval);
+
     }
-  }, [dispatch, driverRides, passengerRides]); // Chỉ chạy lại khi rides thay đổi để lấy rideId
+}, [dispatch, driverRides, passengerRides]); // Chỉ chạy lại khi rides thay đổi để lấy rideId
 
   const checkLocationPermission = (callback) => {
     if (!navigator.geolocation) {
@@ -310,16 +327,18 @@ useEffect(() => {
 
         // Chỉ tạo bounds nếu có ít nhất một điểm hợp lệ
         if (points.length >= 1) {
-             // Kiểm tra xem tất cả các điểm có hợp lệ không
-            const validPoints = points.filter(p => p && !isNaN(p[0]) && !isNaN(p[1]));
-            if(validPoints.length > 0) {
-                const bounds = L.latLngBounds(validPoints).pad(0.2);
-                setMapBounds(bounds);
-                if (mapRef.current) {
-                  mapRef.current.flyToBounds(bounds, { maxZoom: 16, duration: 1 });
-                  console.log("[YourRide] Fly to bounds (bao gồm cả hai):", bounds);
-                }
+          // Kiểm tra xem tất cả các điểm có hợp lệ không
+          const validPoints = points.filter(
+            (p) => p && !isNaN(p[0]) && !isNaN(p[1])
+          );
+          if (validPoints.length > 0) {
+            const bounds = L.latLngBounds(validPoints).pad(0.2);
+            setMapBounds(bounds);
+            if (mapRef.current) {
+              mapRef.current.flyToBounds(bounds, { maxZoom: 16, duration: 1 });
+              console.log("[YourRide] Fly to bounds (bao gồm cả hai):", bounds);
             }
+          }
         }
       }
     }
@@ -506,50 +525,39 @@ useEffect(() => {
 
   // Periodically send location for current ride
   useEffect(() => {
-    const currentRide = getCurrentRide();
-    if (!currentPosition || !currentRide || !userId) return;
+  const currentRide = getCurrentRide();
+  if (!currentPosition || !currentRide || !userId) return;
 
-    const rideId = currentRide.rideId;
-    const endLatLon = parseLatLon(currentRide.latLonEnd);
-    const { lat, lon } = currentPosition;
-    const isDriver = currentRide.driverId === userId;
+  const rideId = currentRide.rideId;
+  const endLatLon = parseLatLon(currentRide.latLonEnd);
+  const { lat, lon } = currentPosition;
+  // isDriver đã được xác định ở trên
 
-    // Log tọa độ điểm đến để kiểm tra
-    console.log("[YourRide] endLatLon:", endLatLon);
+  // Đã bỏ kiểm tra điều kiện isSafetyTrackingEnabled
+  // Điều này giả định cả tài xế và hành khách nên luôn gửi vị trí
+  intervalRef.current = setInterval(() => {
+    if (
+      lastSentPosition &&
+      calculateDistance(
+        lastSentPosition.lat,
+        lastSentPosition.lon,
+        lat,
+        lon
+      ) < 0.05
+    ) {
+      console.log("Vị trí không thay đổi (< 50m), bỏ qua việc gửi...");
+      return;
+    }
 
-    intervalRef.current = setInterval(() => {
-      // Kiểm tra khoảng cách với vị trí đã gửi trước đó
-      if (
-        lastSentPosition &&
-        calculateDistance(
-          lastSentPosition.lat,
-          lastSentPosition.lon,
-          lat,
-          lon
-        ) < 0.05 // 50m
-      ) {
-        console.log("Position unchanged (< 50m), skipping send...");
-        return;
-      }
+    const distanceToEnd = endLatLon
+      ? calculateDistance(lat, lon, endLatLon[0], endLatLon[1])
+      : Infinity;
+    const isNearDestination = distanceToEnd <= 1;
 
-      const distanceToEnd = endLatLon
-        ? calculateDistance(lat, lon, endLatLon[0], endLatLon[1])
-        : Infinity;
-      const isNearDestination = distanceToEnd <= 1;
-      console.log(
-        "[YourRide] distanceToEnd:",
-        distanceToEnd,
-        "isNearDestination:",
-        isNearDestination
-      );
-
-      if (isDriver || currentRide.isSafetyTrackingEnabled) {
-        sendLocationToServer(rideId, lat, lon, isNearDestination);
-      }
-    }, 20000);
-
-    return () => clearInterval(intervalRef.current);
-  }, [currentPosition, driverRides, passengerRides, lastSentPosition, userId]);
+    sendLocationToServer(rideId, lat, lon, isNearDestination);
+  }, 20000); // Gửi mỗi 20 giây
+  return () => clearInterval(intervalRef.current);
+}, [currentPosition, driverRides, passengerRides, lastSentPosition, userId]);
 
   // Fetch route from GraphHopper API
   const fetchRoute = async (rideId, startLatLon, endLatLon) => {
@@ -988,23 +996,27 @@ useEffect(() => {
             >
               <div className="details-grid">
                 <div className="detail-item">
-                <label>
-                  <FiCalendar /> Bắt đầu:
-                </label>
-                <span>
-                  {/* Chỉ hiển thị thời gian nếu currentRide.startTime tồn tại, ngược lại hiển thị "Đang chờ..." */}
-                  {currentRide.startTime ? new Date(currentRide.startTime).toLocaleString() : "Đang chờ..."}
-                </span>
-              </div>
-              <div className="detail-item">
-                <label>
-                  <FiCalendar /> Kết thúc:
-                </label>
-                <span>
-                  {/* Tương tự cho thời gian kết thúc */}
-                  {currentRide.endTime ? new Date(currentRide.endTime).toLocaleString() : "Đang chờ..."}
-                </span>
-              </div>
+                  <label>
+                    <FiCalendar /> Bắt đầu:
+                  </label>
+                  <span>
+                    {/* Chỉ hiển thị thời gian nếu currentRide.startTime tồn tại, ngược lại hiển thị "Đang chờ..." */}
+                    {currentRide.startTime
+                      ? new Date(currentRide.startTime).toLocaleString()
+                      : "Đang chờ..."}
+                  </span>
+                </div>
+                <div className="detail-item">
+                  <label>
+                    <FiCalendar /> Kết thúc:
+                  </label>
+                  <span>
+                    {/* Tương tự cho thời gian kết thúc */}
+                    {currentRide.endTime
+                      ? new Date(currentRide.endTime).toLocaleString()
+                      : "Đang chờ..."}
+                  </span>
+                </div>
                 <div className="detail-item">
                   <label>
                     <FiClock /> Thời gian dự kiến:
@@ -1103,19 +1115,31 @@ useEffect(() => {
                             <Popup>Vị trí hiện tại</Popup>
                           </Marker>
                         )}
-                        {otherUserPosition && (
-                          <Marker
-                            position={[otherUserPosition.lat, otherUserPosition.lon]}
-                            icon={otherUserIcon} // Sử dụng icon mới
-                          >
-                            <Popup>
-                              {/* Hiển thị đúng vai trò của người kia */}
-                              Vị trí của {otherUserPosition.isDriver ? 'Tài xế' : 'Hành khách'}
-                              <br />
-                              Cập nhật: {new Date(otherUserPosition.timestamp).toLocaleTimeString()}
-                            </Popup>
-                          </Marker>
-                        )}
+
+                        {otherUserPosition &&
+                          !isNaN(otherUserPosition.lat) &&
+                          !isNaN(otherUserPosition.lon) && (
+                            <Marker
+                              position={[
+                                otherUserPosition.lat,
+                                otherUserPosition.lon,
+                              ]}
+                              icon={otherUserIcon}
+                            >
+                              <Popup>
+                                Vị trí của{" "}
+                                {otherUserPosition.isDriver
+                                  ? "Tài xế"
+                                  : "Hành khách"}
+                                <br />
+                                Cập nhật:{" "}
+                                {new Date(
+                                  otherUserPosition.timestamp
+                                ).toLocaleTimeString()}
+                              </Popup>
+                            </Marker>
+                          )}
+
                         {routePaths[currentRide.rideId] && (
                           <Polyline
                             positions={routePaths[currentRide.rideId]}

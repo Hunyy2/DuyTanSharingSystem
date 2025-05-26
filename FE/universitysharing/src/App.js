@@ -38,6 +38,8 @@ import SharingRideView from "./views/SharingRideView";
 import YourRideView from "./views/YourRideView";
 
 import Dashboard from "./admin/views/DashBoardView";
+import AdminRideDetails from "./admin/views/AdminRideDetails";
+import AdminRideManagement from "./admin/views/AdminRideManagement";
 import UserReport from "./admin/views/UserReportManagerView";
 
 import { DeeplinkCommentModal } from "./stores/action/deepLinkAction";
@@ -49,7 +51,13 @@ import UserManagement from "./admin/views/UserManagement";
 import NotificationAdmin from "./admin/views/NotificationManagement";
 import LocationTracker from "./components/RideComponent/LocationTracker"; // Import component mới
 import Site404 from "./views/404Site";
+
+
 import ChatBoxGlobal from "./components/ChatBoxGlobal";
+
+
+import LandingPage from "./views/IntroductView";
+
 
 function App() {
   const { isAuthenticated, userRole, isLoading } = useAuth();
@@ -126,6 +134,7 @@ function App() {
             {!isAuthenticated && (
               <>
                 {/* Route không cần xác thực */}
+                <Route path="/LandingPage" element={<LandingPage />} />
                 <Route path="/" element={<Login />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
@@ -139,7 +148,7 @@ function App() {
                   element={<ResendVerification />}
                 />
                 <Route path="/AccountVerified" element={<AccountVerified />} />
-                <Route path="*" element={<Navigate to="/login" replace />} />
+                <Route path="*" element={<Navigate to="/LandingPage" replace />} />
               </>
             )}
             {/* Route dành cho admin */}
@@ -150,6 +159,11 @@ function App() {
                   element={<NotificationAdmin />}
                 />
                 <Route path="/admin/dashboard" element={<Dashboard />} />
+                <Route path="/admin/rides" element={<AdminRideManagement />} />
+                <Route
+                  path="/admin/ride-details/:rideId"
+                  element={<AdminRideDetails />}
+                />
                 <Route path="/admin/userreport" element={<UserReport />} />
                 <Route
                   path="/admin/postmanager"

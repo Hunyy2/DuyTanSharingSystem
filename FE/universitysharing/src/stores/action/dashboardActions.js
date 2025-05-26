@@ -151,3 +151,44 @@ export const fetchUserStatsScore = createAsyncThunk(
     }
   }
 );
+// Thêm action mới: Lấy thống kê phần trăm đánh giá
+export const fetchRatingStatistics = createAsyncThunk(
+  "dashboard/fetchRatingStatistics",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosClient.get(
+        "/api/AdminDashboard/rating-statistics"
+      );
+      console.log("[fetchRatingStatistics] Response:", response.data);
+      return response.data;
+    } catch (error) {
+      const errorMsg =
+        error.response?.data?.message || "Lỗi khi lấy thống kê đánh giá";
+      toast.error(errorMsg);
+      return rejectWithValue(errorMsg);
+    }
+  }
+);
+
+// Thêm action mới: Lấy thống kê trạng thái chuyến đi
+export const fetchRideStatusStatistics = createAsyncThunk(
+  "dashboard/fetchRideStatusStatistics",
+  async ({ groupBy = "day" }, { rejectWithValue }) => {
+    try {
+      const response = await axiosClient.get(
+        "/api/AdminDashboard/ride-status-statistics",
+        {
+          params: { groupBy },
+        }
+      );
+      console.log("[fetchRideStatusStatistics] Response:", response.data);
+      return response.data;
+    } catch (error) {
+      const errorMsg =
+        error.response?.data?.message ||
+        "Lỗi khi lấy thống kê trạng thái chuyến đi";
+      toast.error(errorMsg);
+      return rejectWithValue(errorMsg);
+    }
+  }
+);

@@ -1,21 +1,21 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import "../styles/CommentOverlay.scss";
-import "../styles/MoblieReponsive/CommentModalMobile/CommentModalMobile.scss";
-import logoweb from "../assets/Logo white.png";
-import avatarDefaut from "../assets/AvatarDefault.png";
-import defaultPostImage from "../assets/ImgDefault.png";
-import ContentPostComment from "./CommentModel_Component/ContenPostComment";
-import CommentList from "./CommentModel_Component/CommentList";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { FiChevronLeft, FiChevronRight, FiSend } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import avatarDefaut from "../assets/AvatarDefault.png";
+import defaultPostImage from "../assets/ImgDefault.png";
+import logoweb from "../assets/Logo white.png";
 import {
-  commentPost,
   addCommentPost,
+  commentPost,
   likeComment,
 } from "../stores/action/listPostActions";
-import getUserIdFromToken from "../utils/JwtDecode";
-import { FiSend, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { closeCommentModal } from "../stores/reducers/listPostReducers";
+import "../styles/CommentOverlay.scss";
+import "../styles/MoblieReponsive/CommentModalMobile/CommentModalMobile.scss";
+import getUserIdFromToken from "../utils/JwtDecode";
+import CommentList from "./CommentModel_Component/CommentList";
+import ContentPostComment from "./CommentModel_Component/ContenPostComment";
 
 // Debounce function to limit comment submission rate
 const debounce = (func, delay) => {
@@ -43,11 +43,14 @@ const CommentModal = ({ post, onClose, usersProfile }) => {
 
   const imageUrls = post.imageUrl ? post.imageUrl.split(",") : [];
   const hasVideo = !!post.videoUrl;
+  const baseUrl = process.env.REACT_APP_BASE_URL;
+  console.log("Base URL:", baseUrl);
   const mediaItems = [
     ...imageUrls.map((url) =>
       url.startsWith("http")
         ? url.trim()
-        : `${process.env.REACT_APP_BASE_URL}${url.trim()}`
+        : `${baseUrl}${url.trim()}`
+
     ),
     ...(hasVideo ? [post.videoUrl] : []),
   ];

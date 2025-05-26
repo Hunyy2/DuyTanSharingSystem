@@ -6,6 +6,7 @@ import {
   BellOutlined,
   FileTextOutlined,
   NotificationOutlined,
+  CarOutlined,
 } from "@ant-design/icons";
 import { Tooltip } from "antd";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -25,6 +26,7 @@ const AppSidebar = () => {
     "/admin/userreport": "3",
     "/admin/postmanager": "4",
     "/admin/tripnotifications": "5",
+    "/admin/rides": "6",
   };
 
   // Lấy key tương ứng với route hiện tại
@@ -92,6 +94,15 @@ const AppSidebar = () => {
         >
           <Tooltip title="Thông báo từ chuyến đi" placement="right">
             <span>Thông báo từ chuyến đi</span>
+          </Tooltip>
+        </Menu.Item>
+        <Menu.Item
+          key="6"
+          icon={<CarOutlined />}
+          onClick={() => navigate("/admin/rides")}
+        >
+          <Tooltip title="Quản lý chuyến đi" placement="right">
+            <span>Quản lý chuyến đi</span>
           </Tooltip>
         </Menu.Item>
       </Menu>

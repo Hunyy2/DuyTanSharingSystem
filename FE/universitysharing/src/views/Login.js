@@ -39,7 +39,7 @@ const Login = () => {
       } else if (response?.data?.message?.toLowerCase() === "user not found") {
         toast.error("Người dùng không tồn tại trong hệ thống!");
       } else {
-        toast.error("Đăng nhập thất bại!");
+        toast.error(response.data.message);
       }
     } catch (error) {
       console.error("Lỗi khi gửi request:", error);
@@ -48,7 +48,7 @@ const Login = () => {
       } else if (error.response?.data?.message === "User not found") {
         toast.error("Tài khoản chưa tồn tại trên hệ thống");
       } else {
-        toast.error("Đăng nhập thất bại!");
+        toast.error(error.response.data.message);
       }
     } finally {
       NProgress.done();

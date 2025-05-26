@@ -1,16 +1,9 @@
-﻿using Application.Common;
-using Application.DTOs.AdminUserManagement;
-using Application.DTOs.CommentLikes;
-using Application.DTOs.Comments;
-using Application.DTOs.FriendShips;
+﻿using Application.DTOs.AdminUserManagement;
 using Application.DTOs.Likes;
-using Application.DTOs.Post;
 using Application.DTOs.Posts;
 using Application.DTOs.Reposts;
-using Application.DTOs.Shares;
-using Application.DTOs.User;
 using Application.DTOs.UserScoreHistories;
-using Domain.Entities;
+
 
 namespace Application
 {
@@ -29,6 +22,7 @@ namespace Application
                 NameDriver = rideReport.Ride?.Driver?.FullName,
                 PhoneDriver = rideReport.Ride?.Driver?.Phone,
                 NamePassenger = rideReport.Passenger?.FullName,
+                RelativePhoneDriver = rideReport.Ride?.Driver?.RelativePhone,
                 Message = rideReport.Message,
                 AlertType = rideReport.AlertType,
                 CreatedAt = rideReport.CreatedAt
