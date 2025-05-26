@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import "../styles/NotifyModal.scss";
+import "../styles/MoblieReponsive/HomeViewMobile/NotifyMobile.scss";
 import { useNavigate } from "react-router-dom";
 import {
   fetchNotifications,
@@ -242,107 +243,53 @@ const NotifyModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="notify-modal" ref={modalRef}>
-      <div className="modal-header">
-        <h3>Thông báo</h3>
-      </div>
-      <div className="modal-navigation">
-        <div
-          className={`nav-item ${activeTab === "Tất cả" ? "active" : ""}`}
-          onClick={() => handleTabClick("Tất cả")}
-        >
-          Tất cả
+    <>
+      <div className="notify-modal-overlay "></div>
+      <div className="notify-modal" ref={modalRef}>
+        <div className="modal-header">
+          <h3>Thông báo</h3>
         </div>
-        <div
-          className={`nav-item ${activeTab === "Chưa đọc" ? "active" : ""}`}
-          onClick={() => handleTabClick("Chưa đọc")}
-        >
-          Chưa đọc
+        <div className="modal-navigation">
+          <div
+            className={`nav-item ${activeTab === "Tất cả" ? "active" : ""}`}
+            onClick={() => handleTabClick("Tất cả")}
+          >
+            Tất cả
+          </div>
+          <div
+            className={`nav-item ${activeTab === "Chưa đọc" ? "active" : ""}`}
+            onClick={() => handleTabClick("Chưa đọc")}
+          >
+            Chưa đọc
+          </div>
+          <div
+            className={`nav-item ${activeTab === "Đã đọc" ? "active" : ""}`}
+            onClick={() => handleTabClick("Đã đọc")}
+          >
+            Đã đọc
+          </div>
         </div>
-        <div
-          className={`nav-item ${activeTab === "Đã đọc" ? "active" : ""}`}
-          onClick={() => handleTabClick("Đã đọc")}
-        >
-          Đã đọc
-        </div>
-      </div>
-      <div className="modal-content">
-        {loading &&
-        hasFetchedInitialData[activeTab] &&
-        sortedDisplayedNotifications.length === 0 ? (
-          <div className="loading-state">Đang tải...</div>
-        ) : sortedDisplayedNotifications.length === 0 &&
-          !tabStates[activeTab].hasMore ? (
-          <div className="empty-state">Không có thông báo nào</div>
-        ) : (
-          <div className="notification-section">
-            {activeTab === "Tất cả" && (
-              <>
-                <h3>Mới</h3>
-                {recentNotifications.length > 0 ? (
-                  recentNotifications.map((notif, index) => (
-                    <div
-                      key={notif.id}
-                      ref={
-                        isInfiniteScrollEnabled &&
-                        index === recentNotifications.length - 1 &&
-                        olderNotifications.length === 0
-                          ? lastNotificationRef
-                          : null
-                      }
-                      className={`notification-body ${
-                        !notif.isRead ? "unread" : ""
-                      }`}
-                      onClick={() => handleNotificationClick(notif)}
-                    >
-                      <div className="notification-content">
-                        <img
-                          src={notif.senderProfilePicture || avatarWeb}
-                          alt="avatar"
-                          className="avatar"
-                        />
-                        <div className="notification-text">
-                          <p className="title">{notif.title}</p>
-                          <span className="time">
-                            {formatRelativeTime(notif.createdAt)}
-                          </span>
-                        </div>
-                      </div>
-                      {notif.type === NOTIFICATION_TYPES.SEND_FRIEND &&
-                        !processedNotifications.has(notif.id) && (
-                          <div className="friend-request-actions">
-                            <button
-                              className="accept-button"
-                              onClick={(e) =>
-                                handleAcceptFriend(notif.id, notif.senderId, e)
-                              }
-                            >
-                              Chấp nhận
-                            </button>
-                            <button
-                              className="decline-button"
-                              onClick={(e) =>
-                                handleRejectFriend(notif.id, notif.senderId, e)
-                              }
-                            >
-                              Từ chối
-                            </button>
-                          </div>
-                        )}
-                    </div>
-                  ))
-                ) : (
-                  <div className="empty-state">Không có thông báo mới</div>
-                )}
-                {olderNotifications.length > 0 && (
-                  <div className="notification-section">
-                    <h3>Trước đó</h3>
-                    {olderNotifications.map((notif, index) => (
+        <div className="modal-content">
+          {loading &&
+          hasFetchedInitialData[activeTab] &&
+          sortedDisplayedNotifications.length === 0 ? (
+            <div className="loading-state">Đang tải...</div>
+          ) : sortedDisplayedNotifications.length === 0 &&
+            !tabStates[activeTab].hasMore ? (
+            <div className="empty-state">Không có thông báo nào</div>
+          ) : (
+            <div className="notification-section">
+              {activeTab === "Tất cả" && (
+                <>
+                  <h3>Mới</h3>
+                  {recentNotifications.length > 0 ? (
+                    recentNotifications.map((notif, index) => (
                       <div
                         key={notif.id}
                         ref={
                           isInfiniteScrollEnabled &&
-                          index === olderNotifications.length - 1
+                          index === recentNotifications.length - 1 &&
+                          olderNotifications.length === 0
                             ? lastNotificationRef
                             : null
                         }
@@ -394,79 +341,144 @@ const NotifyModal = ({ isOpen, onClose }) => {
                             </div>
                           )}
                       </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-            {(activeTab === "Chưa đọc" || activeTab === "Đã đọc") &&
-              sortedDisplayedNotifications.map((notif, index) => (
-                <div
-                  key={notif.id}
-                  ref={
-                    isInfiniteScrollEnabled &&
-                    index === sortedDisplayedNotifications.length - 1
-                      ? lastNotificationRef
-                      : null
-                  }
-                  className={`notification-body ${
-                    !notif.isRead ? "unread" : ""
-                  }`}
-                  onClick={() => handleNotificationClick(notif)}
-                >
-                  <div className="notification-content">
-                    <img
-                      src={notif.senderProfilePicture || avatarWeb}
-                      alt="avatar"
-                      className="avatar"
-                    />
-                    <div className="notification-text">
-                      <p className="title">{notif.title}</p>
-                      <span className="time">
-                        {formatRelativeTime(notif.createdAt)}
-                      </span>
+                    ))
+                  ) : (
+                    <div className="empty-state">Không có thông báo mới</div>
+                  )}
+                  {olderNotifications.length > 0 && (
+                    <div className="notification-section">
+                      <h3>Trước đó</h3>
+                      {olderNotifications.map((notif, index) => (
+                        <div
+                          key={notif.id}
+                          ref={
+                            isInfiniteScrollEnabled &&
+                            index === olderNotifications.length - 1
+                              ? lastNotificationRef
+                              : null
+                          }
+                          className={`notification-body ${
+                            !notif.isRead ? "unread" : ""
+                          }`}
+                          onClick={() => handleNotificationClick(notif)}
+                        >
+                          <div className="notification-content">
+                            <img
+                              src={notif.senderProfilePicture || avatarWeb}
+                              alt="avatar"
+                              className="avatar"
+                            />
+                            <div className="notification-text">
+                              <p className="title">{notif.title}</p>
+                              <span className="time">
+                                {formatRelativeTime(notif.createdAt)}
+                              </span>
+                            </div>
+                          </div>
+                          {notif.type === NOTIFICATION_TYPES.SEND_FRIEND &&
+                            !processedNotifications.has(notif.id) && (
+                              <div className="friend-request-actions">
+                                <button
+                                  className="accept-button"
+                                  onClick={(e) =>
+                                    handleAcceptFriend(
+                                      notif.id,
+                                      notif.senderId,
+                                      e
+                                    )
+                                  }
+                                >
+                                  Chấp nhận
+                                </button>
+                                <button
+                                  className="decline-button"
+                                  onClick={(e) =>
+                                    handleRejectFriend(
+                                      notif.id,
+                                      notif.senderId,
+                                      e
+                                    )
+                                  }
+                                >
+                                  Từ chối
+                                </button>
+                              </div>
+                            )}
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                  {notif.type === NOTIFICATION_TYPES.SEND_FRIEND &&
-                    !processedNotifications.has(notif.id) && (
-                      <div className="friend-request-actions">
-                        <button
-                          className="accept-button"
-                          onClick={(e) =>
-                            handleAcceptFriend(notif.id, notif.senderId, e)
-                          }
-                        >
-                          Chấp nhận
-                        </button>
-                        <button
-                          className="decline-button"
-                          onClick={(e) =>
-                            handleRejectFriend(notif.id, notif.senderId, e)
-                          }
-                        >
-                          Từ chối
-                        </button>
+                  )}
+                </>
+              )}
+              {(activeTab === "Chưa đọc" || activeTab === "Đã đọc") &&
+                sortedDisplayedNotifications.map((notif, index) => (
+                  <div
+                    key={notif.id}
+                    ref={
+                      isInfiniteScrollEnabled &&
+                      index === sortedDisplayedNotifications.length - 1
+                        ? lastNotificationRef
+                        : null
+                    }
+                    className={`notification-body ${
+                      !notif.isRead ? "unread" : ""
+                    }`}
+                    onClick={() => handleNotificationClick(notif)}
+                  >
+                    <div className="notification-content">
+                      <img
+                        src={notif.senderProfilePicture || avatarWeb}
+                        alt="avatar"
+                        className="avatar"
+                      />
+                      <div className="notification-text">
+                        <p className="title">{notif.title}</p>
+                        <span className="time">
+                          {formatRelativeTime(notif.createdAt)}
+                        </span>
                       </div>
-                    )}
-                </div>
-              ))}
-            {!tabStates[activeTab].hasMore &&
-              sortedDisplayedNotifications.length > 0 &&
-              !loading && (
-                <div className="end-of-list">Đã tải hết thông báo</div>
-              )}
-            {!isInfiniteScrollEnabled &&
-              tabStates[activeTab].hasMore &&
-              tabStates[activeTab].nextCursor &&
-              !loading && (
-                <button onClick={handleLoadMore} className="load-more">
-                  Xem thêm
-                </button>
-              )}
-          </div>
-        )}
+                    </div>
+                    {notif.type === NOTIFICATION_TYPES.SEND_FRIEND &&
+                      !processedNotifications.has(notif.id) && (
+                        <div className="friend-request-actions">
+                          <button
+                            className="accept-button"
+                            onClick={(e) =>
+                              handleAcceptFriend(notif.id, notif.senderId, e)
+                            }
+                          >
+                            Chấp nhận
+                          </button>
+                          <button
+                            className="decline-button"
+                            onClick={(e) =>
+                              handleRejectFriend(notif.id, notif.senderId, e)
+                            }
+                          >
+                            Từ chối
+                          </button>
+                        </div>
+                      )}
+                  </div>
+                ))}
+              {!tabStates[activeTab].hasMore &&
+                sortedDisplayedNotifications.length > 0 &&
+                !loading && (
+                  <div className="end-of-list">Đã tải hết thông báo</div>
+                )}
+              {!isInfiniteScrollEnabled &&
+                tabStates[activeTab].hasMore &&
+                tabStates[activeTab].nextCursor &&
+                !loading && (
+                  <button onClick={handleLoadMore} className="load-more">
+                    Xem thêm
+                  </button>
+                )}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
