@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "../../styles/CommentOverlay.scss";
 import imagePost from "../../assets/ImgDefault.png";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi"; // Sử dụng icon từ react-icons
+import dieImage from "../../assets/Imgae Not found.png";
 
 const ImagePostComment = ({ post }) => {
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);

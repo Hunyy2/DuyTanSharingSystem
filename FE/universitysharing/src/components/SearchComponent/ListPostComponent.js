@@ -168,7 +168,7 @@ const ListPost = ({ posts = [], usersProfile }) => {
         {imageUrls.map((url, index) => {
           const fullUrl = url.startsWith("http")
             ? url.trim()
-            : `https://localhost:7053${url.trim()}`;
+            : `${process.env.REACT_APP_BASE_URL}${url.trim()}`;
           const showOverlay = totalMedia > 2 && index === (hasVideo ? 0 : 1);
 
           if (totalMedia > 2 && index > (hasVideo ? 0 : 1)) return null;

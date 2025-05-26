@@ -61,7 +61,7 @@ namespace Infrastructure.Data.Repositories
             pageSize = Math.Min(pageSize, MAX_PAGE_SIZE);
 
             var query = _context.Rides
-                .Where(r => r.DriverId == driverId && r.Status == StatusRideEnum.Accepted)
+                .Where(r => r.DriverId == driverId)
                 .AsQueryable();
 
             if (lastPostId.HasValue)
@@ -107,6 +107,49 @@ namespace Infrastructure.Data.Repositories
                 .Include(r => r.Rating!)
                     .ThenInclude(rt => rt.RatedByUser)
                 .ToListAsync();
+        }
+        public async Task<(List<Ride> Rides, int TotalRecords)> GetRidesByStatusAsync(StatusRideEnum status, int page, int pageSize)
+        {
+            var query = _context.Rides
+                .Where(r => r.Status == status)
+                .Include(r => r.RidePost);
+
+            // Tính tổng số bản ghi
+            int totalRecords = await query.CountAsync();
+
+            // Áp dụng phân trang
+            var rides = await query
+                .OrderBy(r => r.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (rides, totalRecords);
+        }
+        public async Task<Ride?> GetRideDetailsAsync(Guid id)
+        {
+            return await _context.Rides
+                .Include(r => r.RidePost)
+                .Include(r => r.Driver)
+                .Include(r => r.Passenger)
+                .Include(r => r.LocationUpdates)
+                .FirstOrDefaultAsync(r => r.Id == id);
+        }
+        public async Task<List<Ride>> GetRidesByTimeRangeAsync(DateTime? startDate, DateTime? endDate)
+        {
+            var query = _context.Rides.AsQueryable();
+
+            if (startDate.HasValue)
+            {
+                query = query.Where(r => r.CreatedAt >= startDate.Value);
+            }
+
+            if (endDate.HasValue)
+            {
+                query = query.Where(r => r.CreatedAt <= endDate.Value);
+            }
+
+            return await query.ToListAsync();
         }
     }
 }

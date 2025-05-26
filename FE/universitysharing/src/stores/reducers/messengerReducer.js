@@ -16,32 +16,52 @@ const messenger = createSlice({
     nextCursor: null,
     conversation: null,
     conversationId: null,
+    conversationIdChatBox: null,
     selectFriend: null,
     inboxRead: null,
     unReadInbox: null,
     isLoadingInbox: false,
     isLoadingMessages: false,
-    openChatBox: false,
+    isOpenChatBox: false,
+    isMessengerView: false,
   },
   reducers: {
+    //Hàm này để tiến vào MessengerView không bật được chatBox lên
+    rejectChatBox: (state) => {
+      state.isMessengerView = true;
+    },
+    nonRejectChatBox: (state) => {
+      state.isMessengerView = false;
+    },
+    //Đóng mở chatBox
+    closeChatBox: (state) => {
+      state.isOpenChatBox = false;
+    },
+    openChatBox: (state) => {
+      state.isOpenChatBox = true;
+    },
+
+    //reset lại một số thành phần của Messenger
     resetMessages: (state) => {
       state.selectFriend = null;
       state.messages = [];
       state.nextCursor = null;
     },
+
+    //Lựa chọn bạn bè
     setSelectFriend: (state, action) => {
       state.selectFriend = action.payload;
     },
+    //Đẩy tin nhắn mới vào
     addMessage: (state, action) => {
       const newMsg = action.payload;
-      // const existsSelectedUser = state.selectFriend.some(
-      //   (m) => m.friendId === newMsg.senderId
-      // );
       const exists = state.messages.some((m) => m.id === newMsg.id);
       if (!exists) {
         state.messages.push(newMsg);
       }
     },
+
+    //Đánh dấu đã đọc
     markInboxAsSeen: (state, action) => {
       const { friendId } = action.payload;
       // console.warn("Id nhắn ", friendId);
@@ -51,6 +71,8 @@ const messenger = createSlice({
         delete state.unReadInbox[friendId];
       }
     },
+
+    //Update tin nhắn khi có tin nhắn tới
     updateInboxOnNewMessage: (state, action) => {
       const newMsg = action.payload;
       const senderId = newMsg.senderId;
@@ -94,6 +116,8 @@ const messenger = createSlice({
         state.unReadInbox[senderId] = 1;
       }
     },
+
+    //cho tin nhắn vào đúng form để nhét vào inbox (mà hình như không dùng nữa)
     formatFriendsToInboxRead: (state, action) => {
       const friend = action.payload.friends;
       console.warn("Friend Có gì ???", friend);
@@ -209,5 +233,9 @@ export const {
   markInboxAsSeen,
   updateInboxOnNewMessage,
   formatFriendsToInboxRead,
+  closeChatBox,
+  openChatBox,
+  rejectChatBox,
+  nonRejectChatBox,
 } = messenger.actions;
 export default messenger.reducer;

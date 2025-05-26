@@ -1,4 +1,5 @@
 ﻿using Application.Interface;
+using Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,9 +14,11 @@ namespace DuyTanSharingSystem.Controllers
     public class UserAdminController : ControllerBase
     {
         private readonly IUserService _userService;
-        public UserAdminController(IUserService userService)
+        private readonly IRideService _rideService;
+        public UserAdminController(IUserService userService, IRideService rideService)
         {
             _userService = userService;
+            _rideService = rideService;
         }
         /// <summary>
         /// Lấy danh sách tất cả người dùng
@@ -79,6 +82,48 @@ namespace DuyTanSharingSystem.Controllers
         {
             var result = await _userService.UnblockUserAsync(userId);
             return Ok( result);
+        }
+
+        [HttpGet("rides-by-status")]
+        public async Task<IActionResult> GetRidesByStatus(
+            [FromQuery] string status,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            if (string.IsNullOrEmpty(status))
+            {
+                return BadRequest("Status is required.");
+            }
+
+            if (!Enum.TryParse<StatusRideEnum>(status, true, out var statusEnum))
+            {
+                return BadRequest("Invalid status value. Use 'Accepted' or 'Completed'.");
+            }
+
+            if (page < 1)
+            {
+                return BadRequest("Page must be greater than or equal to 1.");
+            }
+
+            if (pageSize < 1)
+            {
+                return BadRequest("PageSize must be greater than or equal to 1.");
+            }
+
+            var result = await _rideService.GetRidesByStatusAsync(statusEnum, page, pageSize);
+            return Ok(result);
+        }
+        [HttpGet("ride-details/{id}")]
+        public async Task<IActionResult> GetRideDetails(Guid id)
+        {
+            var rideDetail = await _rideService.GetRideDetailsAsync(id);
+
+            if (rideDetail == null)
+            {
+                return NotFound("Ride not found.");
+            }
+
+            return Ok(rideDetail);
         }
     }
 }

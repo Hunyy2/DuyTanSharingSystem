@@ -1,3 +1,242 @@
+import React, { useState, useRef, useEffect } from "react";
+import {
+  FiSearch,
+  FiMoreHorizontal,
+  FiVideo,
+  FiMessageSquare,
+  FiX,
+} from "react-icons/fi";
+import { BsFilter } from "react-icons/bs";
+import { useSelector, useDispatch } from "react-redux";
+import "../styles/MessengerModal.scss";
+import "../styles/MoblieReponsive/HomeViewMobile/MessengerModalMobile.scss";
+
+import {
+  getConversationss,
+  getInbox,
+  getMessagess,
+} from "../stores/action/messageAction";
+import AllInbox from "./MessengerModal/All_Inbox";
+import UnreadInbox from "./MessengerModal/Unread_Inbox";
+import GroupInbox from "./MessengerModal/Group";
+import {
+  useChatHandle,
+  useMessageReceiver,
+  useMessageReceiverData,
+} from "../utils/MesengerHandle";
+
+import {
+  openChatBox,
+  closeChatBox,
+  resetMessages,
+  setSelectFriend,
+} from "../stores/reducers/messengerReducer";
+const MessengerModal = ({ isOpen, onClose, position }) => {
+  const [activeTab, setActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const dispatch = useDispatch();
+  const modalRef = useRef(null);
+
+  //Các hàm tin nhắn từ chat handle
+  const {
+    handleJoin,
+    handleLeaveChat,
+    handleSendMessage,
+    markConversationAsSeen,
+  } = useChatHandle();
+
+  //nhận tin nhắn khi tin nhắn gửi đến
+  useMessageReceiverData();
+  //Đóng modal khi click ra ngoài
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen, onClose]);
+  useEffect(() => {
+    const token = localStorage.getItem("token"); // hoặc lấy từ state
+    dispatch(getInbox({ pageSize: 20, token }));
+  }, [dispatch]);
+  const messengerState = useSelector((state) => state.messenges || {});
+  const messenges = messengerState.messages || [];
+  //Lấy inbox tin nhắn
+  const inboxRead = messengerState.inboxRead || [];
+  const countInbox = messengerState.unReadInbox || [];
+  const isLoading = messengerState.isLoadingInbox;
+
+  const onlineSate = useSelector((state) => state.onlineUsers) || {};
+  const online = onlineSate.onlineStatus || {};
+
+  //chọn bạn nhắn tin
+  const handleSelectedFriend = async (friendData) => {
+    const token = localStorage.getItem("token");
+    try {
+      //Thoát khỏi cuộc trò chuyện nếu join vào cuộc trò chuyện nào trước đó
+      if (messengerState.conversationId) {
+        await handleLeaveChat(messengerState.conversationId);
+      }
+      // Lấy dữ liệu cuộc trò chuyện mới
+      const conversationData = await dispatch(
+        getConversationss({ friendId: friendData.friendId, token })
+      ).unwrap();
+
+      const conversationId = conversationData.id;
+
+      dispatch(resetMessages());
+      dispatch(setSelectFriend(friendData));
+
+      // Tham gia cuộc trò chuyện mới qua SignalR
+
+      await handleJoin(conversationId);
+      const messages = await dispatch(
+        getMessagess({
+          conversationId,
+          token,
+          nextCursor: null,
+          pageSize: 20,
+        })
+      );
+
+      await markConversationAsSeen({
+        conversationId: conversationId, // Dùng trực tiếp conversationId mới
+        friendId: friendData.friendId, // Dùng trực tiếp friendId mới
+        messages: messages.payload.data || [], // ✅ Lấy đúng mảng tin nhắn
+        status: 2,
+      });
+
+      dispatch(closeChatBox());
+      onClose();
+      dispatch(openChatBox());
+    } catch (error) {
+      console.error("Lỗi chọn bạn để chat:", error);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <>
+      <div className="messenger-modal-background"></div>
+      <div
+        className="messenger-modal-overlay"
+        style={{
+          top: `${position?.top || 0}px`,
+          right: `${position?.right || 20}px`,
+        }}
+      >
+        <div
+          className={`messenger-modal ${isOpen ? "open" : ""}`}
+          ref={modalRef}
+        >
+          <div className="modal-header">
+            <div className="header-left">
+              <h2>Tin nhắn</h2>
+              <div className="header-actions">
+                <button className="icon-button" title="Video chat">
+                  <FiVideo size={18} />
+                </button>
+                <button className="icon-button" title="New message">
+                  <FiMessageSquare size={18} />
+                </button>
+              </div>
+            </div>
+            <div className="header-right">
+              <button className="icon-button" title="Options">
+                <FiMoreHorizontal size={18} />
+              </button>
+              <button className="close-button" onClick={onClose} title="Close">
+                <FiX size={20} />
+              </button>
+            </div>
+          </div>
+
+          <div className="search-bar">
+            <div className="search-container">
+              <div className="search-icon">
+                <FiSearch size={17} />
+              </div>
+              <input
+                type="text"
+                placeholder="Tìm kiếm tin nhắn"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <button className="filter-button" title="Filter conversations">
+                <BsFilter size={16} />
+              </button>
+            </div>
+          </div>
+
+          <div className="tabs-container">
+            <button
+              className={`tab ${activeTab === "all" ? "active" : ""}`}
+              onClick={() => setActiveTab("all")}
+            >
+              Tất cả tin nhắn
+            </button>
+            <button
+              className={`tab ${activeTab === "unread" ? "active" : ""}`}
+              onClick={() => setActiveTab("unread")}
+            >
+              Chưa đọc
+            </button>
+            <button
+              className={`tab ${activeTab === "groups" ? "active" : ""}`}
+              onClick={() => setActiveTab("groups")}
+            >
+              Nhóm
+            </button>
+          </div>
+
+          <div className="friends-list">
+            {activeTab === "all" && (
+              <div className="All-Inbox">
+                <AllInbox
+                  onlineUsers={online}
+                  inboxRead={inboxRead}
+                  countInbox={countInbox}
+                  isLoading={isLoading}
+                  handleSelectedFriend={handleSelectedFriend}
+                />
+              </div>
+            )}
+
+            {activeTab === "unread" && (
+              <div className="Unrread-Inbox">
+                <UnreadInbox
+                  onlineUsers={online}
+                  inboxRead={inboxRead}
+                  countInbox={countInbox}
+                  isLoading={isLoading}
+                  handleSelectedFriend={handleSelectedFriend}
+                />
+              </div>
+            )}
+
+            {activeTab === "groups" && (
+              <div className="Ground-Inbox">
+                <GroupInbox />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default MessengerModal;
+
 // import React, {
 //   useEffect,
 //   useRef,
@@ -411,164 +650,3 @@
 // };
 
 // export default MessengerModal;
-
-import React, { useState, useRef, useEffect } from "react";
-import {
-  FiSearch,
-  FiMoreHorizontal,
-  FiVideo,
-  FiMessageSquare,
-  FiX,
-} from "react-icons/fi";
-import { BsFilter } from "react-icons/bs";
-import { useSelector, useDispatch } from "react-redux";
-import "../styles/MessengerModal.scss";
-import "../styles/MoblieReponsive/HomeViewMobile/MessengerModalMobile.scss";
-
-import { getInbox } from "../stores/action/messageAction";
-import AllInbox from "./MessengerModal/All_Inbox";
-import UnreadInbox from "./MessengerModal/Unread_Inbox";
-import GroupInbox from "./MessengerModal/Group";
-
-const MessengerModal = ({ isOpen, onClose, position }) => {
-  const [activeTab, setActiveTab] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const dispatch = useDispatch();
-  const modalRef = useRef(null);
-  //Đóng modal khi click ra ngoài
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (modalRef.current && !modalRef.current.contains(event.target)) {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isOpen, onClose]);
-  useEffect(() => {
-    const token = localStorage.getItem("token"); // hoặc lấy từ state
-    dispatch(getInbox({ pageSize: 20, token }));
-  }, [dispatch]);
-  const messengerState = useSelector((state) => state.messenges || {});
-  const messenges = messengerState.messages || [];
-  //Lấy inbox tin nhắn
-  const inboxRead = messengerState.inboxRead || [];
-  const countInbox = messengerState.unReadInbox || [];
-  const isLoading = messengerState.isLoadingInbox;
-
-  const onlineSate = useSelector((state) => state.onlineUsers) || {};
-  const online = onlineSate.onlineStatus || {};
-
-  if (!isOpen) return null;
-
-  return (
-    <>
-      <div className="messenger-modal-background"></div>
-      <div
-        className="messenger-modal-overlay"
-        style={{
-          top: `${position?.top || 0}px`,
-          right: `${position?.right || 20}px`,
-        }}
-      >
-        <div
-          className={`messenger-modal ${isOpen ? "open" : ""}`}
-          ref={modalRef}
-        >
-          <div className="modal-header">
-            <div className="header-left">
-              <h2>Tin nhắn</h2>
-              <div className="header-actions">
-                <button className="icon-button" title="Video chat">
-                  <FiVideo size={18} />
-                </button>
-                <button className="icon-button" title="New message">
-                  <FiMessageSquare size={18} />
-                </button>
-              </div>
-            </div>
-            <div className="header-right">
-              <button className="icon-button" title="Options">
-                <FiMoreHorizontal size={18} />
-              </button>
-              <button className="close-button" onClick={onClose} title="Close">
-                <FiX size={20} />
-              </button>
-            </div>
-          </div>
-
-          <div className="search-bar">
-            <div className="search-container">
-              <div className="search-icon">
-                <FiSearch size={17} />
-              </div>
-              <input
-                type="text"
-                placeholder="Tìm kiếm tin nhắn"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <button className="filter-button" title="Filter conversations">
-                <BsFilter size={16} />
-              </button>
-            </div>
-          </div>
-
-          <div className="tabs-container">
-            <button
-              className={`tab ${activeTab === "all" ? "active" : ""}`}
-              onClick={() => setActiveTab("all")}
-            >
-              Tất cả tin nhắn
-            </button>
-            <button
-              className={`tab ${activeTab === "unread" ? "active" : ""}`}
-              onClick={() => setActiveTab("unread")}
-            >
-              Chưa đọc
-            </button>
-            <button
-              className={`tab ${activeTab === "groups" ? "active" : ""}`}
-              onClick={() => setActiveTab("groups")}
-            >
-              Nhóm
-            </button>
-          </div>
-
-          <div className="friends-list">
-            {activeTab === "all" && (
-              <div className="All-Inbox">
-                <AllInbox
-                  onlineUsers={online}
-                  inboxRead={inboxRead}
-                  countInbox={countInbox}
-                  isLoading={isLoading}
-                />
-              </div>
-            )}
-
-            {activeTab === "unread" && (
-              <div className="Unrread-Inbox">
-                <UnreadInbox />
-              </div>
-            )}
-
-            {activeTab === "groups" && (
-              <div className="Ground-Inbox">
-                <GroupInbox />
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
-
-export default MessengerModal;
