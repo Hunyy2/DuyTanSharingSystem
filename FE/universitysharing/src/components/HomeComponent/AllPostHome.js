@@ -258,7 +258,7 @@ const AllPosts = ({
     const imageCount = post.imageUrl ? post.imageUrl.split(",").length : 0;
     const hasVideo = !!post.videoUrl;
     const totalMedia = imageCount + (hasVideo ? 1 : 0);
-
+    
     let className = "media-container";
     switch (totalMedia) {
       case 1:
@@ -282,7 +282,7 @@ const AllPosts = ({
     const imageUrls = post.imageUrl ? post.imageUrl.split(",") : [];
     const hasVideo = !!post.videoUrl;
     const totalMedia = imageUrls.length + (hasVideo ? 1 : 0);
-
+    const baseUrl = process.env.REACT_APP_BASE_URL;
     // Nếu không có ảnh lẫn video, không render media-container
     if (totalMedia === 0) return null;
 
@@ -290,8 +290,9 @@ const AllPosts = ({
       <div className={getMediaContainerClass(post)}>
         {imageUrls.map((url, index) => {
           const fullUrl = url.startsWith("http")
-            ? url.trim()
-            : `https://localhost:7053${url.trim()}`;
+  ? url.trim()
+  : `${baseUrl}${url.trim()}`;
+
           // Hiển thị overlay trên ảnh thứ 2 nếu có > 2 media, hoặc trên ảnh đầu tiên nếu có video và > 1 ảnh
           const showOverlay = totalMedia > 2 && index === (hasVideo ? 0 : 1);
 

@@ -360,7 +360,7 @@ import UserManagement from "./admin/views/UserManagement";
 import NotificationAdmin from "./admin/views/NotificationManagement";
 import LocationTracker from './components/RideComponent/LocationTracker'; // Import component mới
 import Site404 from "./views/404Site";
-
+import LandingPage from "./views/IntroductView";
 function App() {
   const { isAuthenticated, userRole, isLoading } = useAuth();
   console.warn("Role người dùng>>", userRole);
@@ -436,6 +436,7 @@ function App() {
             {!isAuthenticated && (
               <>
                 {/* Route không cần xác thực */}
+                <Route path="/LandingPage" element={<LandingPage />} />
                 <Route path="/" element={<Login />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
@@ -449,7 +450,7 @@ function App() {
                   element={<ResendVerification />}
                 />
                 <Route path="/AccountVerified" element={<AccountVerified />} />
-                <Route path="*" element={<Navigate to="/login" replace />} />
+                <Route path="*" element={<Navigate to="/LandingPage" replace />} />
               </>
             )}
             {/* Route dành cho admin */}

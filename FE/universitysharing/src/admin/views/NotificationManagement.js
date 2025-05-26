@@ -33,14 +33,14 @@ const NotificationAdmin = () => {
     },
     {
       title: "Tên hành khách",
-      dataIndex: "passengerName",
-      key: "passengerName",
+      dataIndex: "namePassenger",
+      key: "namePassenger",
       render: (text) => <span>{text || "Không có"}</span>,
     },
     {
       title: "Tên tài xế",
-      dataIndex: "driverName",
-      key: "driverName",
+      dataIndex: "nameDriver",
+      key: "nameDriver",
       render: (text) => <span>{text || "Không có"}</span>,
     },
     {
@@ -51,14 +51,20 @@ const NotificationAdmin = () => {
     },
     {
       title: "Số điện thoại tài xế",
-      dataIndex: "driverPhone",
-      key: "driverPhone",
+      dataIndex: "phoneDriver",
+      key: "phoneDriver",
       render: (text) => <span>{text || "Không có"}</span>,
     },
     {
-      title: "Số điện thoại người thân",
+      title: "SĐT người thân hành khách",
       dataIndex: "relativePhonePassenger",
       key: "relativePhonePassenger",
+      render: (text) => <span>{text || "Không có"}</span>,
+    },
+    {
+      title: "SĐT người thân tài xế",
+      dataIndex: "relativePhoneDriver",
+      key: "relativePhoneDriver",
       render: (text) => <span>{text || "Không có"}</span>,
     },
     {

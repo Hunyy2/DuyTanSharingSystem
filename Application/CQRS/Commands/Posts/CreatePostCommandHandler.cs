@@ -60,15 +60,15 @@ namespace Application.CQRS.Commands.Posts
                 var post = new Post(userId, request.Content, request.Scope, imageUrlString, videoUrl);
 
                 //kiểm tra xem bài đăng có hợp lệ không bằng Genimi
-                var result = await _geminiService.ValidatePostContentAsync(post.Content);
-                if (!result)
-                {
-                    post.RejectAI();
-                    await _unitOfWork.PostRepository.AddAsync(post);
-                    await _unitOfWork.SaveChangesAsync();
-                    await _unitOfWork.CommitTransactionAsync();
-                    return ResponseFactory.Fail<ResponsePostDto>("Warning! Content is not accepted! If you violate it again, your reputation will be deducted!!", 400);
-                }
+                //var result = await _geminiService.ValidatePostContentAsync(post.Content);
+                //if (!result)
+                //{
+                //    post.RejectAI();
+                //    await _unitOfWork.PostRepository.AddAsync(post);
+                //    await _unitOfWork.SaveChangesAsync();
+                //    await _unitOfWork.CommitTransactionAsync();
+                //    return ResponseFactory.Fail<ResponsePostDto>("Warning! Content is not accepted! If you violate it again, your reputation will be deducted!!", 400);
+                //}
                 post.ApproveAI();
                 // 🛑 Kiểm duyệt bài đăng bằng ML.NET
                 //bool isValid = PostValidator.IsValid( post.Content , _mLService.Predict);

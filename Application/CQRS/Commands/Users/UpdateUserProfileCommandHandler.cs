@@ -23,6 +23,7 @@ namespace Application.CQRS.Commands.Users
         {
             // 🔐 Lấy UserId từ Token
             var userIdFromToken = _userContextService.UserId();
+            
             if (userIdFromToken == Guid.Empty)
             {
                 return ResponseFactory.Fail<UserProfileDetailDto>("Unauthorized", 401);
@@ -30,6 +31,10 @@ namespace Application.CQRS.Commands.Users
 
             // 🔍 Lấy thông tin người dùng từ Database
             var user = await _userRepository.GetUserByIdAsync(userIdFromToken);
+            if(userIdFromToken != user?.Id)
+            {
+                return ResponseFactory.Fail<UserProfileDetailDto>("Bạn không có quyền làm việc này", 401);
+            }       
             if (user == null)
             {
                 return ResponseFactory.Fail<UserProfileDetailDto>("User not found", 404);
