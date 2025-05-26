@@ -34,7 +34,7 @@ const AppHeader = () => {
         style={{ backgroundColor: "#1890ff", padding: "0 20px", color: "#fff" }}
       >
         <div className="header-content">
-          <BellOutlined style={{ fontSize: 20, color: "white" }} />
+          {/* <BellOutlined style={{ fontSize: 20, color: "white" }} /> */}
 
           <div className="Avatar-admin" onClick={handleToggleModal}>
             <img src={users?.profilePicture || avatarDefault}></img>

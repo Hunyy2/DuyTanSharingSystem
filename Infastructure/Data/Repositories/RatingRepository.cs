@@ -44,9 +44,32 @@ namespace Infrastructure.Data.Repositories
                 .CountAsync()
                 .ContinueWith(t => t.Result * 5);
         }
-        public async Task<int> CountAsync(Func<Rating, bool> predicate)
+        public async Task<int> CountAsync(Expression<Func<Rating, bool>> predicate)
         {
-            return await _context.Ratings.CountAsync(r => predicate(r));
+            return await _context.Ratings.CountAsync(predicate);
+        }
+        public async Task<Dictionary<RatingLevelEnum, int>> GetRatingCountsByLevelAsync()
+        {
+            var ratingCounts = await _context.Ratings
+                .GroupBy(r => r.Level)
+                .Select(g => new { Level = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            // Chuyển kết quả thành Dictionary
+            var result = new Dictionary<RatingLevelEnum, int>
+            {
+                { RatingLevelEnum.Poor, 0 },
+                { RatingLevelEnum.Average, 0 },
+                { RatingLevelEnum.Good, 0 },
+                { RatingLevelEnum.Excellent, 0 }
+            };
+
+            foreach (var item in ratingCounts)
+            {
+                result[item.Level] = item.Count;
+            }
+
+            return result;
         }
     }
 }
