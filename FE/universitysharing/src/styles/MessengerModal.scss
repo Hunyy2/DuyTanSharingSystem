@@ -8,7 +8,7 @@
   width: 360px;
   height: calc(100vh - 80px);
   max-height: 590px;
-  z-index: 1000;
+  z-index: 1001;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   border-radius: 8px 8px 0 0;
   background: white;
@@ -30,6 +30,7 @@
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 12px 28px 0 rgba(0, 0, 0, 0.2), 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+    z-index: 1000;
     // Add this for smooth scrolling
     .friends-list {
       overflow-y: auto;
@@ -106,6 +107,7 @@
         padding: 8px 12px;
 
         .search-icon {
+          left: 25px;
           margin-right: 8px;
           color: #65676b;
         }
@@ -168,53 +170,53 @@
     .friends-list {
       flex: 1;
       overflow-y: auto;
-    
+
       .friend-item {
         display: flex;
         align-items: center;
         padding: 0.5rem 0.75rem;
         cursor: pointer;
         transition: background-color 0.2s ease;
-    
+
         &:hover {
           background: #f0f2f5;
         }
-    
+
         &.unread {
           background-color: rgba(24, 119, 242, 0.05);
-    
+
           .friend-name {
             font-weight: 600;
             color: #1c2526;
           }
-    
+
           .message-preview {
             font-weight: 500;
             color: #050505;
           }
-    
+
           .unread-count {
             background: #1877f2;
             color: #ffffff;
             font-weight: 600;
           }
         }
-    
+
         &.pulse {
           animation: message-pulse 1.5s ease-in-out 2;
         }
-    
+
         .friend-avatar {
           position: relative;
           margin-right: 0.75rem;
-    
+
           img {
             width: 2.25rem;
             height: 2.25rem;
             border-radius: 50%;
             object-fit: cover;
           }
-    
+
           .active-badge {
             position: absolute;
             bottom: 0;
@@ -226,11 +228,11 @@
             border-radius: 50%;
           }
         }
-    
+
         .friend-info {
           flex: 1;
           overflow: hidden;
-    
+
           .friend-name {
             font-size: 0.875rem;
             font-weight: 600;
@@ -239,7 +241,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
           }
-    
+
           .friend-status {
             font-size: 0.75rem;
             color: #65676b;
@@ -248,7 +250,7 @@
             text-overflow: ellipsis;
           }
         }
-    
+
         .friend-actions {
           .action-button {
             background: none;
@@ -259,22 +261,22 @@
             color: #65676b;
             opacity: 0;
             transition: opacity 0.2s, background-color 0.2s;
-    
+
             &:hover {
               background: #e4e6eb;
             }
           }
         }
-    
+
         &:hover .friend-actions .action-button {
           opacity: 1;
         }
-    
+
         .unread-badge {
           position: relative;
           margin-right: 0.5rem;
           padding-left: 30px;
-    
+
           .unread-count {
             display: flex;
             align-items: center;
@@ -289,9 +291,9 @@
             font-weight: 600;
             animation: badge-pop 0.3s ease-out;
           }
-    
+
           &::before {
-            content: '';
+            content: "";
             position: absolute;
             top: -0.125rem;
             right: -0.125rem;
@@ -304,13 +306,13 @@
           }
         }
       }
-    
+
       .messenger-modal {
         .modal-header {
           position: relative;
-    
+
           &.has-unread::after {
-            content: '';
+            content: "";
             position: absolute;
             top: 0.5rem;
             right: 0.5rem;
@@ -323,16 +325,17 @@
         }
       }
     }
-    
+
     @keyframes message-pulse {
-      0%, 100% {
+      0%,
+      100% {
         background-color: rgba(24, 119, 242, 0.05);
       }
       50% {
         background-color: rgba(24, 119, 242, 0.15);
       }
     }
-    
+
     @keyframes badge-pop {
       0% {
         transform: scale(0.5);
@@ -346,7 +349,7 @@
         opacity: 1;
       }
     }
-    
+
     @keyframes badge-dot {
       0% {
         transform: scale(0);
@@ -357,7 +360,7 @@
         opacity: 0;
       }
     }
-    
+
     @keyframes header-notification {
       0% {
         transform: scale(1);
@@ -372,20 +375,20 @@
         opacity: 1;
       }
     }
-    
+
     .message-time {
       font-size: 12px;
       color: #65676b;
       margin-left: 8px;
       white-space: nowrap;
     }
-    
+
     // Make sure the preview text and time are aligned properly
     .friend-preview {
       display: flex;
       align-items: center;
       width: 100%;
-      
+
       .message-preview {
         flex: 1;
         white-space: nowrap;

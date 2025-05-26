@@ -43,7 +43,7 @@ const AllReportFromUser = ({ reports, postId }) => {
             <img
               src={
                 report.profilePicture
-                  ? `https://localhost:7053${report.profilePicture}`
+                  ? `${process.env.REACT_APP_BASE_URL}${report.profilePicture}`
                   : AvatarDefaut
               }
               alt="anh dai dien"

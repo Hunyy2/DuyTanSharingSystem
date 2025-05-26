@@ -13,6 +13,9 @@ import {
   resetMessages,
   setSelectFriend,
   formatFriendsToInboxRead,
+  rejectChatBox,
+  nonRejectChatBox,
+  closeChatBox,
 } from "../stores/reducers/messengerReducer";
 import "../styles/MessageView.scss";
 import "../styles/MoblieReponsive/MessageViewMobile/MessageViewMobile.scss";
@@ -48,10 +51,15 @@ const MessageView = () => {
   };
 
   useEffect(() => {
+    dispatch(rejectChatBox()); // không cho hiện chatbox
     return () => {
-      // cleanup khi rời khỏi component
-      dispatch(resetMessages());
+      dispatch(nonRejectChatBox()); // khi thoát khỏi trang, bật lại chatbox
     };
+  }, []);
+
+  //ngăn không cho chat box xuất hiện
+  useEffect(() => {
+    dispatch(rejectChatBox());
   }, []);
 
   //thêm các yếu tố để viết được hàm nhắn tin
@@ -91,13 +99,12 @@ const MessageView = () => {
     dispatch(fetchFriends());
   }, [dispatch]);
 
-  // console.warn("Xem thử friend Có gì ???", friend);
-  // useEffect(() => {
-  //   if (friend.length > 0) {
-  //     console.warn("Đẩy vào inboxRead:", friend);
-  //     dispatch(formatFriendsToInboxRead(friend));
-  //   }
-  // }, [friend, dispatch]);
+  useEffect(() => {
+    dispatch(resetMessages());
+    return () => {
+      dispatch(closeChatBox());
+    };
+  }, [dispatch]);
 
   useEffect(() => {
     // Gọi API check-online khi có danh sách bạn bè
@@ -180,6 +187,7 @@ const MessageView = () => {
   //lướt lên trên để load thêm tin nhắn
   useEffect(() => {
     // console.error("Nét cơ so>>>", messengerState.nextCursor);
+    console.error("Nét cơ so>>>", topRef.current);
     if (!topRef.current || !messengerState.nextCursor) return;
 
     // Huỷ observer cũ nếu có

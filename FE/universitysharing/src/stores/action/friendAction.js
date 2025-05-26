@@ -171,7 +171,7 @@ export const fetchSentFriendRequests = createAsyncThunk(
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "https://localhost:7053/api/FriendShip/get-friends-sent",
+        `${process.env.REACT_APP_BASE_URL}/api/FriendShip/get-friends-sent`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

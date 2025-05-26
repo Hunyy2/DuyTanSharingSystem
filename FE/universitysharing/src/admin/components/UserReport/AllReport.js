@@ -87,7 +87,7 @@ const AllReport = () => {
         {imageUrls.map((url, index) => {
           const fullUrl = url.startsWith("http")
             ? url.trim()
-            : `https://localhost:7053${url.trim()}`;
+            : `${process.env.REACT_APP_BASE_URL}${url.trim()}`;
           const showOverlay = totalMedia > 2 && index === (hasVideo ? 0 : 1);
 
           if (totalMedia > 2 && index > (hasVideo ? 0 : 1)) return null;
@@ -130,7 +130,11 @@ const AllReport = () => {
                   <div className="AvaName">
                     <img
                       className="avtardefaut"
-                      src={post.profilePicture || avatarWeb}
+                      src={
+                        post?.profilePicture
+                          ? `${process.env.REACT_APP_BASE_URL}${post.profilePicture}`
+                          : avatarWeb
+                      }
                       alt="Avatar"
                     />
                     <div className="user-info">
@@ -208,7 +212,7 @@ const AllReport = () => {
                     </span>
                   </div>
                 </div>
-
+                {/* 
                 <div className="actions">
                   <button
                     className={`action-btn ${post.hasLiked ? "liked" : ""}`}
@@ -229,7 +233,7 @@ const AllReport = () => {
                     <FiShare2 className="share-icon" size={18} />
                     <span className="action-count">Chia sẻ</span>
                   </button>
-                </div>
+                </div> */}
               </div>
               <AllReportFromUser reports={post.reports} postId={post.id} />
             </div>

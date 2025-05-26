@@ -1,4 +1,11 @@
 .edit-profile-modal {
+  background: linear-gradient(145deg, #ffffff, #f9fafb);
+  width: 100%;
+  max-width: 540px;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+
   &__overlay {
     position: fixed;
     top: 0;
@@ -12,13 +19,6 @@
     z-index: 1000;
     backdrop-filter: blur(4px);
   }
-
-  background: linear-gradient(145deg, #ffffff, #f9fafb);
-  width: 100%;
-  max-width: 540px;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
 
   &__header {
     display: flex;
@@ -255,7 +255,8 @@
   &__submit {
     width: 180px;
     padding: 14px;
-    background: linear-gradient(90deg, #1e3a8a, #3b82f6);
+    // background: linear-gradient(90deg, #1e3a8a, #3b82f6);
+    background: #3b82f6;
     color: #ffffff;
     border: none;
     border-radius: 10px;

@@ -11,7 +11,7 @@ export const fetchReportedPosts = createAsyncThunk(
         return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
       }
       const response = await axios.get(
-        "https://localhost:7053/api/report/posts-report",
+        `${process.env.REACT_APP_BASE_URL}/api/report/posts-report`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -46,7 +46,7 @@ export const fetchUserUserReports = createAsyncThunk(
         return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
       }
       const response = await axios.get(
-        "https://localhost:7053/api/report/user-user-report",
+        `${process.env.REACT_APP_BASE_URL}/api/report/user-user-report`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -81,7 +81,7 @@ export const fetchUsers = createAsyncThunk(
         return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
       }
       const response = await axios.get(
-        "https://localhost:7053/api/Admin/GetallUser",
+        `${process.env.REACT_APP_BASE_URL}/api/Admin/GetallUser`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -136,7 +136,7 @@ export const fetchNotifications = createAsyncThunk(
         return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
       }
       const response = await axios.get(
-        "https://localhost:7053/api/report/admin/ride-reports",
+        `${process.env.REACT_APP_BASE_URL}/api/report/admin/ride-reports`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -170,9 +170,9 @@ export const blockUser = createAsyncThunk(
         return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
       }
       const response = await axios.post(
-        `https://localhost:7053/api/Admin/${userId}/block?blockUntil=${encodeURIComponent(
-          untilISO
-        )}`,
+        `${
+          process.env.REACT_APP_BASE_URL
+        }/api/Admin/${userId}/block?blockUntil=${encodeURIComponent(untilISO)}`,
         null,
         {
           headers: {
@@ -214,7 +214,9 @@ export const suspendUser = createAsyncThunk(
         return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
       }
       const response = await axios.post(
-        `https://localhost:7053/api/Admin/${userId}/suspend?suspendUntil=${encodeURIComponent(
+        `${
+          process.env.REACT_APP_BASE_URL
+        }/api/Admin/${userId}/suspend?suspendUntil=${encodeURIComponent(
           untilISO
         )}`,
         null,
@@ -259,7 +261,7 @@ export const activateUser = createAsyncThunk(
         return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
       }
       const response = await axios.post(
-        `https://localhost:7053/api/Admin/${userId}/unblock`,
+        `${process.env.REACT_APP_BASE_URL}/api/Admin/${userId}/unblock`,
         null,
         {
           headers: {
@@ -304,7 +306,7 @@ export const deletePost = createAsyncThunk(
 
     try {
       const response = await axios.patch(
-        `https://localhost:7053/api/report/delete-post-report/${postId}`,
+        `${process.env.REACT_APP_BASE_URL}/api/report/delete-post-report/${postId}`,
         null,
         {
           headers: {
@@ -339,7 +341,7 @@ export const deleteAllReports = createAsyncThunk(
 
     try {
       const response = await axios.delete(
-        `https://localhost:7053/api/report/delete-all-report/${postId}`,
+        `${process.env.REACT_APP_BASE_URL}/api/report/delete-all-report/${postId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -372,7 +374,7 @@ export const fetchPostsByAdmin = createAsyncThunk(
       }
 
       const response = await axios.get(
-        `https://localhost:7053/api/post/get-posts-by-admin?pageNumber=${pageNumber}&pageSize=${pageSize}`,
+        `${process.env.REACT_APP_BASE_URL}/api/post/get-posts-by-admin?pageNumber=${pageNumber}&pageSize=${pageSize}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -415,7 +417,7 @@ export const approvePost = createAsyncThunk(
 
     try {
       const response = await axios.patch(
-        `https://localhost:7053/api/post/approve?PostId=${postId}`,
+        `${process.env.REACT_APP_BASE_URL}/api/post/approve?PostId=${postId}`,
         null,
         {
           headers: {
@@ -450,7 +452,7 @@ export const adDeletePost = createAsyncThunk(
         return rejectWithValue({ message: "Bạn chưa đăng nhập!" });
       }
       await axios.delete(
-        `https://localhost:7053/api/Post/ad-delete?PostId=${postID}`,
+        `${process.env.REACT_APP_BASE_URL}/api/Post/ad-delete?PostId=${postID}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
