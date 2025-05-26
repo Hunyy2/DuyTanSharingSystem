@@ -34,7 +34,10 @@ namespace Application.CQRS.Commands.Users
             {
                 return ResponseFactory.Fail<UserUpdateInformationDto>("Không tìm thấy người dùng", 404);
             }
-
+            if(userIdFromToken != user.Id)
+            {
+                return ResponseFactory.Fail<UserUpdateInformationDto>("Bạn không có quyền làm việc này", 401);
+            }
             await _unitOfWork.BeginTransactionAsync();
             try
             {

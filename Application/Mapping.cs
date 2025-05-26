@@ -22,6 +22,7 @@ namespace Application
                 NameDriver = rideReport.Ride?.Driver?.FullName,
                 PhoneDriver = rideReport.Ride?.Driver?.Phone,
                 NamePassenger = rideReport.Passenger?.FullName,
+                RelativePhoneDriver = rideReport.Ride?.Driver?.RelativePhone,
                 Message = rideReport.Message,
                 AlertType = rideReport.AlertType,
                 CreatedAt = rideReport.CreatedAt

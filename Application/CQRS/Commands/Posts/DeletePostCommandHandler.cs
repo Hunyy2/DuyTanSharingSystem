@@ -1,4 +1,6 @@
 ﻿
+using Domain.Entities;
+
 namespace Application.CQRS.Commands.Posts
 {
     public class DeletePostCommandHandler : IRequestHandler<DeletePostCommand, ResponseModel<bool>>
@@ -21,11 +23,19 @@ namespace Application.CQRS.Commands.Posts
             var userId = _userContextService.UserId();
 
             var post = await _postRepository.GetByIdAsync(request.PostId);
-            if (post == null)
+           
+            if (post == null )
             {
                 return ResponseFactory.Fail<bool>("Không tìm thấy bài viết này", 404);
             }
-
+            if (request.PostId != post.Id)
+            {
+                return ResponseFactory.Fail<bool>("Bạn không có quyền làm việc này", 404);
+            }
+            if ( userId != post.UserId)
+            {
+                return ResponseFactory.Fail<bool>("Bạn không có quyền làm việc này", 401);
+            }
             await _unitOfWork.BeginTransactionAsync();
             try
             {
