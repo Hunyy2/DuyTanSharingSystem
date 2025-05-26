@@ -33,7 +33,7 @@ namespace Application
 
             // Đăng ký File Service để lưu ảnh và video
             services.AddScoped<IFileService, FileService>();
-
+            services.AddScoped<IRideService, RideService>();
             //background services
             //nếu ko làm việc liên quan đến like và LocationUpdate thì comment lại
 

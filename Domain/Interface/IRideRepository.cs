@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Domain.Common.Enums;
 
 namespace Domain.Interface
 {
@@ -18,5 +19,8 @@ namespace Domain.Interface
         Task<List<Ride>> GetRidePostsByDriverIdAsync(Guid driverId, Guid? lastPostId, int pageSize);
         Task<List<Ride>> GetActiveRidesByDriverIdAsync(Guid driverId);
         Task<List<Ride>> GetCompletedRidesWithRatingAsync(Guid driverId);
+        Task<(List<Ride> Rides, int TotalRecords)> GetRidesByStatusAsync(StatusRideEnum status, int page, int pageSize);
+        Task<Ride?> GetRideDetailsAsync(Guid id);
+        Task<List<Ride>> GetRidesByTimeRangeAsync(DateTime? startDate, DateTime? endDate);
     }
 }

@@ -1,4 +1,6 @@
-﻿using Application.Interface;
+﻿using Application.DTOs.DasbroadAdmin;
+using Application.Interface;
+using Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -51,6 +53,19 @@ namespace DuyTanSharingSystem.Controllers
         public async Task<IActionResult> GetUserTrustDistribution()
         {
             var result = await _adminDashboardService.GetUserTrustDistributionAsync();
+            return Ok(result);
+        }
+        [HttpGet("rating-statistics")]
+        public async Task<ActionResult<RatingStatisticsDto>> GetRatingStatistics()
+        {
+            var result = await _adminDashboardService.GetRatingStatisticsAsync();
+            return Ok(result);
+        }
+
+        [HttpGet("ride-status-statistics")]
+        public async Task<ActionResult<List<RideStatusStatisticsDto>>> GetRideStatusStatistics([FromQuery] string groupBy = "day")
+        {
+            var result = await _adminDashboardService.GetRideStatusStatisticsAsync(groupBy);
             return Ok(result);
         }
     }

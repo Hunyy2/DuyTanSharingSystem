@@ -22,7 +22,6 @@ namespace Application.Services
                 AlertTypeEnums.DriverGPSOff,
                 AlertTypeEnums.TripDelayed
             };
-
             var reports = await _rideReportRepository.GetReportsByAlertTypesAsync(filterTypes);
             return reports.Select(Mapping.RideReportwithAdmin).ToList();
         }        

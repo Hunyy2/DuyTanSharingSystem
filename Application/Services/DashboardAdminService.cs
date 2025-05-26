@@ -135,6 +135,76 @@ namespace Application.Services
                 Data = data
             };
         }
+        public async Task<RatingStatisticsDto> GetRatingStatisticsAsync()
+        {
+            var totalRatings = await _unitOfWork.RatingRepository.GetAllAsync();
+            var totalCount = totalRatings.Count;
+
+            if (totalCount == 0)
+            {
+                return new RatingStatisticsDto
+                {
+                    PoorPercentage = 0,
+                    AveragePercentage = 0,
+                    GoodPercentage = 0,
+                    ExcellentPercentage = 0
+                };
+            }
+
+            var poorCount = await _unitOfWork.RatingRepository.CountAsync(r => r.Level == RatingLevelEnum.Poor);
+            var averageCount = await _unitOfWork.RatingRepository.CountAsync(r => r.Level == RatingLevelEnum.Average);
+            var goodCount = await _unitOfWork.RatingRepository.CountAsync(r => r.Level == RatingLevelEnum.Good);
+            var excellentCount = await _unitOfWork.RatingRepository.CountAsync(r => r.Level == RatingLevelEnum.Excellent);
+
+            return new RatingStatisticsDto
+            {
+                PoorPercentage = Math.Round((double)poorCount / totalCount * 100, 2),
+                AveragePercentage = Math.Round((double)averageCount / totalCount * 100, 2),
+                GoodPercentage = Math.Round((double)goodCount / totalCount * 100, 2),
+                ExcellentPercentage = Math.Round((double)excellentCount / totalCount * 100, 2)
+            };
+        }
+
+        // Thêm phương thức mới: Thống kê số lượng chuyến đi theo trạng thái
+        public async Task<List<RideStatusStatisticsDto>> GetRideStatusStatisticsAsync(string groupBy)
+        {
+            var rides = await _unitOfWork.RideRepository.GetAllAsync();
+
+            var groupedRides = groupBy.ToLower() switch
+            {
+                "week" => rides
+                    .GroupBy(r => new { Year = r.CreatedAt.Year, Week = GetWeekOfYear(r.CreatedAt) })
+                    .Select(g => new RideStatusStatisticsDto
+                    {
+                        TimeLabel = $"{g.Key.Year}-W{g.Key.Week}",
+                        RejectedCount = g.Count(r => r.Status == StatusRideEnum.Rejected),
+                        AcceptedCount = g.Count(r => r.Status == StatusRideEnum.Accepted),
+                        CompletedCount = g.Count(r => r.Status == StatusRideEnum.Completed)
+                    }),
+                "month" => rides
+                    .GroupBy(r => new { Year = r.CreatedAt.Year, Month = r.CreatedAt.Month })
+                    .Select(g => new RideStatusStatisticsDto
+                    {
+                        TimeLabel = $"{g.Key.Year}-{g.Key.Month:D2}",
+                        RejectedCount = g.Count(r => r.Status == StatusRideEnum.Rejected),
+                        AcceptedCount = g.Count(r => r.Status == StatusRideEnum.Accepted),
+                        CompletedCount = g.Count(r => r.Status == StatusRideEnum.Completed)
+                    }),
+                _ => rides // Mặc định nhóm theo ngày
+                    .GroupBy(r => r.CreatedAt.Date)
+                    .Select(g => new RideStatusStatisticsDto
+                    {
+                        TimeLabel = g.Key.ToString("yyyy-MM-dd"),
+                        RejectedCount = g.Count(r => r.Status == StatusRideEnum.Rejected),
+                        AcceptedCount = g.Count(r => r.Status == StatusRideEnum.Accepted),
+                        CompletedCount = g.Count(r => r.Status == StatusRideEnum.Completed)
+                    })
+            };
+
+            return groupedRides
+                .OrderBy(r => r.TimeLabel)
+                .ToList();
+        }
         private string FormatDate(DateTime date, string timeRange)
         {
             if (timeRange == "day")

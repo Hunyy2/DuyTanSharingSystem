@@ -315,7 +315,7 @@ import {
   Route,
   Routes,
   useLocation,
-  useNavigate
+  useNavigate,
 } from "react-router-dom";
 import "./App.css";
 
@@ -349,6 +349,8 @@ import SharingRideView from "./views/SharingRideView";
 import YourRideView from "./views/YourRideView";
 
 import Dashboard from "./admin/views/DashBoardView";
+import AdminRideDetails from "./admin/views/AdminRideDetails";
+import AdminRideManagement from "./admin/views/AdminRideManagement";
 import UserReport from "./admin/views/UserReportManagerView";
 
 import { DeeplinkCommentModal } from "./stores/action/deepLinkAction";
@@ -358,7 +360,7 @@ import TestDispatchAPI from "./views/TestDispatchAPI";
 import UserManagement from "./admin/views/UserManagement";
 
 import NotificationAdmin from "./admin/views/NotificationManagement";
-import LocationTracker from './components/RideComponent/LocationTracker'; // Import component mới
+import LocationTracker from "./components/RideComponent/LocationTracker"; // Import component mới
 import Site404 from "./views/404Site";
 
 function App() {
@@ -460,6 +462,11 @@ function App() {
                   element={<NotificationAdmin />}
                 />
                 <Route path="/admin/dashboard" element={<Dashboard />} />
+                <Route path="/admin/rides" element={<AdminRideManagement />} />
+                <Route
+                  path="/admin/ride-details/:rideId"
+                  element={<AdminRideDetails />}
+                />
                 <Route path="/admin/userreport" element={<UserReport />} />
                 <Route
                   path="/admin/postmanager"

@@ -44,6 +44,9 @@ namespace Infrastructure.Data.Repositories
                 .CountAsync()
                 .ContinueWith(t => t.Result * 5);
         }
-       
+        public async Task<int> CountAsync(Func<Rating, bool> predicate)
+        {
+            return await _context.Ratings.CountAsync(r => predicate(r));
+        }
     }
 }
