@@ -1,33 +1,42 @@
 import React from "react";
-import { Line } from "react-chartjs-2";
+import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
+  BarElement,
   Tooltip,
   Legend,
+  Title,
 } from "chart.js";
-import ChartDataLabels from "chartjs-plugin-datalabels"; // Thêm plugin
+import ChartDataLabels from "chartjs-plugin-datalabels";
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
+  BarElement,
   Tooltip,
   Legend,
-  ChartDataLabels // Đăng ký plugin
+  ChartDataLabels,
+  Title
 );
 
 const RideStatusStatisticsChart = ({ rideStatusStatistics }) => {
-  // Kiểm tra nếu dữ liệu quá ít
-  if (rideStatusStatistics.length < 3) {
+  // Kiểm tra nếu không có dữ liệu
+  if (!rideStatusStatistics || rideStatusStatistics.length === 0) {
     return (
-      <p style={{ textAlign: "center" }}>
-        Dữ liệu quá ít để hiển thị biểu đồ (cần ít nhất 3 ngày dữ liệu).
-      </p>
+      <div
+        style={{
+          height: "300px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <p style={{ textAlign: "center", color: "#666", fontSize: "14px" }}>
+          Không có dữ liệu để hiển thị biểu đồ.
+        </p>
+      </div>
     );
   }
 
@@ -37,47 +46,89 @@ const RideStatusStatisticsChart = ({ rideStatusStatistics }) => {
       {
         label: "Từ chối (Rejected)",
         data: rideStatusStatistics.map((item) => item.rejectedCount),
-        borderColor: "#FF4D4F",
-        backgroundColor: "#FF4D4F",
-        fill: false,
+        backgroundColor: "rgba(255, 77, 79, 0.8)",
+        borderColor: "rgba(255, 77, 79, 1)",
+        borderWidth: 1,
+        stack: "stack",
+        barThickness: 18,
+        borderRadius: 4,
       },
       {
         label: "Đang đi (Accepted)",
         data: rideStatusStatistics.map((item) => item.acceptedCount),
-        borderColor: "#FAAD14",
-        backgroundColor: "#FAAD14",
-        fill: false,
+        backgroundColor: "rgba(250, 173, 20, 0.8)",
+        borderColor: "rgba(250, 173, 20, 1)",
+        borderWidth: 1,
+        stack: "stack",
+        barThickness: 18,
+        borderRadius: 4,
       },
       {
         label: "Hoàn thành (Completed)",
         data: rideStatusStatistics.map((item) => item.completedCount),
-        borderColor: "#52C41A",
-        backgroundColor: "#52C41A",
-        fill: false,
+        backgroundColor: "rgba(82, 196, 26, 0.8)",
+        borderColor: "rgba(82, 196, 26, 1)",
+        borderWidth: 1,
+        stack: "stack",
+        barThickness: 18,
+        borderRadius: 4,
       },
     ],
   };
 
   const options = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: "top",
+        labels: {
+          color: "#333",
+          font: {
+            size: 12,
+            family: "'Helvetica Neue', 'Helvetica', 'Arial', sans-serif",
+          },
+          padding: 15,
+          boxWidth: 30,
+        },
+      },
+      title: {
+        display: true,
+        text: "Thống kê số lượng chuyến đi theo trạng thái",
+        color: "#333",
+        font: {
+          size: 16,
+          family: "'Helvetica Neue', 'Helvetica', 'Arial', sans-serif",
+          weight: "bold",
+        },
+        padding: { top: 10, bottom: 20 },
       },
       tooltip: {
         mode: "index",
         intersect: false,
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        titleColor: "#333",
+        bodyColor: "#666",
+        borderColor: "#ddd",
+        borderWidth: 1,
+        cornerRadius: 4,
+        padding: 10,
         callbacks: {
           label: (context) => `${context.dataset.label}: ${context.raw}`,
         },
       },
       datalabels: {
-        // Hiển thị giá trị trực tiếp trên điểm dữ liệu
         display: true,
-        color: "#000",
-        formatter: (value) => (value > 0 ? value : ""), // Chỉ hiển thị nếu giá trị > 0
-        anchor: "end",
-        align: "top",
+        color: "#fff",
+        formatter: (value) => (value > 0 ? value : ""),
+        anchor: "center",
+        align: "center",
+        font: {
+          size: 12,
+          weight: "bold",
+          family: "'Helvetica Neue', 'Helvetica', 'Arial', sans-serif",
+        },
+        textShadow: "0 0 3px rgba(0, 0, 0, 0.5)",
       },
     },
     scales: {
@@ -85,19 +136,69 @@ const RideStatusStatisticsChart = ({ rideStatusStatistics }) => {
         title: {
           display: true,
           text: "Thời gian",
+          color: "#333",
+          font: {
+            size: 14,
+            family: "'Helvetica Neue', 'Helvetica', 'Arial', sans-serif",
+          },
+          padding: 10,
+        },
+        stacked: true,
+        grid: {
+          display: false,
+        },
+        ticks: {
+          color: "#666",
+          font: { size: 12 },
         },
       },
       y: {
         title: {
           display: true,
           text: "Số lượng chuyến đi",
+          color: "#333",
+          font: {
+            size: 14,
+            family: "'Helvetica Neue', 'Helvetica', 'Arial', sans-serif",
+          },
+          padding: 10,
         },
         beginAtZero: true,
+        stacked: true,
+        grid: {
+          color: "rgba(0, 0, 0, 0.05)",
+          borderDash: [5, 5],
+        },
+        ticks: {
+          color: "#666",
+          font: { size: 12 },
+          stepSize: 1,
+        },
       },
     },
+    elements: {
+      bar: {
+        borderSkipped: false,
+        borderRadius: 4,
+      },
+    },
+    hover: {
+      mode: "index",
+      intersect: false,
+      onHover: (event, chartElement) => {
+        event.native.target.style.cursor = chartElement[0]
+          ? "pointer"
+          : "default";
+      },
+    },
+    categoryPercentage: 0.6,
   };
 
-  return <Line data={data} options={options} />;
+  return (
+    <div style={{ height: "300px", width: "100%" }}>
+      <Bar data={data} options={options} />
+    </div>
+  );
 };
 
 export default RideStatusStatisticsChart;

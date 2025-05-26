@@ -151,10 +151,13 @@ namespace Application.Services
                 };
             }
 
-            var poorCount = await _unitOfWork.RatingRepository.CountAsync(r => r.Level == RatingLevelEnum.Poor);
-            var averageCount = await _unitOfWork.RatingRepository.CountAsync(r => r.Level == RatingLevelEnum.Average);
-            var goodCount = await _unitOfWork.RatingRepository.CountAsync(r => r.Level == RatingLevelEnum.Good);
-            var excellentCount = await _unitOfWork.RatingRepository.CountAsync(r => r.Level == RatingLevelEnum.Excellent);
+            // Lấy số lượng đánh giá theo Level từ repository
+            var ratingCounts = await _unitOfWork.RatingRepository.GetRatingCountsByLevelAsync();
+
+            var poorCount = ratingCounts[RatingLevelEnum.Poor];
+            var averageCount = ratingCounts[RatingLevelEnum.Average];
+            var goodCount = ratingCounts[RatingLevelEnum.Good];
+            var excellentCount = ratingCounts[RatingLevelEnum.Excellent];
 
             return new RatingStatisticsDto
             {
