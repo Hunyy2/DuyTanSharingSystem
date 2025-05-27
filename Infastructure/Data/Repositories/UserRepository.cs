@@ -152,8 +152,8 @@ namespace Infrastructure.Data.Repositories
                  .Select(u => new { u.TrustScore })
                  .ToListAsync();
 
-            var trustedCount = users.Count(u => u.TrustScore >= 50);
-            var untrustedCount = users.Count(u => u.TrustScore < 50);
+            var trustedCount = users.Count(u => u.TrustScore >= 40);
+            var untrustedCount = users.Count(u => u.TrustScore < 40);
 
             var result = new List<(string TrustCategory, int Count)>
             {
