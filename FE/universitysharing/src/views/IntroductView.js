@@ -282,7 +282,7 @@ const LandingPage = () => {
           <div className="cta-buttons">
             <button
               onClick={() => navigate("/register")}
-              className="btn-primary"
+              className="btn-primary-footer"
             >
               Đăng ký ngay
             </button>
