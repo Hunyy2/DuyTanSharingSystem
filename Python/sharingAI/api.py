@@ -310,6 +310,12 @@ async def query(request: QueryRequest, current_user: dict = Depends(get_current_
                     normalized_query=normalized_query,
                     chat_history=chat_history_str,
                 )
+            elif action_type == "DIFF":
+                yield json.dumps(
+                    {"type": "final", "content": "Bạn không có quyền làm việc này!!"},
+                    ensure_ascii=False,
+                ) + "\n"
+                return
             elif action_type == "FALSE":
                 response_chunks = []
 

@@ -336,8 +336,22 @@ class PublicQueryProcessor:
         Hiển thị thông báo “Cập nhật thông tin thành công”.
         Nếu thông tin không hợp lệ:
         Hiển thị thông báo lỗi tương ứng
-
-
+        - Công thức tính điểm uy tín:
+        Bước 1: Tính tổng điểm tích lũy (Raw Score)
+        Tổng =
+        (Số bài đăng x 10)
+        + (Số lượt like x 2)
+        + (Số lượt share x 5)
+        + (Số bình luận x 3)
+        - (Số báo cáo hợp lệ x 20)
+        Công thức: RawScore = (Post x 10) + (Like x 2) + (Share x 5) + (Comment x 3) - (ValidReports x 20)
+        Chuẩn hóa bằng logarit để Giảm ảnh hưởng của người có điểm quá lớn
+        LogScore = 10 x log(1 + RawScore)
+        Giảm điểm nếu lâu không hoạt động (tính theo tháng)
+        FinalScore = LogScore x e^(-λ x T)
+        với λ: hệ số giảm (0.02)
+            T: số tháng không hoạt động
+        Điểm sẽ được cập nhật vào lúc 9h tối thứ 7 hàng tuần.
 
 
         """
