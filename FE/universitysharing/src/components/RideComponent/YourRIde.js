@@ -524,41 +524,61 @@ const YourRide = () => {
   }, [currentPosition]);
 
   // Periodically send location for current ride
-  useEffect(() => {
-  const currentRide = getCurrentRide();
-  if (!currentPosition || !currentRide || !userId) return;
+  //trước
+//   useEffect(() => {
+//   const currentRide = getCurrentRide();
+//   if (!currentPosition || !currentRide || !userId) return;
 
-  const rideId = currentRide.rideId;
-  const endLatLon = parseLatLon(currentRide.latLonEnd);
-  const { lat, lon } = currentPosition;
-  // isDriver đã được xác định ở trên
+//   const rideId = currentRide.rideId;
+//   const endLatLon = parseLatLon(currentRide.latLonEnd);
+//   const { lat, lon } = currentPosition;
+//   // isDriver đã được xác định ở trên
 
-  // Đã bỏ kiểm tra điều kiện isSafetyTrackingEnabled
-  // Điều này giả định cả tài xế và hành khách nên luôn gửi vị trí
-  intervalRef.current = setInterval(() => {
-    if (
-      lastSentPosition &&
-      calculateDistance(
-        lastSentPosition.lat,
-        lastSentPosition.lon,
-        lat,
-        lon
-      ) < 0.05
-    ) {
-      console.log("Vị trí không thay đổi (< 50m), bỏ qua việc gửi...");
-      return;
-    }
+//   // Đã bỏ kiểm tra điều kiện isSafetyTrackingEnabled
+//   // Điều này giả định cả tài xế và hành khách nên luôn gửi vị trí
+//   intervalRef.current = setInterval(() => {
+//     if (
+//       lastSentPosition &&
+//       calculateDistance(
+//         lastSentPosition.lat,
+//         lastSentPosition.lon,
+//         lat,
+//         lon
+//       ) < 0.05
+//     ) {
+//       console.log("Vị trí không thay đổi (< 50m), bỏ qua việc gửi...");
+//       return;
+//     }
 
-    const distanceToEnd = endLatLon
-      ? calculateDistance(lat, lon, endLatLon[0], endLatLon[1])
-      : Infinity;
-    const isNearDestination = distanceToEnd <= 1;
+//     const distanceToEnd = endLatLon
+//       ? calculateDistance(lat, lon, endLatLon[0], endLatLon[1])
+//       : Infinity;
+//     const isNearDestination = distanceToEnd <= 1;
 
-    sendLocationToServer(rideId, lat, lon, isNearDestination);
-  }, 20000); // Gửi mỗi 20 giây
-  return () => clearInterval(intervalRef.current);
-}, [currentPosition, driverRides, passengerRides, lastSentPosition, userId]);
+//     sendLocationToServer(rideId, lat, lon, isNearDestination);
+//   }, 20000); // Gửi mỗi 20 giây
+//   return () => clearInterval(intervalRef.current);
+// }, [currentPosition, driverRides, passengerRides, lastSentPosition, userId]);
+//sau
+useEffect(() => {
+    const currentRide = getCurrentRide();
+    if (!currentPosition || !currentRide || !userId) return;
 
+    const rideId = currentRide.rideId;
+    const endLatLon = parseLatLon(currentRide.latLonEnd);
+    const { lat, lon } = currentPosition;
+
+    intervalRef.current = setInterval(() => {
+      const distanceToEnd = endLatLon
+        ? calculateDistance(lat, lon, endLatLon[0], endLatLon[1])
+        : Infinity;
+      const isNearDestination = distanceToEnd <= 1;
+
+      sendLocationToServer(rideId, lat, lon, isNearDestination);
+    }, 20000); // Gửi mỗi 20 giây
+
+    return () => clearInterval(intervalRef.current);
+  }, [currentPosition, driverRides, passengerRides, userId]); // lastSentPosition có thể bị xóa khỏi dependencies vì nó không còn được sử dụng để bỏ qua các lần gửi
   // Fetch route from GraphHopper API
   const fetchRoute = async (rideId, startLatLon, endLatLon) => {
     const apiKey = process.env.REACT_APP_GRAPHHOPPER_API_KEY;
