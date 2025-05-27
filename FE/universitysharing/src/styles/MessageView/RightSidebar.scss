@@ -84,7 +84,7 @@ $sidebar-width: 280px;
   .search-container {
     padding: 0 $padding-base $padding-base;
     position: sticky;
-    top: 0;
+    top: -16px;
     background-color: $bg-color;
     z-index: 1; // Ensure it's above list items
     border-bottom: 1px solid $border-color;
