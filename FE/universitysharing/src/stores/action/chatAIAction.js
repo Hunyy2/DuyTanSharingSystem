@@ -171,10 +171,19 @@ export const confirmAction = createAsyncThunk(
             if (key === 'Scope') {
               // Mapping tiếng Việt → enum số
               const scopeMap = {
-                'công khai': 0,
-                'riêng tư': 1,
-                'bạn bè': 2,
-              };
+              'công khai': 0,
+              'public': 0, // Thêm ánh xạ cho "public"
+              'mọi người': 0,
+              'tất cả': 0,
+              'riêng tư': 1,
+              'private': 1, // Thêm ánh xạ cho "private"
+              'chỉ mình tôi': 1,
+              'mình tôi': 1,
+              'bạn bè': 2,
+              'friends': 2, // Thêm ánh xạ cho "friends"
+              'chỉ bạn bè': 2,
+              'chỉ bạn bè của tôi': 2,
+            };
 
               const mappedScope = typeof value === 'string' ? scopeMap[value.toLowerCase()] : value;
               formData.append('Scope', mappedScope);
