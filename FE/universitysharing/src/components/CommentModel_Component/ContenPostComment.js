@@ -113,7 +113,7 @@ const ContentPostComment = ({ post, onClose }) => {
           </div>
         </div>
         <div className="more-options">
-          <FiMoreHorizontal size={20} className="more-icon" />
+          {/* <FiMoreHorizontal size={20} className="more-icon" /> */}
           <FiX size={20} className="close-icon" onClick={onClose} />
         </div>
       </div>

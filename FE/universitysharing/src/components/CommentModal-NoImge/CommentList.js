@@ -5,7 +5,7 @@ import { debounce } from "lodash";
 import { replyComments } from "../../stores/action/listPostActions";
 import { useDispatch, useSelector } from "react-redux";
 import getUserIdFromToken from "../../utils/JwtDecode";
-
+import Spinner from "../../utils/Spinner";
 const CommentList = ({
   comment,
   commentEndRef,
@@ -52,11 +52,14 @@ const CommentList = ({
           ))}
 
           {isLoadingMore && (
-            <div className="comment-loading">Đang tải thêm bình luận...</div>
+            <div className="comment-loading">
+              {" "}
+              <Spinner size={70} />
+            </div>
           )}
         </>
       ) : (
-        <span>Không có bình luận nào</span>
+        <span className="No-Comment-modal">Không có bình luận nào</span>
       )}
 
       <div ref={commentEndRef} style={{ height: "1px" }} />

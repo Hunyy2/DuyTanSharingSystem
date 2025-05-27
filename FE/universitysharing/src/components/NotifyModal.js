@@ -266,7 +266,7 @@ const NotifyModal = ({ isOpen, onClose }) => {
           Đã đọc
         </div>
       </div>
-      <div className="modal-content">
+      <div className="modal-notify-content">
         {loading &&
         hasFetchedInitialData[activeTab] &&
         sortedDisplayedNotifications.length === 0 ? (

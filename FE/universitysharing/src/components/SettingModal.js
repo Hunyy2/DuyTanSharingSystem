@@ -34,9 +34,8 @@ const SettingModal = ({ isOpen, onClose, users, UserProfile }) => {
   }, [isOpen, handleClickOutside]);
 
   const handleLogout = () => {
-    logout(); // Gọi logout từ authContext
-    toast.success("Đăng xuất thành công!");
-    navigate("/"); // Điều hướng về trang đăng nhập
+    localStorage.removeItem("token");
+    window.location.href = "/login";
     onClose(); // Đóng modal
   };
 
@@ -61,7 +60,7 @@ const SettingModal = ({ isOpen, onClose, users, UserProfile }) => {
             Cài đặt
           </span>
           <span className="btn-yourScore">Điểm uy tín</span>
-          <span className="btn-logout" onClick={logout}>
+          <span className="btn-logout" onClick={handleLogout}>
             Đăng xuất
           </span>
         </div>

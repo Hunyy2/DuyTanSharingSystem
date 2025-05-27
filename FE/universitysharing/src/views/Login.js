@@ -48,7 +48,7 @@ const Login = () => {
       } else if (error.response?.data?.message === "User not found") {
         toast.error("Tài khoản chưa tồn tại trên hệ thống");
       } else {
-        toast.error(error.response.data.message);
+        toast.error(error.response?.data?.message);
       }
     } finally {
       NProgress.done();

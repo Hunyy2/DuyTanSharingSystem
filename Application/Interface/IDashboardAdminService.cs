@@ -16,6 +16,8 @@ namespace Application.Interface
         Task<UserTrendDto> GetUserTrendAsync(string timeRange);
         Task<InteractionActivityDto> GetInteractionActivityAsync(string timeRange);
         Task<UserTrustDto> GetUserTrustDistributionAsync();
+        Task<RatingStatisticsDto> GetRatingStatisticsAsync();
+        Task<List<RideStatusStatisticsDto>> GetRideStatusStatisticsAsync(string groupBy);
 
     }
 }

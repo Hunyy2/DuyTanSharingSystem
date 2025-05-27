@@ -23,6 +23,7 @@ global using Microsoft.Extensions.Hosting;
 global using Application.Common;
 global using Application.Interface.Api;
 
+global using Application.DTOs.Ride;
 global using static Domain.Common.Enums;
 global using Application.DTOs.Message;
 global using Application.Interface.ContextSerivce;

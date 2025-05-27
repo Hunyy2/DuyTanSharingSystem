@@ -1,7 +1,7 @@
 import React from "react";
 import axios from "axios";
 
-const URL = "https://localhost:7053/api/Auth/refresh-token";
+const URL = `${process.env.REACT_APP_BASE_URL}/api/Auth/refresh-token`;
 const refreshToken = async () => {
   try {
     const response = await axios.post(URL, {}, { withCredentials: true });

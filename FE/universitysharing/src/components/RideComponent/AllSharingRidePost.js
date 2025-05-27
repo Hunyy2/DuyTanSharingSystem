@@ -35,6 +35,26 @@ import {
 import { resetPostState } from "../../stores/reducers/ridePostReducer";
 import "../../styles/AllSharingCar.scss";
 import UpdateRidePost from "./UpdateRidePost";
+import { FiMessageSquare } from "react-icons/fi";
+
+import {
+  useChatHandle,
+  useMessageReceiver,
+  useMessageReceiverData,
+} from "../../utils/MesengerHandle";
+
+import {
+  getConversationss,
+  getInbox,
+  getMessagess,
+} from "../../stores/action/messageAction";
+
+import {
+  openChatBox,
+  closeChatBox,
+  resetMessages,
+  setSelectFriend,
+} from "../../stores/reducers/messengerReducer";
 
 const defaultIcon = L.icon({
   iconUrl: markerIconPng,
@@ -137,44 +157,44 @@ const AllSharingRide = () => {
       console.error("Lỗi khi decode token:", err);
     }
   }
-const checkLocationPermission = (callback) => {
-  if (!navigator.geolocation) {
-    toast.error("Thiết bị không hỗ trợ định vị!");
-    return false;
-  }
+  const checkLocationPermission = (callback) => {
+    if (!navigator.geolocation) {
+      toast.error("Thiết bị không hỗ trợ định vị!");
+      return false;
+    }
 
-  navigator.permissions
-    .query({ name: "geolocation" })
-    .then((result) => {
-      if (result.state === "denied") {
-        toast.error(
-          "Vui lòng bật tính năng định vị trong trình duyệt để sử dụng chức năng này!"
-        );
-        return false;
-      } else if (result.state === "prompt") {
-        toast.info("Vui lòng cho phép truy cập vị trí khi được yêu cầu!");
-        // Thử yêu cầu vị trí để kích hoạt prompt
-        navigator.geolocation.getCurrentPosition(
-          () => {
-            callback(true); // Quyền được cấp
-          },
-          (err) => {
-            toast.error(
-              `Không thể truy cập vị trí: ${err.message}. Vui lòng bật định vị!`
-            );
-            callback(false);
-          }
-        );
-      } else {
-        callback(true); // Quyền đã được cấp
-      }
-    })
-    .catch((err) => {
-      console.error("Lỗi kiểm tra quyền định vị:", err);
-      toast.error("Không thể kiểm tra quyền định vị!");
-      callback(false);
-    });
-};
+    navigator.permissions
+      .query({ name: "geolocation" })
+      .then((result) => {
+        if (result.state === "denied") {
+          toast.error(
+            "Vui lòng bật tính năng định vị trong trình duyệt để sử dụng chức năng này!"
+          );
+          return false;
+        } else if (result.state === "prompt") {
+          toast.info("Vui lòng cho phép truy cập vị trí khi được yêu cầu!");
+          // Thử yêu cầu vị trí để kích hoạt prompt
+          navigator.geolocation.getCurrentPosition(
+            () => {
+              callback(true); // Quyền được cấp
+            },
+            (err) => {
+              toast.error(
+                `Không thể truy cập vị trí: ${err.message}. Vui lòng bật định vị!`
+              );
+              callback(false);
+            }
+          );
+        } else {
+          callback(true); // Quyền đã được cấp
+        }
+      })
+      .catch((err) => {
+        console.error("Lỗi kiểm tra quyền định vị:", err);
+        toast.error("Không thể kiểm tra quyền định vị!");
+        callback(false);
+      });
+  };
 
   useEffect(() => {
     dispatch(fetchRidePost());
@@ -245,7 +265,7 @@ const checkLocationPermission = (callback) => {
     return [lat, lon];
   };
 
-// Thêm hàm handleSeeMapClick để kiểm tra quyền vị trí
+  // Thêm hàm handleSeeMapClick để kiểm tra quyền vị trí
   const handleSeeMapClick = (ridePost) => {
     checkLocationPermission((hasPermission) => {
       if (hasPermission) {
@@ -372,6 +392,60 @@ const checkLocationPermission = (callback) => {
         })
       );
       setEditPost(null);
+    }
+  };
+
+  //Nhắn tin với người dùng chia sẻ xe
+
+  const {
+    handleJoin,
+    handleLeaveChat,
+    handleSendMessage,
+    markConversationAsSeen,
+  } = useChatHandle();
+
+  const messengerState = useSelector((state) => state.messenges || {});
+
+  const handleSelectedFriend = async (friendData) => {
+    const token = localStorage.getItem("token");
+    try {
+      //Thoát khỏi cuộc trò chuyện nếu join vào cuộc trò chuyện nào trước đó
+      if (messengerState.conversationId) {
+        await handleLeaveChat(messengerState.conversationId);
+      }
+      // Lấy dữ liệu cuộc trò chuyện mới
+      const conversationData = await dispatch(
+        getConversationss({ friendId: friendData.friendId, token })
+      ).unwrap();
+
+      const conversationId = conversationData.id;
+
+      dispatch(resetMessages());
+      dispatch(setSelectFriend(friendData));
+
+      // Tham gia cuộc trò chuyện mới qua SignalR
+
+      await handleJoin(conversationId);
+      const messages = await dispatch(
+        getMessagess({
+          conversationId,
+          token,
+          nextCursor: null,
+          pageSize: 20,
+        })
+      );
+
+      await markConversationAsSeen({
+        conversationId: conversationId, // Dùng trực tiếp conversationId mới
+        friendId: friendData.friendId, // Dùng trực tiếp friendId mới
+        messages: messages.payload.data || [], // ✅ Lấy đúng mảng tin nhắn
+        status: 2,
+      });
+
+      dispatch(closeChatBox());
+      dispatch(openChatBox());
+    } catch (error) {
+      console.error("Lỗi chọn bạn để chat:", error);
     }
   };
 
@@ -562,14 +636,29 @@ const checkLocationPermission = (callback) => {
               )}
 
               <div className="action-ride-post">
-                <div className="like-number-ride-post">
-                  <img
+                {!isOwner && (
+                  <div
+                    className="like-number-ride-post"
+                    onClick={() =>
+                      handleSelectedFriend({
+                        friendId: ridePost.userId,
+                        fullName: ridePost.userName,
+                        pictureProfile: ridePost.userAvatar,
+                        conversationId: 0,
+                      })
+                    }
+                  >
+                    {/* <img
                     className="like-ride-Post"
                     src={likeFillIcon}
                     alt="Like"
-                  />
-                  <span className="number-like-ride-post">12</span>
-                </div>
+                  /> */}
+
+                    <FiMessageSquare />
+                    <span className="number-like-ride-post">Nhắn tin</span>
+                  </div>
+                )}
+
                 {!isOwner && (
                   <div
                     className="accept-ride-post"

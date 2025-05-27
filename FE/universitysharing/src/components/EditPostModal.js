@@ -30,7 +30,7 @@ const EditModal = ({ isOpen, postId, post, onClose }) => {
 
       setMediaFile(() => {
         const media = [];
-        const baseUrl = "https://localhost:7053";
+        const baseUrl = `${process.env.REACT_APP_BASE_URL}`;
 
         // Tách nhiều ảnh từ chuỗi imageUrl
         if (typeof post.imageUrl === "string" && post.imageUrl.trim() !== "") {

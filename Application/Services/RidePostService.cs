@@ -354,6 +354,7 @@ namespace Application.Services
             };
         }
 
+
         public async Task<GetAllRidePostForOwnerDto> GetAllRidePostForOwnerAsync(Guid? lastPostId, int pageSize, Guid ownerId)
         {
             // Lấy danh sách 10 bài mới từ DB
