@@ -1,24 +1,22 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import {
+  RiArrowRightDoubleFill
+} from "react-icons/ri";
+import { useDispatch, useSelector } from "react-redux";
+import AllPostHome from "../components/HomeComponent/AllPostHome";
+import FooterHome from "../components/HomeComponent/FooterHome";
 import Header from "../components/HomeComponent/Header";
 import LeftSidebar from "../components/HomeComponent/LeftSideBarHome";
-import RightSidebar from "../components/HomeComponent/RightSideBarHome";
-import AllPostHome from "../components/HomeComponent/AllPostHome";
 import PostInputHome from "../components/HomeComponent/PostInputHome";
-import FooterHome from "../components/HomeComponent/FooterHome";
+import RightSidebar from "../components/HomeComponent/RightSideBarHome";
+import { useAuth } from "../contexts/AuthContext";
+import { userProfile } from "../stores/action/profileActions";
 import "../styles/HomeView.scss";
 import "../styles/MoblieReponsive/HomeViewMobile/HomeMobile.scss";
-import { useDispatch, useSelector } from "react-redux";
-import { userProfile } from "../stores/action/profileActions";
 import {
-  useSwipeToOpenSidebar,
   useBackButtonToCloseSidebar,
+  useSwipeToOpenSidebar,
 } from "../utils/OpenMenuLeftisdebar";
-import {
-  RiArrowLeftDoubleFill,
-  RiArrowRightDoubleFill,
-  RiLeafFill,
-} from "react-icons/ri";
-import { useAuth } from "../contexts/AuthContext";
 
 const HomeView = () => {
   const dispatch = useDispatch();
@@ -48,6 +46,15 @@ const HomeView = () => {
         <div className={`left-sidebar ${showSidebar ? "show" : ""}`}>
           <LeftSidebar usersProfile={users} />
           <FooterHome />
+        </div>
+        {/* Toggle button cho sidebar */}
+        <div
+          className={`sidebar-toggle ${showSidebar ? "move-right" : ""}`}
+          onClick={() => setShowSidebar(!showSidebar)}
+        >
+          <RiArrowRightDoubleFill
+            className={`toggle-icon ${showSidebar ? "rotate" : ""}`}
+          />
         </div>
         <div
           className={`Open-menu ${showSidebar ? "move-right" : ""}`}

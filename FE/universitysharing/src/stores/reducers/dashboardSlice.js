@@ -1,14 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
   fetchDashboardOverview,
-  fetchUserStats,
-  fetchReportStats,
-  fetchRecentPosts,
-  fetchUserTrend,
   fetchInteractionActivity,
-  fetchUserStatsScore,
   fetchRatingStatistics,
+  fetchRecentPosts,
+  fetchReportStats,
   fetchRideStatusStatistics,
+  fetchUserStats,
+  fetchUserStatsScore,
+  fetchUserTrend,
 } from "../action/dashboardActions";
 
 const dashboardSlice = createSlice({

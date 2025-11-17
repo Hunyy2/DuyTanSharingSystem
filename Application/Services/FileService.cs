@@ -13,6 +13,7 @@ namespace Application.Services
         private readonly string[] _allowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
         private readonly string[] _allowedVideoExtensions = { ".mp4", ".mov", ".avi", ".wmv", ".flv", ".mkv" };
         private readonly string _webRootPath;
+        private readonly string[] _allowedDocumentExtensions = { ".pdf", ".doc", ".docx", ".txt", ".ppt", ".pptx" }; // Thêm mảng cho document
         public FileService(IHostEnvironment env)
         {
             _webRootPath = Path.Combine(env.ContentRootPath, "wwwroot");
@@ -22,17 +23,20 @@ namespace Application.Services
             if (file == null || file.Length == 0)
                 return null;
 
-            // Danh sách đuôi file hợp lệ
-            var allowedImageExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
-            var allowedVideoExtensions = new[] { ".mp4", ".avi", ".mov", ".mkv" };
-
             var fileExtension = Path.GetExtension(file.FileName).ToLower();
 
-            if (isImage && !allowedImageExtensions.Contains(fileExtension))
-                throw new InvalidOperationException("Invalid image format! Only JPG, PNG, GIF allowed.");
-
-            if (!isImage && !allowedVideoExtensions.Contains(fileExtension))
-                throw new InvalidOperationException("Invalid video format! Only MP4, AVI, MOV, MKV allowed.");
+            if (isImage)
+            {
+                if (!_allowedImageExtensions.Contains(fileExtension))
+                    throw new InvalidOperationException("Invalid image format! Only JPG, JPEG, PNG, GIF, BMP allowed.");
+            }
+            else
+            {
+                // Hỗ trợ video HOẶC document (linh hoạt)
+                var allowedNonImageExtensions = _allowedVideoExtensions.Concat(_allowedDocumentExtensions).ToArray();
+                if (!allowedNonImageExtensions.Contains(fileExtension))
+                    throw new InvalidOperationException("Invalid file format! Only MP4, MOV, AVI, WMV, FLV, MKV, PDF, DOC, DOCX, TXT, PPT, PPTX allowed.");
+            }
 
             var folderPath = Path.Combine(_webRootPath, folderName);
             if (!Directory.Exists(folderPath))

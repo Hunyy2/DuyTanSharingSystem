@@ -51,7 +51,8 @@ namespace Application.CQRS.Commands.RidePosts
             if(user.TrustScore < 30)
                 return ResponseFactory.Fail<ResponseRidePostDto>("Tài khoản của bạn không đủ độ tin cậy để đăng bài", 403);
 
-
+            if (user.TrustScore < 50 && user.TrustScore >= 0)
+                return ResponseFactory.Fail<ResponseRidePostDto>("Để thao tác được chức năng này, bàn cần đạt ít nhất 51 điểm uy tín", 403);
             await _unitOfWork.BeginTransactionAsync();
             try
             {
@@ -67,7 +68,7 @@ namespace Application.CQRS.Commands.RidePosts
 
                 // Validate content
                 string contentToValidate = $"StartLocation: {startLocation} - EndLocation: {endLocation} - StartTime: {request.StartTime}";
-                bool isContentValid = await _geminiService.ValidatePostContentAsync(contentToValidate);
+                //bool isContentValid = await _geminiService.ValidatePostContentAsync(contentToValidate);
                 // 🛑 Kiểm duyệt bài đăng bằng ML.NET
                 //bool isValid = PostValidator.IsValid( post.Content , _mLService.Predict);
                 //if (!isValid)
@@ -80,13 +81,13 @@ namespace Application.CQRS.Commands.RidePosts
                 await _unitOfWork.RidePostRepository.AddAsync(ridePost);
                 await _unitOfWork.SaveChangesAsync();
 
-                if (!isContentValid)
-                {
-                    await _unitOfWork.CommitTransactionAsync();
-                    return ResponseFactory.Fail<ResponseRidePostDto>(
-                        "Warning! Content is not accepted! If you violate it again, your reputation will be deducted!!",
-                        400);
-                }
+                //if (!isContentValid)
+                //{
+                //    await _unitOfWork.CommitTransactionAsync();
+                //    return ResponseFactory.Fail<ResponseRidePostDto>(
+                //        "Warning! Content is not accepted! If you violate it again, your reputation will be deducted!!",
+                //        400);
+                //}
 
                 await _unitOfWork.CommitTransactionAsync();
 

@@ -1,0 +1,858 @@
+// File: styles/Accommodation/AllAccommodationPosts.scss
+
+.accommodation-map-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+  .map-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: white;
+    border-bottom: 1px solid #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    .search-container {
+      flex: 1;
+      max-width: 400px;
+      
+      .search-input {
+        width: 100%;
+        padding: 10px 16px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        
+        &:focus {
+          outline: none;
+          border-color: #1976d2;
+        }
+      }
+    }
+    
+    .create-button {
+      background: #1976d2;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      margin-left: 16px;
+      
+      &:hover {
+        background: #1565c0;
+      }
+    }
+  }
+  
+  .map-content {
+    flex: 1;
+    display: flex;
+    position: relative;
+    
+    .main-map {
+      flex: 1;
+      height: 100%;
+      z-index: 0 !important; /* Đảm bảo map luôn ở dưới */
+      pointer-events: auto !important;
+      position: relative;
+    }
+    
+    .detail-sidebar {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 400px;
+      background: white;
+      border-left: 1px solid #e0e0e0;
+      box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      overflow-y: auto;
+      z-index: 10;
+      &.open {
+        transform: translateX(0);
+      }
+      
+      .sidebar-header {
+        padding: 16px;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+        
+        h3 {
+          margin: 0;
+          color: #333;
+          font-size: 18px;
+        }
+        
+        .more-button {
+          background: none;
+          border: none;
+          font-size: 20px;
+          cursor: pointer;
+          color: #666;
+          margin-left: auto;
+          margin-right: 8px;
+          
+          &:hover {
+            color: #333;
+          }
+        }
+        
+        .close-button {
+          background: none;
+          border: none;
+          font-size: 20px;
+          cursor: pointer;
+          color: #666;
+          
+          &:hover {
+            color: #333;
+          }
+        }
+      }
+
+      .more-menu {
+        position: absolute;
+        top: 50px;
+        right: 16px;
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        z-index: 100;
+        min-width: 150px;
+
+        .menu-item {
+          padding: 12px 20px;
+          cursor: pointer;
+
+          &:hover {
+            background: #f5f5f5;
+          }
+
+          &.delete {
+            color: #e53935;
+
+            &:hover {
+              background: #ffebee;
+            }
+          }
+        }
+      }
+      
+      .sidebar-content {
+        padding: 16px;
+        
+        .user-profile {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 16px;
+
+          .profile-pic {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #f0f0f0; // Fallback background
+          }
+
+          .user-info {
+            flex: 1;
+
+            .user-name {
+              font-weight: 600;
+              font-size: 16px;
+              color: #333;
+            }
+
+            .phone-number {
+              font-size: 14px;
+              color: #666;
+            }
+
+            .trust-score {
+              font-size: 14px;
+              color: #1976d2;
+            }
+          }
+        }
+
+        .post-title {
+          font-size: 20px;
+          font-weight: 600;
+          color: #333;
+          margin-bottom: 12px;
+          line-height: 1.4;
+        }
+
+        .post-content {
+          font-size: 14px;
+          color: #666;
+          line-height: 1.5;
+          margin-bottom: 16px;
+        }
+
+        .accommodation-details-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+          margin-bottom: 16px;
+
+          .detail-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+
+            .detail-value {
+              font-size: 16px;
+              font-weight: 600;
+              color: #333;
+              margin-bottom: 4px;
+
+              &.price {
+                color: #e53935;
+              }
+
+              &.area {
+                color: #1976d2;
+              }
+
+              &.rating {
+                color: #ff9800;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+              }
+            }
+
+            .detail-label {
+              font-size: 12px;
+              color: #666;
+              text-transform: uppercase;
+            }
+          }
+        }
+
+        .address-section {
+          background: #f8f9fa;
+          border: 1px solid #e9ecef;
+          border-radius: 8px;
+          padding: 12px;
+          margin-bottom: 16px;
+
+          .address-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+          }
+
+          .address-value {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.4;
+          }
+        }
+
+        .created-at-section {
+          background: #f8f9fa;
+          border: 1px solid #e9ecef;
+          border-radius: 8px;
+          padding: 12px;
+          margin-bottom: 16px;
+
+          .created-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+          }
+
+          .created-value {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.4;
+          }
+        }
+
+        .reviews-section {
+          .reviews-toggle {
+            cursor: pointer;
+            color: #1976d2;
+            font-weight: 500;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+
+            &:hover {
+              text-decoration: underline;
+            }
+          }
+
+          .reviews-list {
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+
+            p {
+              color: #666;
+              font-style: italic;
+              text-align: center;
+              margin: 0;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Custom marker styles (fallback)
+.custom-marker {
+  background: #1976d2;
+  border: 3px solid white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  
+  &.highlighted {
+    background: #e53935;
+    transform: scale(1.2);
+  }
+}
+
+// Loading state
+.loading-posts {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  color: #666;
+}
+
+// Error state
+.error-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 20px;
+  background: #ffebee;
+  color: #c62828;
+  border-radius: 8px;
+  border: 1px solid #ffcdd2;
+  text-align: center;
+}
+
+// No posts state
+.no-posts {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 40px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  color: #666;
+  text-align: center;
+}
+// Status badge trong sidebar
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 600;
+  color: white !important;  // Override inline color nếu cần
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: fit-content;
+}
+
+// Custom marker hoàn chỉnh (global cho TomTom)
+.custom-marker {
+  cursor: pointer;
+  position: relative;
+  z-index: 10;
+
+  .marker-content {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+
+    .marker-emoji {
+      font-size: 18px;
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+
+    .marker-price {
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+    }
+  }
+
+  .marker-pulse {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 56px;
+    height: 56px;
+    border: 2px solid;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: pulse 2s infinite ease-out;
+    z-index: -1;
+  }
+
+  &:hover .marker-content {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  }
+
+  &.selected .marker-content {
+    transform: scale(1.3) !important;
+    box-shadow: 0 8px 20px rgba(25, 118, 210, 0.4) !important;
+    background-color: #e53935 !important; // Red for selected
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.4);
+    opacity: 0;
+  }
+}
+
+// Highlight selected marker (JS sẽ add class 'selected')
+.leaflet-marker-icon.selected,
+.tt-marker-element.selected {
+  .marker-content {
+    background-color: #e53935 !important;  // Đỏ cho selected
+  }
+}
+// Thêm vào cuối file AllAccommodationPosts.scss
+
+// Edit mode styles
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+
+  label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+  }
+
+  .form-input,
+  .form-textarea,
+  .form-select {
+    padding: 10px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s ease;
+    font-family: inherit;
+
+    &:focus {
+      outline: none;
+      border-color: #1976d2;
+      box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+    }
+  }
+
+  .form-textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+}
+
+.form-section {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+
+  label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 12px;
+    display: block;
+  }
+}
+
+.amenities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+
+  .amenity-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: #1976d2;
+      background: #f0f7ff;
+    }
+
+    &.selected {
+      border-color: #1976d2;
+      background: #e3f2fd;
+      
+      .amenity-checkbox {
+        background: #1976d2;
+        border-color: #1976d2;
+        
+        &::after {
+          content: '✓';
+          color: white;
+          font-size: 10px;
+          font-weight: bold;
+        }
+      }
+    }
+
+    .amenity-checkbox {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .amenity-label {
+      font-size: 13px;
+      color: #333;
+    }
+  }
+}
+
+.cancel-button {
+  background: none;
+  border: 1px solid #e0e0e0;
+  color: #666;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #f5f5f5;
+    border-color: #ccc;
+  }
+}
+
+// Responsive adjustments for edit mode
+@media (max-width: 768px) {
+  .amenities-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .sidebar-header {
+    .create-button {
+      margin-left: 0 !important;
+    }
+  }
+}
+// Thêm vào cuối file AllAccommodationPosts.scss
+
+// Create mode styles
+.create-instruction {
+  background: #e3f2fd;
+  border: 1px solid #1976d2;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: #1976d2;
+  
+  strong {
+    font-weight: 600;
+  }
+}
+
+.location-info {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  color: #666;
+  margin-top: 8px;
+  
+  strong {
+    color: #333;
+  }
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .sidebar-header {
+    .create-button {
+      margin-left: 0 !important;
+    }
+  }
+}
+// Thêm vào cuối file AllAccommodationPosts.scss
+
+// Radius Legend Styles
+.radius-legend {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  font-size: 12px;
+  z-index: 1000;
+  border: 1px solid #e0e0e0;
+  min-width: 200px;
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    .legend-color {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid #1976d2;
+      background: rgba(25, 118, 210, 0.1);
+      flex-shrink: 0;
+      
+      &.display-area {
+        border-style: dashed;
+        background: rgba(25, 118, 210, 0.05);
+      }
+    }
+    
+    span {
+      color: #333;
+      line-height: 1.3;
+    }
+  }
+}
+
+// Responsive legend
+@media (max-width: 768px) {
+  .radius-legend {
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    min-width: auto;
+    
+    .legend-item {
+      gap: 8px;
+      
+      span {
+        font-size: 11px;
+      }
+    }
+  }
+}
+.school-marker {
+  .marker-content {
+    background: #FFD700 !important;  // Vàng nổi bật
+    border: 2px solid #FFA500;  // Viền cam
+    width: 50px;
+    height: 50px;
+  }
+
+  .marker-emoji {
+    font-size: 24px;  // To hơn
+  }
+
+  .marker-label {
+    font-size: 10px;
+    font-weight: bold;
+    color: #333;
+  }
+}
+// Thêm vào cuối file AllAccommodationPosts.scss
+
+// Marker styles for creation mode
+.creation-marker {
+  cursor: pointer;
+  position: relative;
+  z-index: 1000;
+  width: 44px;
+  height: 44px;
+  
+  // KHÔNG CÒN transform: translate(-50%, -50%) ở đây
+  
+  .marker-content {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+    background: #4caf50 !important; // Green color for creation mode
+    border: 3px solid white;
+
+    .marker-emoji {
+      font-size: 18px;
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+
+    .marker-label {
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      color: white;
+    }
+  }
+
+  .marker-pulse {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 56px;
+    height: 56px;
+    border: 2px solid #4caf50;
+    border-radius: 50%;
+    transform: translate(-50%, -50%); // <--- transform này là ĐÚNG, vì nó căn giữa .marker-pulse so với .creation-marker
+    animation: pulse 2s infinite ease-out;
+    z-index: -1;
+  }
+}
+
+// (Các khối CSS bị xóa đã được gỡ bỏ)
+
+
+
+
+
+
+// Selected creation marker
+.creation-marker.selected {
+  z-index: 1001;
+  
+  .marker-content {
+    transform: scale(1.2);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+    background: #388e3c !important; // Darker green when selected
+  }
+}
+// Thêm vào file AllAccommodationPosts.scss
+
+// Improved loading states
+.loading-posts {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 30px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  color: #666;
+  text-align: center;
+  min-width: 200px;
+  
+  &::after {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e0e0e0;
+    border-top: 2px solid #1976d2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 16px auto 0;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// Map container fallback
+.main-map:empty {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  font-size: 16px;
+  
+  &::before {
+    content: '🔄 Đang tải bản đồ...';
+  }
+}

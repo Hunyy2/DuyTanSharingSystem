@@ -17,7 +17,7 @@ namespace Application
             services.AddScoped<ICommentLikeService, CommentLikeService>();
 
             //services.AddScoped<IPostService, PostService>();
-            services.AddHostedService<LikeEventProcessor>();
+            
 
             services.AddScoped<MLService>();
             services.AddScoped<IRidePostService, RidePostService>();
@@ -30,6 +30,8 @@ namespace Application
 
             services.AddScoped<ICommentService, CommentService>();
             services.AddScoped<IFriendshipService, FriendshipService>();
+         
+
 
             // Đăng ký File Service để lưu ảnh và video
             services.AddScoped<IFileService, FileService>();
@@ -37,19 +39,20 @@ namespace Application
             //background services
             //nếu ko làm việc liên quan đến like và LocationUpdate thì comment lại
 
-            services.AddHostedService<LikeEventProcessor>();
+            //services.AddHostedService<LikeEventProcessor>();
             services.AddHostedService<UpdateLocationProcessor>();
 
-            services.AddHostedService<GpsMonitorService>();
-            services.AddHostedService<LikeCommentEventProcessor>();
+            //services.AddHostedService<GpsMonitorService>();
+            //services.AddHostedService<LikeCommentEventProcessor>();
 
 
-            services.AddHostedService<TrustScoreBackgroundService>();
+            //services.AddHostedService<TrustScoreBackgroundService>();
 
 
-            services.AddHostedService<MessageProcessingService>();
+            //services.AddHostedService<MessageProcessingService>();
 
             //services.AddHostedService<RedisListenerService>();
+            
             //đăng kí hub
             services.AddScoped<INotificationService, NotificationService>();
             // Đăng ký Auth Services

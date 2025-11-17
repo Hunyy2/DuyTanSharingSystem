@@ -137,7 +137,10 @@ const YourRide = () => {
     useSelector((state) => state.rides);
   // Lấy authData từ useAuth
   const { userId: authUserId, isAuthenticated, isLoading } = useAuth();
-
+  const positionRef = useRef(currentPosition);
+  useEffect(() => {
+    positionRef.current = currentPosition;
+  }, [currentPosition]);
   const otherUserIcon = new L.Icon({
     iconUrl:
       "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png", // Marker màu vàng
@@ -457,52 +460,64 @@ const YourRide = () => {
 
   // Track current position using geolocation
   useEffect(() => {
-    if (!navigator.geolocation) {
-      console.error("Device does not support geolocation!");
-      return;
-    }
+  if (!navigator.geolocation) {
+    console.error("Device does not support geolocation!");
+    return;
+  }
 
-    const handlePositionError = (err) => {
-      console.error(`Geolocation error: ${err.message}`);
-    };
+  const handlePositionError = (err) => {
+    console.error(`Geolocation error: ${err.message}`);
+  };
 
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      ({ coords: { latitude, longitude } }) => {
-        const newPosition = { lat: latitude, lon: longitude };
-        // Chỉ cập nhật nếu vị trí thay đổi > 10m để tránh re-render quá nhiều
+  watchIdRef.current = navigator.geolocation.watchPosition(
+    ({ coords: { latitude, longitude } }) => {
+      const newPosition = { lat: latitude, lon: longitude };
+
+      // Dùng functional update để lấy state trước đó (prevPosition)
+      // mà không cần đưa 'currentPosition' vào mảng phụ thuộc.
+      setCurrentPosition((prevPosition) => {
         if (
-          !currentPosition ||
+          !prevPosition ||
           calculateDistance(
-            currentPosition.lat,
-            currentPosition.lon,
+            prevPosition.lat,
+            prevPosition.lon,
             latitude,
             longitude
-          ) > 0.01
+          ) > 0.01 // > 10m
         ) {
-          setCurrentPosition(newPosition);
-          console.log(`New position received: ${latitude}, ${longitude}`);
-          if (
-            !lastNotifiedPosition ||
-            calculateDistance(
-              lastNotifiedPosition.lat,
-              lastNotifiedPosition.lon,
-              latitude,
-              longitude
-            ) > 0.01
-          ) {
-            setLastNotifiedPosition(newPosition);
-          }
-        }
-      },
-      handlePositionError,
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
-    );
+          console.log(`[YourRide] New position received: ${latitude}, ${longitude}`);
+          
+          // Cập nhật lastNotifiedPosition bên trong này luôn
+          setLastNotifiedPosition((prevNotified) => {
+            if (
+              !prevNotified ||
+              calculateDistance(
+                prevNotified.lat,
+                prevNotified.lon,
+                latitude,
+                longitude
+              ) > 0.01
+            ) {
+              return newPosition;
+            }
+            return prevNotified;
+          });
 
-    return () => {
-      if (watchIdRef.current)
-        navigator.geolocation.clearWatch(watchIdRef.current);
-    };
-  }, [currentPosition, lastNotifiedPosition]);
+          return newPosition; // Cập nhật currentPosition
+        }
+        return prevPosition; // Không cập nhật nếu vị trí thay đổi < 10m
+      });
+    },
+    handlePositionError,
+    { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+  );
+
+  // Hàm dọn dẹp này giờ sẽ CHỈ CHẠY KHI COMPONENT UNMOUNT
+  return () => {
+    if (watchIdRef.current)
+      navigator.geolocation.clearWatch(watchIdRef.current);
+  };
+}, []); // <-- Mảng phụ thuộc RỖNG
   useEffect(() => {
     const currentRide = getCurrentRide();
     if (!currentRide) return; // Nếu currentRide không tồn tại thì dừng
@@ -560,25 +575,55 @@ const YourRide = () => {
 //   return () => clearInterval(intervalRef.current);
 // }, [currentPosition, driverRides, passengerRides, lastSentPosition, userId]);
 //sau
+// YourRide.js: SỬA LỖI GỬI VỊ TRÍ (thay cho code ở dòng 593)
 useEffect(() => {
-    const currentRide = getCurrentRide();
-    if (!currentPosition || !currentRide || !userId) return;
+  const currentRide = getCurrentRide();
+  
+  // Nếu không có chuyến đi hoặc user, đảm bảo interval bị hủy
+  if (!currentRide || !userId) {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    return; // Dừng lại
+  }
 
-    const rideId = currentRide.rideId;
-    const endLatLon = parseLatLon(currentRide.latLonEnd);
-    const { lat, lon } = currentPosition;
+  // Lấy thông tin cố định của chuyến đi
+  const rideId = currentRide.rideId;
+  const endLatLon = parseLatLon(currentRide.latLonEnd);
 
-    intervalRef.current = setInterval(() => {
-      const distanceToEnd = endLatLon
-        ? calculateDistance(lat, lon, endLatLon[0], endLatLon[1])
-        : Infinity;
-      const isNearDestination = distanceToEnd <= 1;
+  // Tạo interval MỘT LẦN
+  intervalRef.current = setInterval(() => {
+    // Lấy vị trí MỚI NHẤT từ ref
+    const pos = positionRef.current; 
+    
+    if (!pos) {
+      console.log("[Sender Interval] Chưa có vị trí, bỏ qua gửi...");
+      return;
+    }
 
-      sendLocationToServer(rideId, lat, lon, isNearDestination);
-    }, 20000); // Gửi mỗi 20 giây
+    const { lat, lon } = pos;
+    const distanceToEnd = endLatLon
+      ? calculateDistance(lat, lon, endLatLon[0], endLatLon[1])
+      : Infinity;
+    const isNearDestination = distanceToEnd <= 1;
 
-    return () => clearInterval(intervalRef.current);
-  }, [currentPosition, driverRides, passengerRides, userId]); // lastSentPosition có thể bị xóa khỏi dependencies vì nó không còn được sử dụng để bỏ qua các lần gửi
+    console.log(`[Sender Interval] Đang gửi vị trí cho ride ${rideId}`);
+    sendLocationToServer(rideId, lat, lon, isNearDestination);
+
+  }, 20000); // Gửi mỗi 20 giây
+
+  // Hàm dọn dẹp: Sẽ chạy khi 'currentRide' thay đổi (kết thúc)
+  // hoặc khi component unmount
+  return () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+
+  // Chỉ chạy lại effect này khi chuyến đi thay đổi (bắt đầu/kết thúc)
+}, [driverRides, passengerRides, userId]);// lastSentPosition có thể bị xóa khỏi dependencies vì nó không còn được sử dụng để bỏ qua các lần gửi
   // Fetch route from GraphHopper API
   const fetchRoute = async (rideId, startLatLon, endLatLon) => {
     const apiKey = process.env.REACT_APP_GRAPHHOPPER_API_KEY;

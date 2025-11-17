@@ -37,6 +37,13 @@ namespace Infrastructure
         public DbSet<UserReport> UserReports { get; set; }
         public DbSet<UserAction> UserActions { get; set; }
 
+        //trọ
+        public DbSet<AccommodationPost> AccommodationPosts { get; set; }
+        public DbSet<AccommodationReview> AccommodationReviews { get; set; }
+        public DbSet<Roommate> Roommates { get; set; }
+        //tài liệu
+        public DbSet<StudyMaterialRating> StudyMaterialRatings { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Khóa chính
@@ -71,6 +78,14 @@ namespace Infrastructure
             modelBuilder.Entity<UserAction>().HasKey(ua => ua.Id);
             modelBuilder.Entity<UserReport>().HasKey(ur  =>ur.Id);
 
+            //trọ
+            modelBuilder.Entity<AccommodationPost>().HasKey(ap => ap.Id);
+            modelBuilder.Entity<AccommodationReview>().HasKey(ar => ar.Id);
+            modelBuilder.Entity<Roommate>().HasKey(rm => rm.Id);
+            //tài liệu
+            modelBuilder.Entity<StudyMaterialRating>().HasKey(smr => smr.Id);
+            modelBuilder.Entity<StudyMaterial>().HasKey(sm => sm.Id);
+
             //Dùng HasQueryFilter để tự động loại bỏ dữ liệu đã bị xóa mềm (IsDeleted = true) khi truy vấn.
             //Nếu không sử dụng, cần phải thêm điều kiện IsDeleted = false trong mỗi truy vấn.
             modelBuilder.Entity<Post>().HasQueryFilter(p => !p.IsDeleted);
@@ -78,6 +93,8 @@ namespace Infrastructure
             modelBuilder.Entity<Like>().HasQueryFilter(l => !l.IsDeleted);
             modelBuilder.Entity<Share>().HasQueryFilter(s => !s.IsDeleted);
             modelBuilder.Entity<Report>().HasQueryFilter(p => !p.IsDeleted);
+
+
             // Cấu hình quan hệ
             modelBuilder.Entity<Post>()
                 .HasOne(p => p.User)
@@ -444,6 +461,54 @@ namespace Infrastructure
                 .WithMany()
                 .HasForeignKey(r => r.RatedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
+            //trọ
+            modelBuilder.Entity<AccommodationPost>()
+                .HasOne(ap => ap.User)
+                .WithMany(u => u.AccommodationPosts)
+                .HasForeignKey(ap => ap.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<AccommodationReview>()
+                .HasOne(ar => ar.AccommodationPost)
+                .WithMany(ap => ap.Reviews)
+                .HasForeignKey(ar => ar.AccommodationPostId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<AccommodationPost>()
+                .HasMany(ap => ap.Reviews)
+                .WithOne(ar => ar.AccommodationPost)
+                .HasForeignKey(ar => ar.AccommodationPostId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<AccommodationReview>()
+                .HasOne(ar => ar.User)
+                .WithMany(u => u.AccommodationReviews)
+                .HasForeignKey(ar => ar.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<AccommodationPost>()
+                .HasMany(ap => ap.Roommates)
+                .WithOne(rm => rm.AccommodationPost)
+                .HasForeignKey(rm => rm.AccommodationPostId)
+                .OnDelete(DeleteBehavior.Cascade);
+            //tài liệu
+            modelBuilder.Entity<StudyMaterialRating>()
+                .HasOne(smr => smr.Material)
+                .WithMany(sm => sm.Ratings)
+                .HasForeignKey(smr => smr.MaterialId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<StudyMaterialRating>()
+                .HasOne(smr => smr.User)
+                .WithMany(u => u.StudyMaterialRatings)
+                .HasForeignKey(smr => smr.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<StudyMaterial>()
+                .HasOne(sm => sm.User)
+                .WithMany(u => u.StudyMaterials)
+                .HasForeignKey(sm => sm.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<StudyMaterial>()
+                .HasMany(sm => sm.Ratings)
+                .WithOne(smr => smr.Material)
+                .HasForeignKey(smr => smr.MaterialId)
+                .OnDelete(DeleteBehavior.Cascade);
+
 
         }
     }

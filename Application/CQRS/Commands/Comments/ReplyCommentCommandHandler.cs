@@ -45,10 +45,10 @@ namespace Application.CQRS.Commands.Comments
             }
 
             // Kiểm tra nội dung bình luận
-            //if (!await _geminiService.ValidatePostContentAsync(request.Content))
-            //{
-            //    return ResponseFactory.Fail<ResultCommentDto>("Warning! Content is not accepted! If you violate it again, your reputation will be deducted!!", 400);
-            //}
+            if (!await _geminiService.ValidatePostContentAsync(request.Content))
+            {
+                return ResponseFactory.Fail<ResultCommentDto>("Warning! Content is not accepted! If you violate it again, your reputation will be deducted!!", 400);
+            }
 
             // 📌 Xác định cấp độ của bình luận cha
             int depth = 1;

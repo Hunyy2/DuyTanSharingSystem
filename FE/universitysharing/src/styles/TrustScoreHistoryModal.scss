@@ -20,6 +20,8 @@
   overflow-y: auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   padding: 20px;
+  position: relative;
+  z-index: 1001;
 }
 
 .modal-score-header {
@@ -199,6 +201,7 @@
     }
   }
 }
+
 .loading-state {
   text-align: center;
   padding: 10px;
@@ -210,4 +213,125 @@
   padding: 10px;
   color: #999;
   font-style: italic;
+}
+
+// Tooltip styles
+.trust-score-info {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  
+  .info-icon {
+    font-size: 1rem;
+    color: #3a86ff;
+    cursor: pointer;
+    transition: color 0.2s;
+    
+    &:hover {
+      color: #2667cc;
+    }
+  }
+}
+
+.trust-score-tooltip {
+  position: fixed;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  width: 320px;
+  max-width: 90vw;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  z-index: 1002;
+  font-size: 0.85rem;
+
+  .tooltip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f0f0f0;
+
+    h4 {
+      margin: 0;
+      color: #333;
+      font-size: 1rem;
+    }
+
+    .close-tooltip {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: #888;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      &:hover {
+        color: #333;
+      }
+    }
+  }
+
+  .current-level {
+    background: linear-gradient(135deg, #3a86ff, #2667cc);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    text-align: center;
+    font-weight: 500;
+    
+    .level-text {
+      font-size: 0.9rem;
+    }
+    
+    .level-score {
+      font-size: 0.8rem;
+      opacity: 0.9;
+    }
+  }
+
+  .level-system {
+    .level-item {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 10px;
+      padding: 8px;
+      border-radius: 6px;
+      background: #f8f9fa;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+      
+      .level-range {
+        min-width: 60px;
+        font-weight: 600;
+        color: #3a86ff;
+        font-size: 0.8rem;
+        margin-right: 8px;
+      }
+      
+      .level-permissions {
+        flex: 1;
+        color: #555;
+        font-size: 0.8rem;
+        line-height: 1.4;
+      }
+    }
+  }
+}
+
+.error-state {
+  text-align: center;
+  padding: 20px;
+  color: #dc3545;
+  background: #f8d7da;
+  border-radius: 8px;
+  margin: 10px 0;
 }

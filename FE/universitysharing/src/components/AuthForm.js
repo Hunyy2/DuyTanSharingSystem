@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import "../styles/AuthForm.scss";
-import logo from "../assets/Logo.png";
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
+import logo from "../assets/Logo.png";
+import "../styles/AuthForm.scss";
 
 const AuthForm = ({ type, onSubmit, loading, error }) => {
   const isLogin = type === "login";
@@ -54,7 +54,7 @@ const AuthForm = ({ type, onSubmit, loading, error }) => {
           <input
             type="email"
             name="email"
-            placeholder="Vui lòng nhập đúng định dạng xxxx@dtu.edu.vn"
+            placeholder="xxxx@gmail.com"
             onChange={handleChange}
             required
             autoComplete="email"

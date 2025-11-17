@@ -139,5 +139,19 @@ namespace Domain.Common
         {
             Public=0, Private=1, Friends=2
         }
+        //trọ
+        // Giả định enum cần thiết:
+        public enum StatusAccommodationEnum
+        {
+            Available = 0,
+            Rented = 1, // Đã thuê
+            Hidden = 2 // Ẩn
+        }
+        public enum StudyMaterialApprovalStatus
+        {
+            Pending = 0,    // Chờ duyệt
+            Approved = 1,   // Đã duyệt
+            Rejected = 2    // Từ chối
+        }
     }
 }

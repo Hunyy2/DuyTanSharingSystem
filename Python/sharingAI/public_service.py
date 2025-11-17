@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class PublicQueryProcessor:
     def __init__(self):
         self.sql_llm = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
+            model="gemini-2.5-flash",
             google_api_key=GOOGLE_API_KEY_QUERY,
             temperature=0.5,
             max_output_tokens=3024,

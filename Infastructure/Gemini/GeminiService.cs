@@ -30,7 +30,22 @@ namespace Infrastructure.Gemini
             }
             else
             {
-                prompt = $"Trả lời 'false' nếu nội dung sau đây có tính chất lừa đảo, spam, tục tĩu. Ngược lại, trả lời 'true'.\n\n{userContent}";
+                prompt = $"""
+                    Hãy kiểm tra nội dung sau và trả lời **chỉ là 'true' hoặc 'false'**:
+
+                    - Trả lời 'false' nếu nội dung có bất kỳ dấu hiệu nào sau:
+                      • Lừa đảo, dụ dỗ hoặc giả mạo.
+                      • Spam, quảng cáo không liên quan hoặc lặp đi lặp lại.
+                      • Ngôn từ tục tĩu, xúc phạm hoặc mang tính kích động.
+
+                    Nếu không có các dấu hiệu trên, trả lời 'true'.
+
+                    Nội dung:
+                    "{userContent}"
+                    Đừng kiểm tra nghiêm ngặt quá, thoải mái một tý.
+                    Nội dung không có ý nghĩa hoặc bạn không hiểu thì vẫn trả về true.
+                    """;
+
             }
 
 

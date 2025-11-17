@@ -38,16 +38,23 @@
 
 // export default ChatHeader;
 
-import React from "react";
-import "../../styles/MessageView/ChatHeader.scss";
-import avatartDefault from "../../assets/AvatarDefaultFill.png";
 import {
+  FiArrowLeft,
+  FiMoreHorizontal,
   FiPhone,
   FiVideo,
-  FiMoreHorizontal,
-  FiArrowLeft,
 } from "react-icons/fi";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import avatartDefault from "../../assets/AvatarDefaultFill.png";
+import "../../styles/MessageView/ChatHeader.scss";
 
+const Notifi = () => {
+  toast.info("Chức năng đang được phát triển!", {
+    position: "top-right",
+    autoClose: 3000,
+  });
+};
 const ChatHeader = ({
   toggleSidebar,
   goBack,
@@ -83,8 +90,8 @@ const ChatHeader = ({
         </div>
       </div>
       <div className="chat-header__actions">
-        <FiPhone className="chat-header__icon" />
-        <FiVideo className="chat-header__icon" />
+        <FiPhone className="chat-header__icon" onClick={Notifi} />
+        <FiVideo className="chat-header__icon"onClick={Notifi} />
         <FiMoreHorizontal
           className="chat-header__icon"
           onClick={toggleSidebar}

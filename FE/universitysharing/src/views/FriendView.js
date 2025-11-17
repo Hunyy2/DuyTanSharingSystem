@@ -1,27 +1,27 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { RiArrowRightDoubleFill } from "react-icons/ri";
 import { useDispatch, useSelector } from "react-redux";
+import Friendly from "../components/FriendComponent/Friendly";
+import FriendRequestsReceived from "../components/FriendComponent/FriendRequestReceived";
+import FriendRequestsSent from "../components/FriendComponent/FriendRequestSent";
+import FriendSuggestions from "../components/FriendComponent/FriendSuggestions";
+import FooterHome from "../components/HomeComponent/FooterHome";
+import Header from "../components/HomeComponent/Header";
+import LeftSidebar from "../components/HomeComponent/LeftSideBarHome";
 import {
+  fetchFriendSuggestions,
   fetchFriendsWithCursor,
   fetchReceivedRequestsWithCursor,
   fetchSentRequestsWithCursor,
-  fetchFriendSuggestions,
 } from "../stores/action/friendAction";
-import Header from "../components/HomeComponent/Header";
-import LeftSidebar from "../components/HomeComponent/LeftSideBarHome";
-import FooterHome from "../components/HomeComponent/FooterHome";
-import FriendRequestsReceived from "../components/FriendComponent/FriendRequestReceived";
-import FriendRequestsSent from "../components/FriendComponent/FriendRequestSent";
-import Friendly from "../components/FriendComponent/Friendly";
-import FriendSuggestions from "../components/FriendComponent/FriendSuggestions";
-import {
-  useSwipeToOpenSidebar,
-  useBackButtonToCloseSidebar,
-} from "../utils/OpenMenuLeftisdebar";
-import { RiArrowRightDoubleFill } from "react-icons/ri";
+import { userProfile } from "../stores/action/profileActions";
+import "../styles/FriendViews/FriendView.scss";
 import "../styles/HomeView.scss";
 import "../styles/MoblieReponsive/HomeViewMobile/HomeMobile.scss";
-import "../styles/FriendViews/FriendView.scss";
-import { userProfile } from "../stores/action/profileActions";
+import {
+  useBackButtonToCloseSidebar,
+  useSwipeToOpenSidebar,
+} from "../utils/OpenMenuLeftisdebar";
 
 const FriendView = () => {
   const dispatch = useDispatch();
@@ -112,6 +112,15 @@ const FriendView = () => {
         <div className={`left-sidebar ${showSidebar ? "show" : ""}`}>
           <LeftSidebar usersProfile={users} />
           <FooterHome />
+        </div>
+        {/* Toggle button cho sidebar */}
+        <div
+          className={`sidebar-toggle ${showSidebar ? "move-right" : ""}`}
+          onClick={() => setShowSidebar(!showSidebar)}
+        >
+          <RiArrowRightDoubleFill
+            className={`toggle-icon ${showSidebar ? "rotate" : ""}`}
+          />
         </div>
         <div
           className={`Open-menu ${showSidebar ? "move-right" : ""}`}

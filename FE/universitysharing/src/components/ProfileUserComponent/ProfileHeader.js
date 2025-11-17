@@ -1,18 +1,18 @@
-import React, {
-  useState,
-  useEffect,
+import {
   forwardRef,
+  useEffect,
   useImperativeHandle,
+  useState,
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import EditProfileModal from "./EditProfileModal";
-import TrustScoreHistoryModal from "../TrustScoreHistoryModal";
-import { userProfile } from "../../stores/action/profileActions";
-import { fetchFriends } from "../../stores/action/friendAction";
-import "../../styles/ProfileUserView/ProfileHeader.scss";
 import avatarDefaut from "../../assets/AvatarDefaultFill.png";
 import logoWeb from "../../assets/Logo.png";
+import { fetchFriends } from "../../stores/action/friendAction";
+import { userProfile } from "../../stores/action/profileActions";
 import "../../styles/MoblieReponsive/UsersProfileMoblie/ProfileViewMobile.scss";
+import "../../styles/ProfileUserView/ProfileHeader.scss";
+import TrustScoreHistoryModal from "../TrustScoreHistoryModal";
+import EditProfileModal from "./EditProfileModal";
 
 const ProfileHeader = forwardRef((props, ref) => {
   const dispatch = useDispatch();

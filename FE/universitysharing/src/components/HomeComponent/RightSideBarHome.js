@@ -2,31 +2,26 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { FiSearch } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import avatarDefault from "../../assets/AvatarDefault.png";
+import signalRService from "../../Service/signalRService";
 import { fetchFriends } from "../../stores/action/friendAction";
-import { setActiveFriend } from "../../stores/reducers/friendReducer";
 import {
   setUserOffline,
   setUserOnline,
 } from "../../stores/reducers/onlineSlice";
-import Spinner from "../../utils/Spinner";
-import signalRService from "../../Service/signalRService";
 import "../../styles/MessageView/RightSidebar.scss";
-import ChatBox from "../MessageComponent/ChatBox";
+import Spinner from "../../utils/Spinner";
 
-import {
-  useChatHandle,
-  useMessageReceiver,
-  useMessageReceiverData,
-} from "../../utils/MesengerHandle";
 import {
   getConversationss,
-  getInbox,
-  getMessagess,
+  getMessagess
 } from "../../stores/action/messageAction";
+import {
+  useChatHandle
+} from "../../utils/MesengerHandle";
 
 import {
-  openChatBox,
   closeChatBox,
+  openChatBox,
   resetMessages,
   setSelectFriend,
 } from "../../stores/reducers/messengerReducer";
@@ -279,74 +274,3 @@ const RightSidebar = () => {
 
 export default RightSidebar;
 
-// return (
-//     <>
-//       <aside className="right-sidebar">
-//         <div className="search-container">
-//           <h3>Bạn Bè</h3>
-//           <div className="search-box">
-//             <FiSearch className="search-icon" />
-//             <input
-//               type="text"
-//               placeholder="Tìm kiếm bạn bè..."
-//               value={searchQuery}
-//               onChange={handleSearchChange}
-//             />
-//           </div>
-//         </div>
-//         {onlineError && (
-//           <p className="error-message">
-//             Lỗi tải trạng thái online: {onlineError}
-//           </p>
-//         )}
-//         <div className="friends-list">
-//           <ul>
-//             {filteredFriends.map((friend) => {
-//               const isOnline = onlineStatus[friend.friendId] ?? false;
-//               return (
-//                 <li
-//                   key={friend.friendId}
-//                   className={activeFriend === friend.friendId ? "active" : ""}
-//                   onClick={() =>
-//                     handleSelectedFriend({
-//                       friendId: friend.friendId,
-//                       fullName: friend.fullName,
-//                       pictureProfile: friend.pictureProfile,
-//                       conversationId: 0,
-//                     })
-//                   }
-//                 >
-//                   <div className="friend-info">
-//                     <img
-//                       src={friend.pictureProfile || avatarDefault}
-//                       alt={`${friend.fullName || "Bạn bè"}'s avatar`}
-//                     />
-//                     <div className="name-status">
-//                       <div className="friend-name">
-//                         {friend.fullName || "Không tên"}
-//                       </div>
-//                       <div className="status-container">
-//                         <span
-//                           className={`status-dot ${
-//                             isOnline ? "online" : "offline"
-//                           }`}
-//                         ></span>
-//                         <span className="status-text">
-//                           {isOnline
-//                             ? "Online"
-//                             : getLastSeenText(friend.lastSeen)}
-//                         </span>
-//                       </div>
-//                     </div>
-//                   </div>
-//                 </li>
-//               );
-//             })}
-//             {filteredFriends.length === 0 && (
-//               <div className="loading-error">Không tìm thấy bạn bè.</div>
-//             )}
-//           </ul>
-//         </div>
-//       </aside>
-//     </>
-//   );

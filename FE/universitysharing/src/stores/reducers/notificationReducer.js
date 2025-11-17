@@ -1,10 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
   fetchNotifications,
-  fetchNotificationsUnread,
   fetchNotificationsRead,
-  markNotificationAsRead,
+  fetchNotificationsUnread,
   fetchUnreadNotificationCount,
+  markNotificationAsRead,
 } from "../action/notificationAction";
 
 const initialState = {

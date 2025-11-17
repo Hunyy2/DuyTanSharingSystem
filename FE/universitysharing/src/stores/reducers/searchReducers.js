@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { searchPost, fetchUserProfile } from "../action/searchAction";
+import { fetchUserProfile, searchPost } from "../action/searchAction";
 
 const searchSlice = createSlice({
   name: "searchs",

@@ -1,4 +1,6 @@
-﻿namespace Application.BackgroundServices
+﻿using Application.Services;
+
+namespace Application.BackgroundServices
 {
     public class GpsMonitorService : BackgroundService
     {
@@ -111,7 +113,42 @@
                                 await _unitOfWork.RollbackTransactionAsync();
                                 throw new Exception("Lỗi khi lưu báo cáo NoResponse: " + ex.Message);
                             }
+                            // --- (3) LOGIC MỚI: Chuyến đi quá 12 giờ chưa hoàn thành ---
+                            TimeSpan maximumRideDuration = TimeSpan.FromHours(12);
 
+                            if (ride.Status == StatusRideEnum.Accepted && (currentUtc - ride.StartTime) > maximumRideDuration)
+                            {
+                                // 1. Gửi cảnh báo hủy chuyến cho cả Tài xế và Hành khách
+                                string alertMessage = "🔴 CẢNH BÁO KHẨN CẤP: Chuyến đi đã quá 12 giờ và tự động bị HỦY (FAILED) để đảm bảo an toàn. Vui lòng liên hệ với người thân hoặc Admin.";
+                                await notificationService.SendAlertAsync(ride.DriverId, alertMessage);
+                                await notificationService.SendAlertAsync(ride.PassengerId, alertMessage);
+
+                                // 2. Cập nhật trạng thái chuyến đi thành Bị hủy (Cancelled/Failed)
+                                ride.CancelRide(); // Hoặc StatusRideEnum.Failed
+                                await rideRepository.UpdateAsync(ride);
+                                await _unitOfWork.CommitTransactionAsync();
+                                // 3. Báo cáo sự cố và Trừ điểm uy tín
+                                //await _unitOfWork.BeginTransactionAsync();
+                                //try
+                                //{
+                                //    // Giả định AlertTypeEnums có giá trị MaxDurationExceeded
+                                //    var report = new RideReport(ride.Id, ride.DriverId, AlertTypeEnums.TripDelayed, "🔴 Chuyến đi tự động hủy do vượt quá 12 giờ. Cần kiểm tra an toàn.");
+                                //    await _unitOfWork.RideReportRepository.AddAsync(report);
+
+                                //    // Trừ điểm uy tín (Trừ Tài xế 50 điểm vì không hoàn thành chuyến)
+                                //    // Giả định hàm DeductScoreAsync có sẵn trong ITrustScoreService
+                                //    await trustScoreService.DeductScoreAsync(ride.DriverId, 50, "Auto-cancelled: Exceeded 12h duration (Trip failure).");
+
+                                //    await _unitOfWork.SaveChangesAsync();
+                                //    await _unitOfWork.CommitTransactionAsync();
+                                //}
+                                //catch (Exception ex)
+                                //{
+                                //    await _unitOfWork.RollbackTransactionAsync();
+                                //    // Log lỗi: Lỗi khi xử lý hủy chuyến quá 12h
+                                //}
+                            }
+                            // --- KẾT THÚC LOGIC MỚI ---
                             // (3.1) Nếu khách hàng không phản hồi trong 24h, gửi cảnh báo đến số điện thoại khẩn cấp
                             //_ = Task.Delay(TimeSpan.FromHours(24)).ContinueWith(async _ =>
                             //{

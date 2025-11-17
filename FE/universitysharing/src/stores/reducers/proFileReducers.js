@@ -1,15 +1,15 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
-  userProfile,
-  getPostOwner,
-  userProfileDetail,
-  updateUserProfile,
-  updateUserInformation,
+  fetchAllPostImages,
   fetchOtherUserProfile,
   fetchPostImagesPreview,
-  fetchAllPostImages,
   fetchTrustScoreHistories,
   fetchUserInformationDetail,
+  getPostOwner,
+  updateUserInformation,
+  updateUserProfile,
+  userProfile,
+  userProfileDetail,
 } from "../action/profileActions";
 
 const listUser = createSlice({

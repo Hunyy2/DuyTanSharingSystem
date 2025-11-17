@@ -1,39 +1,49 @@
-import React, {
-  useState,
-  useEffect,
-  forwardRef,
-  useImperativeHandle,
-  useCallback,
-} from "react";
 import {
-  sendFriendRequest,
-  cancelFriendRequest,
-  fetchSentFriendRequests,
-  acceptFriendRequest,
-  rejectFriendRequest,
-  removeFriend,
-} from "../../stores/action/friendAction";
-import { FaUserPlus, FaUserCheck, FaUserClock } from "react-icons/fa";
-import { BsThreeDots, BsChevronDown } from "react-icons/bs";
-import { useDispatch, useSelector } from "react-redux";
-import EditProfileModal from "./EditProfileModal";
-import UserReportUserModal from "./UserReportUserModal"; // Sửa đường dẫn import
-import { userProfileDetail } from "../../stores/action/profileActions";
-import getUserIdFromToken from "../../utils/JwtDecode";
-import "../../styles/ProfileUserView/ProfileHeader.scss";
-import "../../styles/MoblieReponsive/ProfileFriendMobile/ProfileHeaderMobile.scss";
-import "../../styles/ProfileUserView/UserReportUserModal.scss";
-import avatarDefaut from "../../assets/AvatarDefaultFill.png";
-import logoWeb from "../../assets/Logo.png";
-import { toast } from "react-toastify";
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useState,
+} from "react";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
+import { BsChatDots, BsChevronDown, BsThreeDots } from "react-icons/bs";
+import { FaUserCheck, FaUserClock, FaUserPlus } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
+import avatarDefaut from "../../assets/AvatarDefaultFill.png";
+import logoWeb from "../../assets/Logo.png";
 import {
+  acceptFriendRequest,
+  cancelFriendRequest,
   fetchFriendsByUserId,
   fetchListFriend,
   fetchListFriendReceive,
+  fetchSentFriendRequests,
+  rejectFriendRequest,
+  removeFriend,
+  sendFriendRequest,
 } from "../../stores/action/friendAction";
-
+import {
+  getConversationss,
+  getMessagess
+} from "../../stores/action/messageAction";
+import { userProfileDetail } from "../../stores/action/profileActions";
+import {
+  closeChatBox,
+  openChatBox,
+  resetMessages,
+  setSelectFriend,
+} from "../../stores/reducers/messengerReducer";
+import "../../styles/MoblieReponsive/ProfileFriendMobile/ProfileHeaderMobile.scss";
+import "../../styles/ProfileUserView/ProfileHeader.scss";
+import "../../styles/ProfileUserView/UserReportUserModal.scss";
+import getUserIdFromToken from "../../utils/JwtDecode";
+import {
+  useChatHandle
+} from "../../utils/MesengerHandle";
+import EditProfileModal from "./EditProfileModal";
+import UserReportUserModal from "./UserReportUserModal"; // Sửa đường dẫn import
 const ProfileFriendHeader = forwardRef((props, ref) => {
   const {
     shouldFocusBio,
@@ -44,6 +54,15 @@ const ProfileFriendHeader = forwardRef((props, ref) => {
 
   const userId = getUserIdFromToken();
   const dispatch = useDispatch();
+
+  //Các hàm tin nhắn từ chat handle
+  const {
+    handleJoin,
+    handleLeaveChat,
+    handleSendMessage,
+    markConversationAsSeen,
+  } = useChatHandle();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [showFriendOptions, setShowFriendOptions] = useState(false);
@@ -69,8 +88,55 @@ const ProfileFriendHeader = forwardRef((props, ref) => {
   );
   const sentRequests = useSelector((state) => state.friends.sentFriendRequests);
 
+  const messengerState = useSelector((state) => state.messenges || {});
+
   // Hàm delay
   const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  //chọn bạn nhắn tin để mở chatbox
+  const handleSelectedFriend = async (friendData) => {
+    const token = localStorage.getItem("token");
+    try {
+      //Thoát khỏi cuộc trò chuyện nếu join vào cuộc trò chuyện nào trước đó
+      if (messengerState.conversationId) {
+        await handleLeaveChat(messengerState.conversationId);
+      }
+      // Lấy dữ liệu cuộc trò chuyện mới
+      const conversationData = await dispatch(
+        getConversationss({ friendId: friendData.friendId, token })
+      ).unwrap();
+
+      const conversationId = conversationData.id;
+
+      dispatch(resetMessages());
+      dispatch(setSelectFriend(friendData));
+
+      // Tham gia cuộc trò chuyện mới qua SignalR
+
+      await handleJoin(conversationId);
+      const messages = await dispatch(
+        getMessagess({
+          conversationId,
+          token,
+          nextCursor: null,
+          pageSize: 20,
+        })
+      );
+
+      await markConversationAsSeen({
+        conversationId: conversationId, // Dùng trực tiếp conversationId mới
+        friendId: friendData.friendId, // Dùng trực tiếp friendId mới
+        messages: messages.payload.data || [], // ✅ Lấy đúng mảng tin nhắn
+        status: 2,
+      });
+
+      dispatch(closeChatBox());
+
+      dispatch(openChatBox());
+    } catch (error) {
+      console.error("Lỗi chọn bạn để chat:", error);
+    }
+  };
 
   // Hàm xử lý gửi lời mời kết bạn
   const handleAddFriend = useCallback(async () => {
@@ -99,6 +165,7 @@ const ProfileFriendHeader = forwardRef((props, ref) => {
       setIsLoading((prev) => ({ ...prev, action: false }));
     }
   }, [userData?.id, dispatch, isLoading.action]);
+  //hàm nhắn tin
 
   // Hàm xử lý hủy lời mời kết bạn
   const handleCancelRequest = useCallback(async () => {
@@ -367,6 +434,22 @@ const ProfileFriendHeader = forwardRef((props, ref) => {
             </>
           ) : friendStatus.isFriend ? (
             <div className="profile-header__friend-actions">
+              {userId !== userData?.id && ( 
+              <button
+              className="profile-header__message-button"
+              onClick={() =>
+                    handleSelectedFriend({
+                      friendId: userData.id,
+                      fullName: userData.fullName,
+                      pictureProfile: userData.profilePicture,
+                      conversationId: 0,
+                    })
+                  }
+              >
+              <BsChatDots style={{ marginRight: "8px" }} />
+              Nhắn tin
+              </button>
+              )}
               <button
                 className="profile-header__friend-button"
                 onClick={() => setShowFriendOptions(!showFriendOptions)}

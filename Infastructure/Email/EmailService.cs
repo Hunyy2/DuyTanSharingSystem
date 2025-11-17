@@ -5,6 +5,7 @@ using MimeKit.Text;
 using Application.Interface;
 using MailKit.Security;
 using MailKit.Net.Smtp;
+//HAC2JR2FJML5AHVY4584A74Y
 namespace Infrastructure.Email
 {
     public class EmailService : IEmailService

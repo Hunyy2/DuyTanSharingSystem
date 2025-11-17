@@ -10,12 +10,11 @@ import RightSidebar from "../components/MessageComponent/RightSidebar";
 import { fetchFriends } from "../stores/action/friendAction";
 import { userProfile } from "../stores/action/profileActions";
 import {
-  resetMessages,
-  setSelectFriend,
-  formatFriendsToInboxRead,
-  rejectChatBox,
-  nonRejectChatBox,
   closeChatBox,
+  nonRejectChatBox,
+  rejectChatBox,
+  resetMessages,
+  setSelectFriend
 } from "../stores/reducers/messengerReducer";
 import "../styles/MessageView.scss";
 import "../styles/MoblieReponsive/MessageViewMobile/MessageViewMobile.scss";
@@ -249,7 +248,7 @@ const MessageView = () => {
             isLoading={isLoading}
           />
         </div>
-
+          
         <div
           className={`message-view__content-wrapper ${
             isChatSelected ? "" : "hide-on-mobile"

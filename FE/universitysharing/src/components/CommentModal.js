@@ -54,7 +54,7 @@ const CommentModal = ({ post, onClose, usersProfile }) => {
     ),
     ...(hasVideo ? [post.videoUrl] : []),
   ];
-
+console.log("mediaItems", mediaItems);
   useEffect(() => {
     const handleKeyClose = (event) => {
       if (event.key === "Escape") {

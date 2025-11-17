@@ -1,12 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
-  getMessagess,
-  sendMessage,
   getConversationss,
   getInbox,
-  sendMessages,
+  getMessagess
 } from "../action/messageAction";
-import { fetchFriends } from "../action/friendAction";
 
 const messenger = createSlice({
   name: "messenger",

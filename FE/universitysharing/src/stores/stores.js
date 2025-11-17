@@ -26,8 +26,12 @@ import deepLinkReducer from "./reducers/deepLinkReducer.js";
 import messengerReducer from "./reducers/messengerReducer.js";
 import typingReducer from "./reducers/typingReducer.js";
 
+import accommodationPostReducer from "./reducers/accommodationPostReducer";
+import accommodationReviewReducer from "./reducers/accommodationReviewReducer.js";
+import accommodationSearchAIReducer from "./reducers/accommodationSearchAIReducer";
 import authReducer from "./reducers/authReducer.js";
-
+import materialReviewReducer from "./reducers/materialReviewReducer.js";
+import studyMaterialReducer from "./reducers/studyMaterialReducer.js";
 // 1. Tạo persist config riêng cho posts
 const postsPersistConfig = {
   key: "posts",
@@ -40,6 +44,11 @@ const rootReducer = combineReducers({
   posts: persistReducer(postsPersistConfig, listPostReducer), // dùng persist ở đây
   users: listUser,
   rides: ridePostReducer,
+  accommodation: accommodationPostReducer,
+  accommodationReviews: accommodationReviewReducer,
+  accommodationSearchAI: accommodationSearchAIReducer,
+  studyMaterials: studyMaterialReducer,
+  materialReviews: materialReviewReducer,
   report: reportSlice,
   friends: friendReducer,
   reportAdmintSlice: reporAdmintSlice,
