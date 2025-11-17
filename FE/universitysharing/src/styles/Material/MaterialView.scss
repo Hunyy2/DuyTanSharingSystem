@@ -1,0 +1,336 @@
+// File: styles/MaterialView/MaterialView.scss
+
+.material-view {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #f8f9fa;
+
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .main-content {
+    display: flex;
+    flex: 1;
+    position: relative;
+    min-height: calc(100vh - 80px); // Trừ chiều cao header
+
+    // Left Sidebar Overlay
+    .left-sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 998;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+
+      &.show {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      @media (min-width: 1024px) {
+        display: none;
+      }
+    }
+
+    // Left Sidebar
+    .left-sidebar {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 300px;
+      height: 100vh;
+      background: white;
+      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+      z-index: 999;
+      transition: left 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+
+      &.show {
+        left: 0;
+      }
+
+      @media (min-width: 1024px) {
+        position: static;
+        width: 280px;
+        height: auto;
+        box-shadow: none;
+        border-right: 1px solid #e0e0e0;
+      }
+    }
+
+    // Sidebar Toggle Buttons
+    .sidebar-toggle,
+    .Open-menu {
+      position: fixed;
+      top: 50%;
+      left: 20px;
+      transform: translateY(-50%);
+      background: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+      z-index: 997;
+      transition: all 0.3s ease;
+
+      &.move-right {
+        left: 320px;
+
+        @media (min-width: 1024px) {
+          left: 300px;
+        }
+      }
+
+      .toggle-icon,
+      .Open-menu-icon {
+        font-size: 20px;
+        color: #1976d2;
+        transition: transform 0.3s ease;
+
+        &.rotate {
+          transform: rotate(180deg);
+        }
+      }
+
+      @media (min-width: 1024px) {
+        display: none;
+      }
+    }
+
+    .Open-menu {
+      display: none;
+
+      @media (max-width: 1023px) {
+        display: flex;
+        top: 80px;
+        left: 10px;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+      }
+    }
+
+    // Center Content - Study Materials
+    .center-content {
+      flex: 1;
+      padding: 0;
+      background: #f8f9fa;
+      min-height: 100%;
+      overflow-y: auto;
+
+      .study-materials {
+        height: 100%;
+        min-height: calc(100vh - 80px);
+      }
+
+      @media (max-width: 768px) {
+        padding: 0;
+      }
+    }
+
+    // Right Sidebar
+    .right-sidebar {
+      width: 320px;
+      background: white;
+      border-left: 1px solid #e0e0e0;
+      height: calc(100vh - 80px);
+      position: sticky;
+      top: 80px;
+      overflow-y: auto;
+
+      @media (max-width: 1200px) {
+        width: 280px;
+      }
+
+      @media (max-width: 1024px) {
+        display: none;
+      }
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 1024px) {
+  .material-view {
+    .main-content {
+      .center-content {
+        width: 100%;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .material-view {
+    .main-content {
+      .left-sidebar {
+        width: 280px;
+        
+        &.show {
+          left: 0;
+        }
+      }
+
+      .sidebar-toggle {
+        &.move-right {
+          left: 300px;
+        }
+      }
+
+      .center-content {
+        padding: 0;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .material-view {
+    .main-content {
+      .left-sidebar {
+        width: 100%;
+        
+        &.show {
+          left: 0;
+        }
+      }
+
+      .sidebar-toggle {
+        &.move-right {
+          left: calc(100% - 60px);
+        }
+      }
+    }
+  }
+}
+
+// Animation for sidebar toggle
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+// Custom scrollbar for sidebars
+.left-sidebar,
+.right-sidebar {
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+}
+
+// Loading states
+.material-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  flex-direction: column;
+  gap: 16px;
+
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e0e0e0;
+    border-top: 4px solid #1976d2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  .loading-text {
+    color: #666;
+    font-size: 16px;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// Error state
+.material-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  flex-direction: column;
+  gap: 16px;
+  text-align: center;
+  padding: 20px;
+
+  .error-icon {
+    font-size: 48px;
+    color: #f44336;
+  }
+
+  .error-title {
+    color: #333;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .error-message {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+
+  .retry-button {
+    background: #1976d2;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background: #1565c0;
+    }
+  }
+}

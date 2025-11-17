@@ -72,6 +72,11 @@ namespace Infrastructure
             services.AddScoped<IFriendshipRepository, FriendshipRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<IUserScoreHistoriesRepository, UserScoreHistoriesRepository>();
+            services.AddScoped<IAccommodationPostRepository, AccommodationPostRepository>();
+            services.AddScoped<IAccommodationReviewRepository, AccommodationReviewRepository>();
+            services.AddScoped<IStudyMaterialRepository, StudyMaterialRepository>();
+            services.AddScoped<IStudyMaterialRatingRepository, StudyMaterialRatingRepository>();
+
             //đăng kí cho search AI
             services.AddScoped<IDataAIService, DataAIService>();
             services.AddScoped<IApiPythonService, ApiPythonService>();
@@ -85,9 +90,11 @@ namespace Infrastructure
             // ✅ Đăng ký GeminiService
             services.AddScoped<IGeminiService, GeminiService>();
             services.AddScoped<IGeminiService2, GeminiService2>();
+            services.AddScoped<IGeminiAccommodationServices, GeminiAccommodationServices>();
             // Đăng ký Google Maps và HERE Maps nhưng chưa chọn
             services.AddScoped<GoogleMapsService>();
             services.AddScoped<HereMapService>();
+            services.AddScoped<TomTomMapService>();
             // Đăng ký Factory
             services.AddScoped<MapServiceFactory>();
             // Đăng ký IMapService thông qua Factory

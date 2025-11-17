@@ -29,14 +29,14 @@ logger = logging.getLogger(__name__)
 class DeleteQueryProcessor:
     def __init__(self):
         self.sql_llm = ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",
+            model="gemini-2.5-flash",
             google_api_key=GOOGLE_API_KEY_QUERY,
             temperature=0,
             max_output_tokens=2024,
             disable_streaming=False,  # Bật streaming
         )
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",
+            model="gemini-2.5-flash",
             google_api_key=GOOGLE_API_KEY_LLM,
             temperature=0.5,
             max_output_tokens=2024,
@@ -47,12 +47,12 @@ class DeleteQueryProcessor:
         self.ans = AnswerGenerator()
         self.data_loader = DataLoader()
         self.table_prompt_generator = TablePromptGenerator()
-        self.redis = aioredis.from_url(
-            f"rediss://{os.getenv('REDIS_HOST')}",
-            password=os.getenv("REDIS_PASSWORD"),
-            decode_responses=False,
-        )
-        # self.redis = aioredis.from_url("redis://localhost", decode_responses=False)
+        # self.redis = aioredis.from_url(
+        #     f"rediss://{os.getenv('REDIS_HOST')}",
+        #     password=os.getenv("REDIS_PASSWORD"),
+        #     decode_responses=False,
+        # )
+        self.redis = aioredis.from_url("redis://localhost", decode_responses=False)
 
     def default_encoder(self, obj):
         if isinstance(obj, decimal.Decimal):

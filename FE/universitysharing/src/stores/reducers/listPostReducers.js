@@ -1,22 +1,22 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { fetchLikes } from "../action/likeAction";
 import {
   addCommentPost,
   commentPost,
-  fetchPosts,
-  fetchPostsByOwner,
-  fetchPostsByOtherUser,
-  likePost,
-  likeComment,
   createPost,
-  deletePost,
-  getReplyComment,
   deleteComments,
+  deletePost,
+  fetchPosts,
+  fetchPostsByOtherUser,
+  fetchPostsByOwner,
+  getReplyComment,
+  likeComment,
+  likePost,
   replyComments,
-  updatePost,
   sharePost,
   updateComment,
+  updatePost,
 } from "../action/listPostActions";
-import { fetchLikes } from "../action/likeAction";
 import { fetchShares } from "../action/shareAction";
 
 const listPostSlice = createSlice({

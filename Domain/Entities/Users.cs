@@ -66,9 +66,14 @@ namespace Domain.Entities
             public ICollection<UserReport> UserReportsCreated { get; set; } = new List<UserReport>(); // Những report mà user đã tạo
             public ICollection<UserAction> UserActions { get; set; } = new List<UserAction>(); // Những hành động của admin đối với user
             public ICollection<RideReport> RideReports { get; set; } = new List<RideReport>();// Những report liên quan đến chuyến đi mà user là đối tượng bị báo cáo
-
-
-            public User(string fullName, string email, string passwordHash)
+            //trọ
+            public ICollection<AccommodationPost> AccommodationPosts { get; private set; } = new List<AccommodationPost>();
+            public ICollection<AccommodationReview> AccommodationReviews { get; private set; } = new List<AccommodationReview>();
+            public ICollection<Roommate> Roommates { get; private set; } = new List<Roommate>();
+        // tài liệu
+        public ICollection<StudyMaterial> StudyMaterials { get; private set; } = new List<StudyMaterial>();
+        public ICollection<StudyMaterialRating> StudyMaterialRatings { get; private set; } = new List<StudyMaterialRating>();
+        public User(string fullName, string email, string passwordHash)
                 {
                     if (string.IsNullOrWhiteSpace(fullName)) throw new ArgumentException("Full name is required.");
                     if (string.IsNullOrWhiteSpace(email)) throw new ArgumentException("Email is required.");

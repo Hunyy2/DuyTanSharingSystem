@@ -30,7 +30,8 @@ namespace Application.CQRS.Commands.Rides
                 return ResponseFactory.Fail<ResponseRideDto>("Người dùng không tồn tại", 404);
             if (user.Status == "Suspended")
                 return ResponseFactory.Fail<ResponseRideDto>("Tài khoản đang bị tạm ngưng", 403);
-
+            if (user.TrustScore < 50 && user.TrustScore >= 0)
+                return ResponseFactory.Fail<ResponseRideDto>("Để thao tác được chức năng này, bàn cần đạt ít nhất 51 điểm uy tín", 403);
             var ridePost = await _unitOfWork.RidePostRepository.GetByIdAsync(request.RidePostId);
 
             if (userId == request.DriverId)

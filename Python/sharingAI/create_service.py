@@ -29,21 +29,21 @@ logger = logging.getLogger(__name__)
 class CreateQueryProcessor:
     def __init__(self):
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
+            model="gemini-2.5-flash",
             google_api_key=GOOGLE_API_KEY_LLM,
             temperature=0.5,
             max_output_tokens=2024,
             disable_streaming=False,
         )
         self.sql_llm = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
+            model="gemini-2.5-flash",
             google_api_key=GOOGLE_API_KEY_SQL,
             temperature=0,
             max_output_tokens=2024,
             disable_streaming=True,
         )
         self.determine_llm = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
+            model="gemini-2.5-flash",
             google_api_key=GOOGLE_API_KEY_QUERY,
             temperature=1,
             max_output_tokens=2024,
@@ -54,12 +54,12 @@ class CreateQueryProcessor:
         self.ans = AnswerGenerator()
         self.data_loader = DataLoader()
         self.table_prompt_generator = TablePromptGenerator()
-        self.redis = aioredis.from_url(
-            f"rediss://{os.getenv('REDIS_HOST')}",
-            password=os.getenv("REDIS_PASSWORD"),
-            decode_responses=False,
-        )
-        # self.redis = aioredis.from_url("redis://localhost", decode_responses=False)
+        # self.redis = aioredis.from_url(
+        #     f"rediss://{os.getenv('REDIS_HOST')}",
+        #     password=os.getenv("REDIS_PASSWORD"),
+        #     decode_responses=False,
+        # )
+        self.redis = aioredis.from_url("redis://localhost", decode_responses=False)
 
     def default_encoder(self, obj):
         if isinstance(obj, decimal.Decimal):
@@ -131,7 +131,6 @@ class CreateQueryProcessor:
             Bạn là trợ lý AI thông minh, có nhiệm vụ phân tích câu hỏi của người dùng để xác định:
             1. **Thông tin tham số**: Các giá trị cụ thể mà người dùng cung cấp để điền vào tham số của endpoint (như nội dung bài đăng, phạm vi bài đăng, ID người dùng, v.v.).
             2. **Thông tin truy vấn**: Phần câu hỏi yêu cầu truy vấn cơ sở dữ liệu (như "bài đăng mới nhất", "bạn bè của tôi", "bình luận trên bài đăng X").
-            
             ---
             ### Current Query:
             {query}
@@ -199,10 +198,11 @@ class CreateQueryProcessor:
             -{base_url}/api/Ride/create
             Giải thích: EndPoint liên quan đến chấp nhận,đăng kí,ghép chuyến đi nào đó.
             Các tham số cần thiết từ BE(params):
-            "DriverId":không được phép null
+            "DriverId":không được phép null (Cần phải tự tạo `query_for_sql` dựa vào Id bài đăng nếu có trong lịch sử chat)
             "RidePostId":không được phép null
             "EstimatedDuration": luôn gán nó bằng 0
             "IsSafetyTrackingEnabled":không được phép null chỉ nhận 2 giá trị true/false (tức là nếu người dùng có ý định đồng ý thì là true ngược lại là false)
+            
             **CHÚ Ý**:
             * Nếu trong {query} có dữ liệu nào liên quan đến params thì bỏ dữ liệu đó vào `"params":["param":"<Dữ liệu từ người dùng>", ...]`.
             * Nếu không có thì "params":["param":"<null or not null>", ...]
@@ -223,6 +223,11 @@ class CreateQueryProcessor:
                 "query_for_sql": "<phần câu hỏi cần truy vấn hoặc rỗng>",
                 "missing_fields":["<các tham số chưa có dữ liệu chỉ các trường not null>",...]
             }}
+            Ví dụ:
+            lịch sử chat:
+            Chuyến đi từ 352 Đường Hoàng Văn Thái đến 329 Đường Nguyễn Văn Linh vào lúc 2025-05-28 03:00. Mã chuyến đi: 4A120784-0BD9-462E-963D-CF861B6874B1.
+            Chuyến đi từ Lucky Spa đến 21 Đường Nguyễn Văn Linh vào lúc 2025-05-28 03:45. Mã chuyến đi: EC96E41D-B8E7-476C-B962-C7CC9DCDE255.
+            nếu người dùng trả lời là "Tôi muốn tham gia chuyến đi số 2" thì sẽ lấy Id của bài đăng là EC96E41D-B8E7-476C-B962-C7CC9DCDE255 và tạo `query_for_sql` là tìm Ridepost với Id là EC96E41D-B8E7-476C-B962-C7CC9DCDE255.
             ví dụ: `query`:"tôi muốn đăng bài post với nội dung xin chao ae".
             JSON:
             {{
@@ -298,6 +303,73 @@ class CreateQueryProcessor:
                 "query_for_sql": "",
                 "missing_fields":[]
             }}
+             **Ví dụ ngữ cảnh gần nhất**:
+            - Lịch sử chat:
+            [
+                {{"role": "user", "content": "Hiện tại có chuyến đi nào đi đến Nguyễn Văn Linh với trạng thái là đang mở không?"}},
+                {{"role": "assistant", "content": {{"answer": "
+                👋 Xin chào! Dựa trên thông tin tìm được, hiện tại có một số chuyến đi đang mở đến đường Nguyễn Văn Linh, Đà Nẵng:
+
+                        Chuyến 1:
+
+                        Điểm khởi hành: Đường Dương Cát Lợi, Phường Hòa Khánh Nam, Quận Liên Chiểu, Đà Nẵng
+                        Điểm đến: 182 Đường Nguyễn Văn Linh, Phường Thạc Gián, Quận Thanh Khê, Đà Nẵng
+                        Thời gian khởi hành dự kiến: 26/05/2025, 12:46
+                        Nội dung: Câcc
+                        Id của tài xế: 2D288A58-2D60-4B2F-BFCF-81B97F28A62C
+                        Id của bài đăng: 575D713E-5E88-4F16-A589-25FB2B5D9DA8
+                        Đây là thông tin của bạn.
+                        Chuyến 2:
+
+                        Điểm khởi hành: Lucky Spa, Phường Hòa Thuận Tây, Quận Hải Châu, Đà Nẵng
+                        Điểm đến: 21 Đường Nguyễn Văn Linh, Phường Nam Dương, Quận Hải Châu, Đà Nẵng
+                        Thời gian khởi hành dự kiến: 27/05/2025, 03:24
+                        Nội dung: Chia sẻ xe đi đến cơ sở Nguyễn Văn Linh, ai đi cùng mình không
+                        Id của tài xế: 859EA4A4-8E82-461D-83BA-2D979045840B
+                        Id của bài đăng: 3228EAA6-710A-4CF0-9384-35D223DC64EE
+                        Chuyến 3:
+
+                        Điểm khởi hành: Lucky Spa, Phường Hòa Thuận Tây, Quận Hải Châu, Đà Nẵng
+                        Điểm đến: 21 Đường Nguyễn Văn Linh, Phường Nam Dương, Quận Hải Châu, Đà Nẵng
+                        Thời gian khởi hành dự kiến: 28/05/2025, 03:45
+                        Nội dung: Tìm người đồng hành di chuyển đến cơ sở Nguyễn Văn Linh, ai có nhu cầu tham gia với mình cho vui
+                        Id của tài xế: A648218C-F5A8-465E-AAEC-E9E228DCC86F
+                        Id của bài đăng: EC96E41D-B8E7-476C-B962-C7CC9DCDE255
+                        Chuyến 4:
+
+                        Điểm khởi hành: 352 Đường Hoàng Văn Thái, Phường Hòa Khánh Nam, Quận Liên Chiểu, Đà Nẵng
+                        Điểm đến: 329 Đường Nguyễn Văn Linh, Phường Thạc Gián, Quận Thanh Khê, Đà Nẵng
+                        Thời gian khởi hành dự kiến: 28/05/2025, 03:00
+                        Nội dung: Mình có chuyến di chuyển từ Hòa Khánh sang NVL
+                        Id của tài xế: 6A004EF5-78A6-4708-8D19-7EE312B74C7D
+                        Id của bài đăng: 4A120784-0BD9-462E-963D-CF861B6874B1
+                        Chuyến 5:
+
+                        Điểm khởi hành: 10 Hẻm H05 Đường Tống Duy Tân, Phường Hòa Minh, Quận Liên Chiểu, Đà Nẵng
+                        Điểm đến: 182 Đường Nguyễn Văn Linh, Phường Thạc Gián, Quận Thanh Khê, Đà Nẵng
+                        Thời gian khởi hành dự kiến: 28/05/2025, 07:23
+                        Nội dung: Cần ghép với 1 bạn nữ, haha
+                        Id của tài xế: 14EBFD16-1C29-42C8-AAF1-64D6E5594524
+                        Id của bài đăng: 29DB0512-14DF-43DF-824E-E2A88366F334
+                        Chuyến 6:
+
+                        Điểm khởi hành: 352 Đường Hoàng Văn Thái, Phường Hòa Khánh Nam, Quận Liên Chiểu, Đà Nẵng
+                        Điểm đến: 329 Đường Nguyễn Văn Linh, Phường Thạc Gián, Quận Thanh Khê, Đà Nẵng
+                        Thời gian khởi hành dự kiến: 29/05/2025, 06:00
+                        Nội dung: Cần di chuyển từ Hòa Khánh đến NVL
+                        Id của tài xế: 1CEAF02B-347E-4B42-ADF7-EA3722803D00
+                        Id của bài đăng: 8C58E7E0-21F2-479F-965F-FCC37D6AD801
+                        Bạn có muốn biết thêm thông tin chi tiết về chuyến đi nào không? 😊",
+                         Query mới: "Tôi muốn tham gia chuyến đi số 6"
+                        Kết quả mong đợi:
+                                    {{
+                                    "query": "Tôi muốn tham gia chuyến đi số 6",
+                                    "endpoint": "{base_url}/api/Ride/create",
+                                    "params": {{"DriverId": "1CEAF02B-347E-4B42-ADF7-EA3722803D00", "RidePostId": "29DB0512-14DF-43DF-824E-E2A88366F334", "EstimatedDuration": 0, "IsSafetyTrackingEnabled": "null"}},
+                                    "query_for_sql": "",
+                                    "missing_fields": [ "IsSafetyTrackingEnabled"]
+                                    }}
+                                    **Tương tự với các trường hợp khác**:
             **Ví dụ ngữ cảnh gần nhất**:
             - Lịch sử chat:
             [
@@ -341,6 +413,7 @@ class CreateQueryProcessor:
             "query_for_sql": "",
             "missing_fields": []
             }}
+            **Lưu ý**: Đây không phải là id của bài đăng**https://duy-tan-sharing-system.vercel.app/sharing-ride**
             - Lịch sử chat:
             [
             {{
@@ -1216,7 +1289,7 @@ A natural language response in plain text, asking for the missing information or
         **Bạn có thể chuyển dữ liệu sang dạng bảng nếu cần thiết, nhưng phải đảm bảo rằng dữ liệu vẫn dễ đọc và hiểu.**
         **Output Format**:
         A natural language response (plain text) listing the results and asking the user to choose one.
-
+        - **LUÔN LUÔN HIỂN THỊ RidePostId VÀ DriverId CHO DỮ LIỆU LẤY ĐƯỢC TỪ BẢNG RIDEPOSTS TỨC LÀ DỮ LIỆU LIÊN QUAN ĐẾN CHUYẾN ĐI, VÌ 2 ID NÀY CỰC KÌ QUANG TRỌNG, KHÔNG ĐƯỢC PHÉP LOẠI BỎ NÓ**
         **Examples**:
         1. Query: "Tham gia chuyến đi đến Quang Trung"
         Endpoint: "/api/Ride/Create"
@@ -1228,6 +1301,126 @@ A natural language response in plain text, asking for the missing information or
         1. Chuyến đi từ Cafe Minsk, Hòa Tiến đến Quang Trung vào lúc 2025-07-14 22:25. Mã chuyến đi: AA11F9AF-D23E-47FD-985F-203A07B37515, Người lái xe: 7437225F-8859-40DB-9B24-50279C5AF5C1.\n
         2. Chuyến đi từ Quán Bún Vân, Cẩm Lệ đến Quang Trung vào lúc 2025-08-08 13:02. Mã chuyến đi: B13249F6-7E78-4E43-8CA7-3E93DCDECC9B, Người lái xe: CFA82DCE-5902-4419-A6A1-3D8066BAD303.\n
         Bạn muốn chọn chuyến đi nào? Vui lòng cho mình số thứ tự (1, 2, ...) hoặc mã chuyến đi nhé!"
+        * NHẮC LẠI LẦN NỮA LÀ :**LUÔN LUÔN HIỂN THỊ Id VÀ UserId CHO DỮ LIỆU LẤY ĐƯỢC TỪ BẢNG RIDEPOSTS TỨC LÀ DỮ LIỆU LIÊN QUAN ĐẾN CHUYẾN ĐI, VÌ 2 ID NÀY CỰC KÌ QUANG TRỌNG, KHÔNG ĐƯỢC PHÉP LOẠI BỎ NÓ**
+                ví dụ:
+                {{context}}:
+                {{
+                "context": [
+                    {{
+                    "Id": "575D713E-5E88-4F16-A589-25FB2B5D9DA8",
+                    "UserId": "2D288A58-2D60-4B2F-BFCF-81B97F28A62C",
+                    "StartLocation": "Đường Dương Cát Lợi, Phường Hòa Khánh Nam, Quận Liên Chiểu, Đà Nẵng, Việt Nam",
+                    "EndLocation": "182 Đường Nguyễn Văn Linh, Phường Thạc Gián, Quận Thanh Khê, Đà Nẵng, Việt Nam",
+                    "StartTime": "2025-05-26T12:46:00",
+                    "PostType": 0,
+                    "Status": 0,
+                    "CreatedAt": "2025-05-26T11:46:33.447000",
+                    "Content": "Câcc",
+                    "LatLonStart": "16.0497708,108.159375",
+                    "LatLonEnd": "16.05997,108.20988",
+                    "UpdatedAt": null,
+                    "IsDeleted": false,
+                    "isOwner": true
+                    }},
+                    {{
+                    "Id": "3228EAA6-710A-4CF0-9384-35D223DC64EE",
+                    "UserId": "859EA4A4-8E82-461D-83BA-2D979045840B",
+                    "StartLocation": "Lucky Spa, Phường Hòa Thuận Tây, Quận Hải Châu, Đà Nẵng, Việt Nam",
+                    "EndLocation": "21 Đường Nguyễn Văn Linh, Phường Nam Dương, Quận Hải Châu, Đà Nẵng, Việt Nam",
+                    "StartTime": "2025-05-27T03:24:00",
+                    "PostType": 0,
+                    "Status": 0,
+                    "CreatedAt": "2025-05-26T17:14:29.117000",
+                    "Content": "Chia sẻ xe đi đến cơ sở Nguyễn Văn Linh, ai đi cùng mình không",
+                    "LatLonStart": "16.054407,108.202167",
+                    "LatLonEnd": "16.06024,108.21543",
+                    "UpdatedAt": null,
+                    "IsDeleted": false,
+                    "isOwner": false
+                    }},
+                    {{
+                    "Id": "EC96E41D-B8E7-476C-B962-C7CC9DCDE255",
+                    "UserId": "A648218C-F5A8-465E-AAEC-E9E228DCC86F",
+                    "StartLocation": "Lucky Spa, Phường Hòa Thuận Tây, Quận Hải Châu, Đà Nẵng, Việt Nam",
+                    "EndLocation": "21 Đường Nguyễn Văn Linh, Phường Nam Dương, Quận Hải Châu, Đà Nẵng, Việt Nam",
+                    "StartTime": "2025-05-28T03:45:00",
+                    "PostType": 0,
+                    "Status": 0,
+                    "CreatedAt": "2025-05-26T16:43:02.233000",
+                    "Content": "Tìm người đồng hành di chuyển đến cơ sở Nguyễn Văn Linh, ai có nhu cầu tham gia với mình cho vui",
+                    "LatLonStart": "16.054407,108.202167",
+                    "LatLonEnd": "16.06024,108.21543",
+                    "UpdatedAt": null,
+                    "IsDeleted": false,
+                    "isOwner": false
+                    }},
+                    {{
+                    "Id": "4A120784-0BD9-462E-963D-CF861B6874B1",
+                    "UserId": "6A004EF5-78A6-4708-8D19-7EE312B74C7D",
+                    "StartLocation": "352 Đường Hoàng Văn Thái, Phường Hòa Khánh Nam, Quận Liên Chiểu, Đà Nẵng, Việt Nam",
+                    "EndLocation": "329 Đường Nguyễn Văn Linh, Phường Thạc Gián, Quận Thanh Khê, Đà Nẵng, Việt Nam",
+                    "StartTime": "2025-05-28T03:00:00",
+                    "PostType": 0,
+                    "Status": 0,
+                    "CreatedAt": "2025-05-26T17:02:44.963000",
+                    "Content": "Mình có chuyến di chuyển từ Hòa Khánh sang NVL",
+                    "LatLonStart": "16.05134,108.15105",
+                    "LatLonEnd": "16.05948,108.2085",
+                    "UpdatedAt": null,
+                    "IsDeleted": false,
+                    "isOwner": false
+                    }},
+                    {{
+                    "Id": "29DB0512-14DF-43DF-824E-E2A88366F334",
+                    "UserId": "14EBFD16-1C29-42C8-AAF1-64D6E5594524",
+                    "StartLocation": "10 Hẻm H05 Đường Tống Duy Tân, Phường Hòa Minh, Quận Liên Chiểu, Đà Nẵng, Việt Nam",
+                    "EndLocation": "182 Đường Nguyễn Văn Linh, Phường Thạc Gián, Quận Thanh Khê, Đà Nẵng, Việt Nam",
+                    "StartTime": "2025-05-28T07:23:00",
+                    "PostType": 0,
+                    "Status": 0,
+                    "CreatedAt": "2025-05-26T16:23:22.617000",
+                    "Content": "Cần ghép với 1 bạn nữ, haha",
+                    "LatLonStart": "16.05854,108.16926",
+                    "LatLonEnd": "16.05997,108.20988",
+                    "UpdatedAt": null,
+                    "IsDeleted": false,
+                    "isOwner": false
+                    }},
+                    {{
+                    "Id": "8C58E7E0-21F2-479F-965F-FCC37D6AD801",
+                    "UserId": "1CEAF02B-347E-4B42-ADF7-EA3722803D00",
+                    "StartLocation": "352 Đường Hoàng Văn Thái, Phường Hòa Khánh Nam, Quận Liên Chiểu, Đà Nẵng, Việt Nam",
+                    "EndLocation": "329 Đường Nguyễn Văn Linh, Phường Thạc Gián, Quận Thanh Khê, Đà Nẵng, Việt Nam",
+                    "StartTime": "2025-05-29T06:00:00",
+                    "PostType": 0,
+                    "Status": 0,
+                    "CreatedAt": "2025-05-26T17:00:14.037000",
+                    "Content": "Cần di chuyển từ Hòa Khánh đến NVL",
+                    "LatLonStart": "16.05134,108.15105",
+                    "LatLonEnd": "16.05948,108.2085",
+                    "UpdatedAt": null,
+                    "IsDeleted": false,
+                    "isOwner": false
+                    }}
+                ],
+                "token_count": 396,
+                "type": "SEARCH"
+                }}
+                thì phải trả lời như sau:
+                👋 Xin chào! Dựa trên thông tin tìm được, hiện tại có một số chuyến đi đang mở đến đường Nguyễn Văn Linh, Đà Nẵng:
+                    Chuyến 1:
+                * Ngày 26/05/2025, 12:46: Từ đường Dương Cát Lợi đến 182 đường Nguyễn Văn Linh. Chủ bài đăng có nội dung: "Câcc". Id của bài đăng: 575D713E-5E88-4F16-A589-25FB2B5D9DA8, Id của tài xế: 2D288A58-2D60-4B2F-BFCF-81B97F28A62C.\n
+                    Chuyến 2:
+                * Ngày 27/05/2025, 03:24: Từ Lucky Spa đến 21 đường Nguyễn Văn Linh. Nội dung: "Chia sẻ xe đi đến cơ sở Nguyễn Văn Linh, ai đi cùng mình không". Id của bài đăng: 3228EAA6-710A-4CF0-9384-35D223DC64EE, Id của tài xế: 859EA4A4-8E82-461D-83BA-2D979045840B.\n
+                    Chuyến 3:
+                * Ngày 28/05/2025, 03:00: Từ 352 đường Hoàng Văn Thái đến 329 đường Nguyễn Văn Linh. Nội dung: "Mình có chuyến di chuyển từ Hòa Khánh sang NVL". Id của bài đăng: 4A120784-0BD9-462E-963D-CF861B6874B1, Id của tài xế: 6A004EF5-78A6-4708-8D19-7EE312B74C7D.\n
+                    Chuyến 4:
+                * Ngày 28/05/2025, 03:45: Từ Lucky Spa đến 21 đường Nguyễn Văn Linh. Nội dung: "Tìm người đồng hành di chuyển đến cơ sở Nguyễn Văn Linh, ai có nhu cầu tham gia với mình cho vui". Id của bài đăng: EC96E41D-B8E7-476C-B962-C7CC9DCDE255, Id của tài xế: A648218C-F5A8-465E-AAEC-E9E228DCC86F.\n
+                    Chuyến 5:
+                * Ngày 28/05/2025, 07:23: Từ 10 Hẻm H05 đường Tống Duy Tân đến 182 đường Nguyễn Văn Linh. Nội dung: "Cần ghép với 1 bạn nữ, haha". Id của bài đăng: 29DB0512-14DF-43DF-824E-E2A88366F334, Id của tài xế: 14EBFD16-1C29-42C8-AAF1-64D6E5594524.\n
+                    Chuyến 6:
+                * Ngày 29/05/2025, 06:00: Từ 352 đường Hoàng Văn Thái đến 329 đường Nguyễn Văn Linh. Nội dung: "Cần di chuyển từ Hòa Khánh đến NVL". Id của bài đăng: 8C58E7E0-21F2-479F-965F-FCC37D6AD801, Id của tài xế: 1CEAF02B-347E-4B42-ADF7-EA3722803D00.\n
+                Bạn có muốn biết thêm thông tin chi tiết về chuyến đi nào không? 😊
 
         2. Query: "Bình luận vào bài đăng về bóng đá"
         Endpoint: "/api/Comment/CommentPost"
@@ -1239,7 +1432,8 @@ A natural language response in plain text, asking for the missing information or
         1. Bài đăng của Nam: 'Ai thích bóng đá không?' (Mã bài đăng: 12345)\n
         2. Bài đăng của Hùng: 'Tối nay có trận bóng đỉnh!' (Mã bài đăng: 67890)\n
         Bạn muốn bình luận vào bài nào? Cho mình số thứ tự (1, 2, ...) hoặc mã bài đăng nhé!"
-
+        ** Loại bỏ dữ liệu bị lặp lại**
+        ví dụ: nếu {{results}} có chứa các kết quả giống nhau, hãy loại bỏ chúng để tránh lặp lại không cần thiết.
         **Using Vietnamese to response**
         **Response**:
         """

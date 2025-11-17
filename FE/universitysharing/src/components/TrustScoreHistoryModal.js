@@ -1,11 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 import {
-  FiClock,
   FiAward,
-  FiX,
-  FiChevronUp,
   FiChevronDown,
+  FiChevronUp,
+  FiClock,
+  FiHelpCircle,
+  FiX
 } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTrustScoreHistories } from "../stores/action/profileActions";
@@ -13,27 +14,77 @@ import "../styles/TrustScoreHistoryModal.scss";
 
 const TrustScoreHistoryModal = ({ isOpen, onClose, refresh }) => {
   const dispatch = useDispatch();
-  const { trustScoreHistories, loading, error } = useSelector(
+  const { trustScoreHistories, loading, error, userProfile } = useSelector(
     (state) => state.users
   );
   const [expandedRecord, setExpandedRecord] = useState(null);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const observerTarget = useRef(null);
+  const tooltipRef = useRef(null);
+  const infoIconRef = useRef(null);
 
-  // Load initial data or refresh only if no data or explicitly requested
+  // Tính toán vị trí tooltip
+  const updateTooltipPosition = () => {
+    if (infoIconRef.current) {
+      const rect = infoIconRef.current.getBoundingClientRect();
+      setTooltipPosition({
+        x: rect.left - 280,
+        y: rect.bottom + 10
+      });
+    }
+  };
+
+  // Đóng tooltip khi click bên ngoài
   useEffect(() => {
-    if (isOpen && (!trustScoreHistories.histories.length || refresh)) {
+    const handleClickOutside = (event) => {
+      if (
+        tooltipRef.current && 
+        !tooltipRef.current.contains(event.target) &&
+        infoIconRef.current &&
+        !infoIconRef.current.contains(event.target)
+      ) {
+        setShowTooltip(false);
+      }
+    };
+
+    if (showTooltip) {
+      document.addEventListener("mousedown", handleClickOutside);
+      updateTooltipPosition();
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showTooltip]);
+
+  // Cập nhật vị trí khi resize window
+  useEffect(() => {
+    const handleResize = () => {
+      if (showTooltip) {
+        updateTooltipPosition();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [showTooltip]);
+
+  // Load initial data
+  useEffect(() => {
+    if (isOpen && (!trustScoreHistories?.histories?.length || refresh)) {
       dispatch(fetchTrustScoreHistories());
     }
-  }, [isOpen, dispatch, trustScoreHistories.histories.length, refresh]);
+  }, [isOpen, dispatch, trustScoreHistories?.histories?.length, refresh]);
 
-  // Set up infinite scroll with Intersection Observer
+  // Infinite scroll
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (
           entries[0].isIntersecting &&
           !loading &&
-          trustScoreHistories.nextCursor
+          trustScoreHistories?.nextCursor
         ) {
           dispatch(fetchTrustScoreHistories(trustScoreHistories.nextCursor));
         }
@@ -51,14 +102,19 @@ const TrustScoreHistoryModal = ({ isOpen, onClose, refresh }) => {
         observer.unobserve(currentTarget);
       }
     };
-  }, [dispatch, loading, trustScoreHistories.nextCursor]);
+  }, [dispatch, loading, trustScoreHistories?.nextCursor]);
 
-  // Toggle expanded state for a record
   const toggleExpand = (index) => {
     setExpandedRecord(expandedRecord === index ? null : index);
   };
 
-  // Format timestamp to a readable string
+  const handleTooltipToggle = () => {
+    if (!showTooltip) {
+      updateTooltipPosition();
+    }
+    setShowTooltip(!showTooltip);
+  };
+
   const formatDateTime = (timestamp) => {
     return new Date(timestamp).toLocaleString("vi-VN", {
       day: "2-digit",
@@ -69,15 +125,25 @@ const TrustScoreHistoryModal = ({ isOpen, onClose, refresh }) => {
     });
   };
 
-  // Map trust score histories to modal format
-  const creditHistory =
-    trustScoreHistories?.histories?.map((record) => ({
-      id: record.id,
-      timestamp: record.createdAt,
-      change: record.scoreChange,
-      reason: record.reason,
-      newCreditScore: record.totalScoreAfterChange,
-    })) || [];
+  // Xác định level hiện tại dựa trên điểm số
+  const getCurrentLevel = () => {
+    const currentScore = userProfile?.trustScore || 0;
+    
+    if (currentScore >= 50) return { level: "Cao", color: "#28a745", description: "Bạn có đầy đủ quyền truy cập" };
+    if (currentScore >= 30) return { level: "Khá", color: "#17a2b8", description: "Quyền truy cập mở rộng" };
+    return { level: "Trung bình", color: "#ffc107", description: "Quyền truy cập cơ bản" };
+  };
+
+  const currentLevel = getCurrentLevel();
+  const currentScore = userProfile?.trustScore || 0;
+
+  const creditHistory = trustScoreHistories?.histories?.map((record) => ({
+    id: record.id,
+    timestamp: record.createdAt,
+    change: record.scoreChange,
+    reason: record.reason,
+    newCreditScore: record.totalScoreAfterChange,
+  })) || [];
 
   return (
     <AnimatePresence>
@@ -100,12 +166,21 @@ const TrustScoreHistoryModal = ({ isOpen, onClose, refresh }) => {
           >
             <div className="modal-score-header">
               <h3>
-                <FiAward className="header-score-icon" /> Lịch sử điểm uy tín
+                <FiAward className="header-score-icon" /> 
+                Lịch sử điểm uy tín
+                <div className="trust-score-info">
+                  <FiHelpCircle 
+                    ref={infoIconRef}
+                    className="info-icon" 
+                    onClick={handleTooltipToggle}
+                  />
+                </div>
               </h3>
               <button className="close-score-btn" onClick={onClose}>
                 <FiX />
               </button>
             </div>
+            
             <div className="modal-score-body">
               {error ? (
                 <div className="error-state">Lỗi: {error}</div>
@@ -114,7 +189,7 @@ const TrustScoreHistoryModal = ({ isOpen, onClose, refresh }) => {
                   <div className="credit-history-list">
                     {creditHistory.map((record, index) => (
                       <motion.div
-                        key={record.id}
+                        key={record.id || index}
                         className={`history-record ${
                           expandedRecord === index ? "expanded" : ""
                         }`}
@@ -179,7 +254,7 @@ const TrustScoreHistoryModal = ({ isOpen, onClose, refresh }) => {
                   {loading && (
                     <div className="loading-state">Đang tải thêm...</div>
                   )}
-                  {!trustScoreHistories.nextCursor &&
+                  {!trustScoreHistories?.nextCursor &&
                     creditHistory.length > 0 && (
                       <div className="end-of-list">Đã tải hết lịch sử</div>
                     )}
@@ -192,6 +267,63 @@ const TrustScoreHistoryModal = ({ isOpen, onClose, refresh }) => {
               )}
             </div>
           </motion.div>
+
+          {/* Tooltip render outside modal content */}
+          <AnimatePresence>
+            {showTooltip && (
+              <motion.div
+                ref={tooltipRef}
+                className="trust-score-tooltip"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.2 }}
+                style={{
+                  left: `${tooltipPosition.x}px`,
+                  top: `${tooltipPosition.y}px`,
+                }}
+              >
+                <div className="tooltip-header">
+                  <h4>Hệ thống điểm uy tín</h4>
+                  <button 
+                    className="close-tooltip"
+                    onClick={() => setShowTooltip(false)}
+                  >
+                    <FiX />
+                  </button>
+                </div>
+                
+                {/* <div className="current-level">
+                  <div className="level-text">Mức độ hiện tại: {currentLevel.level}</div>
+                  <div className="level-score">({currentScore} điểm)</div>
+                </div> */}
+                
+                <div className="level-system">
+                  <div className="level-item">
+                    <div className="level-range">0-30</div>
+                    <div className="level-permissions">
+                      • Tạo bài đăng, bình luận, chia sẻ, like
+                    </div>
+                  </div>
+                  
+                  <div className="level-item">
+                    <div className="level-range">30-50</div>
+                    <div className="level-permissions">
+                      • Quản lý nhà trọ & bình luận về trọ<br/>
+                      • Quản lý tài liệu & bình luận tài liệu
+                    </div>
+                  </div>
+                  
+                  <div className="level-item">
+                    <div className="level-range">50+</div>
+                    <div className="level-permissions">
+                      • Quản lý chuyến đi & nhận xét chuyến đi
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       )}
     </AnimatePresence>

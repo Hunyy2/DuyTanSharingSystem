@@ -37,7 +37,13 @@ namespace Infrastructure.Data.UnitOfWork
 
             IUserScoreHistoriesRepository userScoreHistoriesRepository,
 
-            IUserReportRepository userReportRepository
+            IUserReportRepository userReportRepository,
+
+            IAccommodationPostRepository accommodationPostRepository,
+            IAccommodationReviewRepository accommodationReviewRepository,
+
+            IStudyMaterialRepository studyMaterialRepository,
+            IStudyMaterialRatingRepository studyMaterialRatingRepository
 
             )
         {
@@ -73,6 +79,12 @@ namespace Infrastructure.Data.UnitOfWork
             UserScoreHistoriesRepository = userScoreHistoriesRepository;
             UserReportRepository = userReportRepository;
 
+            AccommodationPostRepository = accommodationPostRepository;
+            AccommodationReviewRepository = accommodationReviewRepository;
+
+            StudyMaterialRepository = studyMaterialRepository;
+            StudyMaterialRatingRepository = studyMaterialRatingRepository;
+
         }
         public IUserReportRepository UserReportRepository { get; }
         public IUserRepository UserRepository { get; }
@@ -103,6 +115,12 @@ namespace Infrastructure.Data.UnitOfWork
         public IAIConversationRepository AIConversationRepository { get; }
         public IAIChatHistoryRepository AIChatHistoryRepository { get; }
         public IUserScoreHistoriesRepository UserScoreHistoriesRepository { get; }
+
+        public IAccommodationPostRepository AccommodationPostRepository { get; }
+        public IAccommodationReviewRepository AccommodationReviewRepository { get; }
+
+        public IStudyMaterialRepository StudyMaterialRepository { get; }
+        public IStudyMaterialRatingRepository StudyMaterialRatingRepository { get; }
         public async Task<int> SaveChangesAsync()
         => await _context.SaveChangesAsync();
 

@@ -291,3 +291,35 @@
     }
   }
 }
+// Thêm style cho nút Nhắn Tin
+.profile-header__message-button {
+  display: flex;
+  align-items: center;
+  background-color: #e4e6eb; /* Màu nền xám nhẹ, giống như nút phụ */
+  color: #050505; /* Màu chữ đen */
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-right: 10px; /* Tạo khoảng cách với nút Bạn bè */
+
+  svg {
+    font-size: 18px;
+    margin-right: 8px;
+  }
+
+  &:hover {
+    background-color: #d8dadf; /* Màu hover xám đậm hơn */
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    background-color: #e4e6eb; 
+  }
+}

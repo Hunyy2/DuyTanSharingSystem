@@ -24,11 +24,11 @@ namespace Application.CQRS.Commands.Users
                     return ResponseFactory.Fail<UserResponseDto>("UserCreateDto is null", 404);
                 }
 
-                if (!(request.Email.EndsWith("@dtu.edu.vn")))
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ResponseFactory.Fail<UserResponseDto>("Chỉ hợp lệ với Email trường", 404);
-                }
+                //if (!(request.Email.EndsWith("@dtu.edu.vn")))
+                //{
+                //    await _unitOfWork.RollbackTransactionAsync();
+                //    return ResponseFactory.Fail<UserResponseDto>("Chỉ hợp lệ với Email trường", 404);
+                //}
                 // 🔍 Kiểm tra email đã tồn tại chưa hoặc @ phía sau
                 if (await _userService.CheckEmailExistsAsync(request.Email))
                 {

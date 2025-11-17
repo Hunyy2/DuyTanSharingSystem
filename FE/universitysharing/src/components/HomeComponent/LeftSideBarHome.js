@@ -4,43 +4,38 @@ import {
   FiHome,
   FiMapPin,
   FiMessageSquare,
-  FiUser
+  FiUsers
 } from "react-icons/fi";
-import { RiAiGenerate2, RiUserLocationLine } from "react-icons/ri";
+import {
+  RiAiGenerate,
+  RiFilePaper2Line,
+  RiHotelLine,
+  RiUserLocationLine,
+} from "react-icons/ri";
 import { useLocation, useNavigate } from "react-router-dom";
 import avatartDefault from "../../assets/AvatarDefaultFill.png";
 
 const LeftSidebar = ({ usersProfile }) => {
-   console.log("Hello>>", usersProfile);
   const navigate = useNavigate();
   const location = useLocation();
 
-  let username = usersProfile?.fullName || "Người dùng";
+  const username = usersProfile?.fullName || "Người dùng";
 
-  // Menu items data
-
+  // 🧭 Danh sách menu (icon đổi hợp lý, biểu tượng rõ ràng)
   const menuItems = [
     { path: "/home", icon: <FiHome />, label: "Trang chủ" },
-
-    { path: "/friend", icon: <FiUser />, label: "Bạn bè" },
+    { path: "/friend", icon: <FiUsers />, label: "Bạn bè" },
     { path: "/MessageView", icon: <FiMessageSquare />, label: "Nhắn tin" },
-
-    { path: "/chatBoxAI", icon: <RiAiGenerate2 />, label: "Sharing AI" },
-
-    //  { path: "/notifications", icon: <FiBell />, label: "Thông báo" },
-
-    // { path: "/notify", icon: <FiBell />, label: "Thông báo" },
-
+    { path: "/chatBoxAI", icon: <RiAiGenerate />, label: "Sharing AI" },
     { path: "/sharing-ride", icon: <FiMapPin />, label: "Chia sẻ xe" },
-    {
-      path: "/your-ride",
-      icon: <RiUserLocationLine />,
-      label: "Chuyến đi của bạn",
-    },
+    { path: "/your-ride", icon: <RiUserLocationLine />, label: "Chuyến đi của bạn" },
+    { path: "/accommodation", icon: <RiHotelLine />, label: "Tìm trọ" },
+    { path: "/material", icon: <RiFilePaper2Line />, label: "Tài liệu học tập" },
   ];
 
   return (
     <aside className="left-sidebar-menu">
+      {/* 🧑‍💻 Hồ sơ người dùng */}
       <motion.div
         onClick={() => navigate("/ProfileUserView")}
         className="user-profile-navigate"
@@ -55,6 +50,8 @@ const LeftSidebar = ({ usersProfile }) => {
         />
         <span className="User-Name">{username}</span>
       </motion.div>
+
+      {/* 📜 Menu điều hướng */}
       <ul>
         {menuItems.map((item) => (
           <motion.li

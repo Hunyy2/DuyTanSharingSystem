@@ -1,21 +1,20 @@
-import React, { useState, useEffect } from "react";
-import Header from "../components/HomeComponent/Header";
+import { useEffect, useState } from "react";
 import Footer from "../components/HomeComponent/FooterHome";
+import Header from "../components/HomeComponent/Header";
 import LeftSidebar from "../components/HomeComponent/LeftSideBarHome";
 import RightSidebar from "../components/HomeComponent/RightSideBarHome";
 
-import InputCreateRide from "../components/RideComponent/InputCreateRide";
 
+import { RiArrowRightDoubleFill } from "react-icons/ri";
 import YourRide from "../components/RideComponent/YourRIde";
 import {
-  useSwipeToOpenSidebar,
   useBackButtonToCloseSidebar,
+  useSwipeToOpenSidebar,
 } from "../utils/OpenMenuLeftisdebar";
-import { RiArrowRightDoubleFill } from "react-icons/ri";
 
-import "../styles/HomeView.scss";
 import { useDispatch, useSelector } from "react-redux";
 import { userProfile } from "../stores/action/profileActions";
+import "../styles/HomeView.scss";
 const SharingRideView = () => {
   const dispatch = useDispatch();
   const usersState = useSelector((state) => state.users) || {};
@@ -40,6 +39,15 @@ const SharingRideView = () => {
         <div className={`left-sidebar ${showSidebar ? "show" : ""}`}>
           <LeftSidebar usersProfile={users} />
           <Footer />
+        </div>
+        {/* Toggle button cho sidebar */}
+        <div
+          className={`sidebar-toggle ${showSidebar ? "move-right" : ""}`}
+          onClick={() => setShowSidebar(!showSidebar)}
+        >
+          <RiArrowRightDoubleFill
+            className={`toggle-icon ${showSidebar ? "rotate" : ""}`}
+          />
         </div>
         <div
           className={`Open-menu ${showSidebar ? "move-right" : ""}`}

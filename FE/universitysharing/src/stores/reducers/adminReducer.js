@@ -1,19 +1,19 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
-  fetchReportedPosts,
-  deletePost,
-  deleteAllReports,
-  fetchPostsByAdmin,
-  approvePost,
+  activateUser,
   adDeletePost,
+  approvePost,
+  blockUser,
+  deleteAllReports,
+  deletePost,
+  fetchNotifications,
+  fetchPostsByAdmin,
+  fetchReportedPosts,
+  fetchRideDetails,
+  fetchRidesByStatus,
   fetchUserUserReports,
   fetchUsers,
-  fetchNotifications,
-  blockUser,
   suspendUser,
-  activateUser,
-  fetchRidesByStatus,
-  fetchRideDetails,
 } from "../action/adminActions";
 
 const reporAdmintSlice = createSlice({

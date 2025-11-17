@@ -9,7 +9,12 @@ namespace Application.Common
     public class Constaint
     {
 
+
+        //public const string baseUrl = "https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net"; 
+        public const string emailUrl = "https://localhost:7053/auth/verify-email?token=";
+
         //public const string baseUrl = "https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net";
+
 
         public const string baseUrl = "https://localhost:7053/";
         public const int DefaultPageSize = 15;

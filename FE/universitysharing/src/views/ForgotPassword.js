@@ -1,6 +1,5 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import AuthForm from "../components/AuthForm";
 import { forgotPassword } from "../stores/action/authAction";
@@ -13,11 +12,11 @@ const ForgotPass = () => {
   const handleForgotPassword = async (e, formData) => {
     e.preventDefault();
     const email = formData.email;
-    const emailPattern = /^[a-zA-Z0-9._%+-]+@dtu\.edu\.vn$/;
-    if (!emailPattern.test(formData.email)) {
-      toast.error("Email sai định dạng");
-      return;
-    }
+    // const emailPattern = /^[a-zA-Z0-9._%+-]+@dtu\.edu\.vn$/;
+    // if (!emailPattern.test(formData.email)) {
+    //   toast.error("Email sai định dạng");
+    //   return;
+    // }
     console.log("Email value on submit:", email); // Debug khi submit
     if (
       !email ||

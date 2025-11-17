@@ -24,9 +24,25 @@ namespace Application.Helper
         public IMapService Create()
         {
             var provider = _configuration["MapService:Provider"];
-            return provider == "Google"
-                ? _serviceProvider.GetRequiredService<GoogleMapsService>()
-                : _serviceProvider.GetRequiredService<HereMapService>();
+             
+                if (provider == "Google")
+            {
+                return _serviceProvider.GetRequiredService<GoogleMapsService>();
+            }
+            else if (provider == "Here")
+            {
+                return _serviceProvider.GetRequiredService<HereMapService>();
+            }
+            else if (provider == "TomTom")
+            {
+                return _serviceProvider.GetRequiredService<TomTomMapService>();
+            }
+            else
+            {
+                throw new Exception("Invalid map service provider configuration.");
+            }
+            ;
+
         }
     }
 }

@@ -1,21 +1,21 @@
 // src/stores/reducers/friendReducer.js
 import { createSlice } from "@reduxjs/toolkit";
 import {
-  fetchFriends,
-  fetchListFriend,
-  fetchFriendsByUserId,
-  fetchListFriendReceive,
-  sendFriendRequest,
-  cancelFriendRequest,
-  fetchSentFriendRequests,
   acceptFriendRequest,
+  cancelFriendRequest,
+  fetchFriendPreview,
+  fetchFriends,
+  fetchFriendsByUserId,
+  fetchFriendSuggestions,
+  fetchFriendsWithCursor,
+  fetchListFriend,
+  fetchListFriendReceive,
+  fetchReceivedRequestsWithCursor,
+  fetchSentFriendRequests,
+  fetchSentRequestsWithCursor,
   rejectFriendRequest,
   removeFriend,
-  fetchFriendsWithCursor,
-  fetchReceivedRequestsWithCursor,
-  fetchSentRequestsWithCursor,
-  fetchFriendPreview,
-  fetchFriendSuggestions,
+  sendFriendRequest,
 } from "../action/friendAction";
 
 const friendSlice = createSlice({

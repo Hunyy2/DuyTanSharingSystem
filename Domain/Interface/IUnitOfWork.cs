@@ -39,6 +39,12 @@ namespace Domain.Interface
         IAIChatHistoryRepository AIChatHistoryRepository { get; }
         IUserScoreHistoriesRepository UserScoreHistoriesRepository { get; }
 
+        IAccommodationPostRepository AccommodationPostRepository { get; }
+        IAccommodationReviewRepository AccommodationReviewRepository { get; }
+
+        IStudyMaterialRepository StudyMaterialRepository { get; }
+        IStudyMaterialRatingRepository StudyMaterialRatingRepository { get; }
+
         Task<int> SaveChangesAsync();
         Task BeginTransactionAsync(); // ✅ Bắt đầu giao dịch
         Task CommitTransactionAsync(); // ✅ Hoàn tất giao dịch

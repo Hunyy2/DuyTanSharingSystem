@@ -41,21 +41,21 @@ class AnswerGenerator:
 
     def __init__(self):
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
+            model="gemini-2.5-flash",
             google_api_key=GOOGLE_API_KEY_LLM,
             temperature=0.5,
             max_output_tokens=2024,
             disable_streaming=False,
         )
         self.sql_llm = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
+            model="gemini-2.5-flash",
             google_api_key=GOOGLE_API_KEY_SQL,
             temperature=0,
             max_output_tokens=2024,
             disable_streaming=True,
         )
         self.sql_query = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
+            model="gemini-2.5-flash",
             google_api_key=GOOGLE_API_KEY_QUERY,
             temperature=0.3,
             max_output_tokens=2024,
@@ -71,12 +71,12 @@ class AnswerGenerator:
         # self.chain = self._create_chain()
         self.sql_cache_locks = defaultdict(Lock)
         self.table_prompt_generator = TablePromptGenerator()
-        self.redis = aioredis.from_url(
-            f"rediss://{os.getenv('REDIS_HOST')}",
-            password=os.getenv("REDIS_PASSWORD"),
-            decode_responses=False,
-        )
-        # self.redis = aioredis.from_url("redis://localhost", decode_responses=False)
+        # self.redis = aioredis.from_url(
+        #     f"rediss://{os.getenv('REDIS_HOST')}",
+        #     password=os.getenv("REDIS_PASSWORD"),
+        #     decode_responses=False,
+        # )
+        self.redis = aioredis.from_url("redis://localhost", decode_responses=False)
         self.mappings = {
             "Posts": "/post/{id}",
             "RidePosts": "/sharing-ride",
@@ -354,6 +354,7 @@ class AnswerGenerator:
             **IDs (optional details)**: {ids}
             **NOTE**:The UserId here refers to the ID of the user currently asking the question. It should only be used when the user's question relates to their own data or actions.
             **NOTE**: Available columns are the columns that are available for the tables in the database. They are used to filter the data that is returned from the database.
+            **NOTE**: If the query asks about RidePosts ALLWAYS SELECT RidePosts.UserId, RidePosts.Id, RidePosts.StartLocation, RidePosts.EndLocation, RidePosts.StartTime, RidePosts.Content, RidePosts.Status.
             **Database Table Semantics & Relationships (Numeric Status/Type Codes):**
             **Semantics**: {semantics_str}
             **General SQL Generation Requirements:**
@@ -774,6 +775,7 @@ class AnswerGenerator:
             - Phải trả về đúng url,hoặc đường dẫn ảnh nếu có trong {{context}},không được chuyển nó thành chữ.
             - Trong thông tin tìm được sẽ có cột `isOwner` cho biết người dùng có phải là chủ sở hữu của dữ liệu hay không. Nếu là chủ sở hữu, bạn có thể hiển thị thông tin chi tiết hơn về dữ liệu đó.
             - Nếu `isOwner` là True, bạn hãy trả lời theo kiểu "Đây là thông tin của bạn".
+            - Nếu UserId và Id của bảng Rideposts thì vẫn trả về UserId và Id của bảng Rideposts.
             🧠 Ghi chú về trạng thái và loại dữ liệu:
 
             - **RidePosts:**
@@ -826,6 +828,7 @@ class AnswerGenerator:
             - Sử dụng biểu tượng cảm xúc để tăng tính thân thiện như 👋, 💬, 🔍, ❓, 💡, 😔, 😊,...
             - Nếu dữ liệu không có hãy trả lời: "Xin lỗi, tôi không tìm thấy thông tin bạn cần 😔." kèm theo một câu hỏi mở liên quan đến câu hỏi hiện tại của người dùng.
             - Trả lời bằng tiếng Việt.
+            - **LUÔN LUÔN HIỂN THỊ Id VÀ UserId CHO DỮ LIỆU LẤY ĐƯỢC TỪ BẢNG RIDEPOSTS TỨC LÀ DỮ LIỆU LIÊN QUAN ĐẾN CHUYẾN ĐI, VÌ 2 ID NÀY CỰC KÌ QUANG TRỌNG, KHÔNG ĐƯỢC PHÉP LOẠI BỎ NÓ**
             - Đặc biệt không được phép sử dụng các thuật ngữ trong lập trình như Id,các cột trong dữ liệu {{context}},phải chuyển đổi chúng sang một ngôn ngữ tự nhiên và hợp lý cho người dùng hiểu.
             ví dụ: dữ liệu trong {{context}} chứa 'Id': 'https://duy-tan-sharing-system.vercel.app/profile/CFA82DCE-5902-4419-A6A1-3D8066BAD303', 'Content': 'hôm nay tôi vui quá', 'ImageUrl': '/images/posts/ad321db4-39a7-4b7c-b59a-e19a270bf860.jpg','ProfilePicture': '/images/profile/avatar/4de96800-48ec-4fed-abbb-0ee377c2f107.jpg'
             thì bạn phải chuyển thành : link bài đăng: 'https://duy-tan-sharing-system.vercel.app/D2487B39-F5AA-4701-AD86-C3A1A77048C3', Trang cá nhân của {{Tên người đó nếu có}}: 'https://duy-tan-sharing-system.vercel.app/profile/CFA82DCE-5902-4419-A6A1-3D8066BAD303','/images/posts/ad321db4-39a7-4b7c-b59a-e19a270bf860.jpg',Ảnh đại diện: '/images/profile/avatar/4de96800-48ec-4fed-abbb-0ee377c2f107.jpg'
@@ -841,6 +844,123 @@ class AnswerGenerator:
                 7. Nếu xuật hiện dữ liệu liên quan đến Hình ảnh, Video bạn phải tự nối chuỗi url với base_url của hệ thống, ví dụ: nếu base_url là "https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net" và dữ liệu có trường "ImageUrl": "/images/posts/ad321db4-39a7-4b7c-b59a-e19a270bf860.jpg" thì bạn phải trả về "https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net/images/posts/ad321db4-39a7-4b7c-b59a-e19a270bf860.jpg"
                 8. Phải luôn chuyển các trường trong context sang tiếng Việt, không được để nguyên tiếng Anh hoặc các từ viết tắt.
                 9. Không được hiển thị các ký tự trong code như `Id`, `UserId`, `Content`, `ImageUrl`, `ProfilePicture`,`IsOwner`... mà phải chuyển sang tiếng Việt tự nhiên. 
+                10. Không được chuyển {{"UserId", "Id"}} trong Bảng Rideposts thành link, url mà phải chuyển thành "Id của bài đăng" hoặc "Id của tài xế" và vẫn được phép hiển thị.
+            * NHẮC LẠI LẦN NỮA LÀ :**LUÔN LUÔN HIỂN THỊ Id VÀ UserId CHO DỮ LIỆU LẤY ĐƯỢC TỪ BẢNG RIDEPOSTS TỨC LÀ DỮ LIỆU LIÊN QUAN ĐẾN CHUYẾN ĐI, VÌ 2 ID NÀY CỰC KÌ QUANG TRỌNG, KHÔNG ĐƯỢC PHÉP LOẠI BỎ NÓ**
+                ví dụ:
+                {{context}}:
+                {{
+                "context": [
+                    {{
+                    "Id": "575D713E-5E88-4F16-A589-25FB2B5D9DA8",
+                    "UserId": "2D288A58-2D60-4B2F-BFCF-81B97F28A62C",
+                    "StartLocation": "Đường Dương Cát Lợi, Phường Hòa Khánh Nam, Quận Liên Chiểu, Đà Nẵng, Việt Nam",
+                    "EndLocation": "182 Đường Nguyễn Văn Linh, Phường Thạc Gián, Quận Thanh Khê, Đà Nẵng, Việt Nam",
+                    "StartTime": "2025-05-26T12:46:00",
+                    "PostType": 0,
+                    "Status": 0,
+                    "CreatedAt": "2025-05-26T11:46:33.447000",
+                    "Content": "Câcc",
+                    "LatLonStart": "16.0497708,108.159375",
+                    "LatLonEnd": "16.05997,108.20988",
+                    "UpdatedAt": null,
+                    "IsDeleted": false,
+                    "isOwner": true
+                    }},
+                    {{
+                    "Id": "3228EAA6-710A-4CF0-9384-35D223DC64EE",
+                    "UserId": "859EA4A4-8E82-461D-83BA-2D979045840B",
+                    "StartLocation": "Lucky Spa, Phường Hòa Thuận Tây, Quận Hải Châu, Đà Nẵng, Việt Nam",
+                    "EndLocation": "21 Đường Nguyễn Văn Linh, Phường Nam Dương, Quận Hải Châu, Đà Nẵng, Việt Nam",
+                    "StartTime": "2025-05-27T03:24:00",
+                    "PostType": 0,
+                    "Status": 0,
+                    "CreatedAt": "2025-05-26T17:14:29.117000",
+                    "Content": "Chia sẻ xe đi đến cơ sở Nguyễn Văn Linh, ai đi cùng mình không",
+                    "LatLonStart": "16.054407,108.202167",
+                    "LatLonEnd": "16.06024,108.21543",
+                    "UpdatedAt": null,
+                    "IsDeleted": false,
+                    "isOwner": false
+                    }},
+                    {{
+                    "Id": "EC96E41D-B8E7-476C-B962-C7CC9DCDE255",
+                    "UserId": "A648218C-F5A8-465E-AAEC-E9E228DCC86F",
+                    "StartLocation": "Lucky Spa, Phường Hòa Thuận Tây, Quận Hải Châu, Đà Nẵng, Việt Nam",
+                    "EndLocation": "21 Đường Nguyễn Văn Linh, Phường Nam Dương, Quận Hải Châu, Đà Nẵng, Việt Nam",
+                    "StartTime": "2025-05-28T03:45:00",
+                    "PostType": 0,
+                    "Status": 0,
+                    "CreatedAt": "2025-05-26T16:43:02.233000",
+                    "Content": "Tìm người đồng hành di chuyển đến cơ sở Nguyễn Văn Linh, ai có nhu cầu tham gia với mình cho vui",
+                    "LatLonStart": "16.054407,108.202167",
+                    "LatLonEnd": "16.06024,108.21543",
+                    "UpdatedAt": null,
+                    "IsDeleted": false,
+                    "isOwner": false
+                    }},
+                    {{
+                    "Id": "4A120784-0BD9-462E-963D-CF861B6874B1",
+                    "UserId": "6A004EF5-78A6-4708-8D19-7EE312B74C7D",
+                    "StartLocation": "352 Đường Hoàng Văn Thái, Phường Hòa Khánh Nam, Quận Liên Chiểu, Đà Nẵng, Việt Nam",
+                    "EndLocation": "329 Đường Nguyễn Văn Linh, Phường Thạc Gián, Quận Thanh Khê, Đà Nẵng, Việt Nam",
+                    "StartTime": "2025-05-28T03:00:00",
+                    "PostType": 0,
+                    "Status": 0,
+                    "CreatedAt": "2025-05-26T17:02:44.963000",
+                    "Content": "Mình có chuyến di chuyển từ Hòa Khánh sang NVL",
+                    "LatLonStart": "16.05134,108.15105",
+                    "LatLonEnd": "16.05948,108.2085",
+                    "UpdatedAt": null,
+                    "IsDeleted": false,
+                    "isOwner": false
+                    }},
+                    {{
+                    "Id": "29DB0512-14DF-43DF-824E-E2A88366F334",
+                    "UserId": "14EBFD16-1C29-42C8-AAF1-64D6E5594524",
+                    "StartLocation": "10 Hẻm H05 Đường Tống Duy Tân, Phường Hòa Minh, Quận Liên Chiểu, Đà Nẵng, Việt Nam",
+                    "EndLocation": "182 Đường Nguyễn Văn Linh, Phường Thạc Gián, Quận Thanh Khê, Đà Nẵng, Việt Nam",
+                    "StartTime": "2025-05-28T07:23:00",
+                    "PostType": 0,
+                    "Status": 0,
+                    "CreatedAt": "2025-05-26T16:23:22.617000",
+                    "Content": "Cần ghép với 1 bạn nữ, haha",
+                    "LatLonStart": "16.05854,108.16926",
+                    "LatLonEnd": "16.05997,108.20988",
+                    "UpdatedAt": null,
+                    "IsDeleted": false,
+                    "isOwner": false
+                    }},
+                    {{
+                    "Id": "8C58E7E0-21F2-479F-965F-FCC37D6AD801",
+                    "UserId": "1CEAF02B-347E-4B42-ADF7-EA3722803D00",
+                    "StartLocation": "352 Đường Hoàng Văn Thái, Phường Hòa Khánh Nam, Quận Liên Chiểu, Đà Nẵng, Việt Nam",
+                    "EndLocation": "329 Đường Nguyễn Văn Linh, Phường Thạc Gián, Quận Thanh Khê, Đà Nẵng, Việt Nam",
+                    "StartTime": "2025-05-29T06:00:00",
+                    "PostType": 0,
+                    "Status": 0,
+                    "CreatedAt": "2025-05-26T17:00:14.037000",
+                    "Content": "Cần di chuyển từ Hòa Khánh đến NVL",
+                    "LatLonStart": "16.05134,108.15105",
+                    "LatLonEnd": "16.05948,108.2085",
+                    "UpdatedAt": null,
+                    "IsDeleted": false,
+                    "isOwner": false
+                    }}
+                ],
+                "token_count": 396,
+                "type": "SEARCH"
+                }}
+                thì phải trả lời như sau:
+                👋 Xin chào! Dựa trên thông tin tìm được, hiện tại có một số chuyến đi đang mở đến đường Nguyễn Văn Linh, Đà Nẵng:
+
+                Ngày 26/05/2025, 12:46: Từ đường Dương Cát Lợi đến 182 đường Nguyễn Văn Linh. Chủ bài đăng có nội dung: "Câcc". Id của bài đăng: 575D713E-5E88-4F16-A589-25FB2B5D9DA8, Id của tài xế: 2D288A58-2D60-4B2F-BFCF-81B97F28A62C.
+                Ngày 27/05/2025, 03:24: Từ Lucky Spa đến 21 đường Nguyễn Văn Linh. Nội dung: "Chia sẻ xe đi đến cơ sở Nguyễn Văn Linh, ai đi cùng mình không". Id của bài đăng: 3228EAA6-710A-4CF0-9384-35D223DC64EE, Id của tài xế: 859EA4A4-8E82-461D-83BA-2D979045840B.
+                Ngày 28/05/2025, 03:00: Từ 352 đường Hoàng Văn Thái đến 329 đường Nguyễn Văn Linh. Nội dung: "Mình có chuyến di chuyển từ Hòa Khánh sang NVL". Id của bài đăng: 4A120784-0BD9-462E-963D-CF861B6874B1, Id của tài xế: 6A004EF5-78A6-4708-8D19-7EE312B74C7D.
+                Ngày 28/05/2025, 03:45: Từ Lucky Spa đến 21 đường Nguyễn Văn Linh. Nội dung: "Tìm người đồng hành di chuyển đến cơ sở Nguyễn Văn Linh, ai có nhu cầu tham gia với mình cho vui". Id của bài đăng: EC96E41D-B8E7-476C-B962-C7CC9DCDE255, Id của tài xế: A648218C-F5A8-465E-AAEC-E9E228DCC86F.
+                Ngày 28/05/2025, 07:23: Từ 10 Hẻm H05 đường Tống Duy Tân đến 182 đường Nguyễn Văn Linh. Nội dung: "Cần ghép với 1 bạn nữ, haha". Id của bài đăng: 29DB0512-14DF-43DF-824E-E2A88366F334, Id của tài xế: 14EBFD16-1C29-42C8-AAF1-64D6E5594524.
+                Ngày 29/05/2025, 06:00: Từ 352 đường Hoàng Văn Thái đến 329 đường Nguyễn Văn Linh. Nội dung: "Cần di chuyển từ Hòa Khánh đến NVL". Id của bài đăng: 8C58E7E0-21F2-479F-965F-FCC37D6AD801, Id của tài xế: 1CEAF02B-347E-4B42-ADF7-EA3722803D00.
+                Bạn có muốn biết thêm thông tin chi tiết về chuyến đi nào không? 😊
+
         """
         prompt = PromptTemplate(
             input_variables=["chat_history", "context", "question"],
@@ -978,19 +1098,24 @@ class AnswerGenerator:
                         replaced = True
                         break
                     elif isinstance(mapping, str) and field == "Id":
+                        # Chặn riêng trường Id của bảng RidePosts không được map
+                        if table == "RidePosts":
+                            continue
                         record[field] = (
                             f"{self.base_url}{mapping.replace('{id}', value)}"
                         )
                         replaced = True
                         break
 
-                # 2. Nếu field kết thúc bằng Id (UserId, PostId,...)
+                # 2. Nếu field kết thúc bằng Id (UserId, PostId,...) nhưng bỏ qua UserId và Id trong bảng RidePosts
                 if not replaced and field.endswith("Id"):
-                    ref_table = field[:-2] + "s"  # Xử lý ví dụ: UserId -> Users
-                    endpoint = self.mappings.get(ref_table)
-                    if isinstance(endpoint, str):
-                        record[field] = (
-                            f"{self.base_url}{endpoint.replace('{id}', value)}"
-                        )
+                    # Bỏ qua chuyển đổi nếu field là UserId hoặc Id và bảng hiện tại là RidePosts
+                    if not (table == "RidePosts" and field in ["UserId", "Id"]):
+                        ref_table = field[:-2] + "s"  # Ví dụ: UserId -> Users
+                        endpoint = self.mappings.get(ref_table)
+                        if isinstance(endpoint, str):
+                            record[field] = (
+                                f"{self.base_url}{endpoint.replace('{id}', value)}"
+                            )
 
         return results
