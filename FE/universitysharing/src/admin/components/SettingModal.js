@@ -63,9 +63,9 @@ const SettingModal = ({ isOpen, onClose, UserProfile, users }) => {
           className="setting"
           style={{ color: "black", "line-height": "unset" }}
         >
-          <span className="btn-changeProfile" onClick={handleSetting}>
+          {/* <span className="btn-changeProfile" onClick={handleSetting}>
             Cài đặt
-          </span>
+          </span> */}
           {/* <span className="btn-yourScore">Điểm uy tín</span> */}
           <span className="btn-logout" onClick={logout}>
             Đăng xuất
