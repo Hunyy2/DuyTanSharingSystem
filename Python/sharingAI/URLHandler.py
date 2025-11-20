@@ -1,7 +1,7 @@
 from asyncio.log import logger
 import uuid
-from data_loader import DataLoader
-from config import FE_API_URL
+from .data_loader import DataLoader
+from .config import FE_API_URL
 
 
 class URLHandler:
