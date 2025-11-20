@@ -19,7 +19,7 @@ import jwt
 from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
 import httpx
 from redis import asyncio as aioredis
-from data_loader import DataLoader
+from .data_loader import DataLoader
 import pyodbc
 
 # from vector_store import VectorStore
