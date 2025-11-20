@@ -13,14 +13,14 @@ import httpx
 from langchain_google_genai import ChatGoogleGenerativeAI
 import psutil
 from redis import Redis
-from Promft import TablePromptGenerator
-from config import NETCORE_API_URL
-from config import GOOGLE_API_KEY_QUERY, GOOGLE_API_KEY_LLM
+from .Promft import TablePromptGenerator
+from .config import NETCORE_API_URL
+from .config import GOOGLE_API_KEY_QUERY, GOOGLE_API_KEY_LLM
 from langchain.prompts import PromptTemplate
-from answer_generator import AnswerGenerator
+from .answer_generator import AnswerGenerator
 import time as time_module
 from redis.asyncio import Redis
-from data_loader import DataLoader
+from .data_loader import DataLoader
 from redis import asyncio as aioredis
 
 logger = logging.getLogger(__name__)

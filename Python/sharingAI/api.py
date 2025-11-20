@@ -23,14 +23,19 @@ from .data_loader import DataLoader
 import pyodbc
 
 # from vector_store import VectorStore
-from answer_generator import AnswerGenerator
-from config import SQL_SERVER_CONNECTION, JWT_SECRET_KEY, GOOGLE_API_KEY_LLM, REDIS_HOST
+from .answer_generator import AnswerGenerator
+from .config import (
+    SQL_SERVER_CONNECTION,
+    JWT_SECRET_KEY,
+    GOOGLE_API_KEY_LLM,
+    REDIS_HOST,
+)
 from typing import AsyncIterator, List, Dict, Optional
 from langchain_google_genai import ChatGoogleGenerativeAI
-from create_service import CreateQueryProcessor
-from update_service import UpdateQueryProcessor
-from delete_service import DeleteQueryProcessor
-from public_service import PublicQueryProcessor
+from .create_service import CreateQueryProcessor
+from .update_service import UpdateQueryProcessor
+from .delete_service import DeleteQueryProcessor
+from .public_service import PublicQueryProcessor
 
 
 redis = None

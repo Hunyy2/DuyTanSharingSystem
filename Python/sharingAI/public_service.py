@@ -1,7 +1,7 @@
 from typing import AsyncIterator, Dict, List
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
-from config import GOOGLE_API_KEY_QUERY
+from .config import GOOGLE_API_KEY_QUERY
 import logging
 
 logger = logging.getLogger(__name__)

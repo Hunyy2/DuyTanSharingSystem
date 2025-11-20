@@ -12,16 +12,16 @@ import pyodbc
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
 from langchain_core.runnables import RunnableSequence
-from URLHandler import URLHandler
+from .URLHandler import URLHandler
 from redis import asyncio as aioredis
-from config import (
+from .config import (
     GOOGLE_API_KEY_LLM,
     GOOGLE_API_KEY_SQL,
     GOOGLE_API_KEY_QUERY,
     NETCORE_API_URL,
     FE_API_URL,
 )
-from data_loader import DataLoader
+from .data_loader import DataLoader
 import time as time_module
 import json
 import uuid
