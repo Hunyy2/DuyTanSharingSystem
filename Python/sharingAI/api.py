@@ -145,12 +145,12 @@ async def lifespan(app: FastAPI):
         update_service = UpdateQueryProcessor()
         delete_service = DeleteQueryProcessor()
         public_service = PublicQueryProcessor()
-        # redis = await aioredis.from_url(
-        # f"rediss://{os.getenv('REDIS_HOST')}",
-        # password=os.getenv("REDIS_PASSWORD"),
-        # decode_responses=False,
-        # )
-        redis = aioredis.from_url("redis://localhost", decode_responses=False)
+        redis = await aioredis.from_url(
+            f"rediss://{os.getenv('REDIS_HOST')}",
+            password=os.getenv("REDIS_PASSWORD"),
+            decode_responses=False,
+        )
+        # redis = aioredis.from_url("redis://localhost", decode_responses=False)
         logger.info(
             "Initialized DataLoader, AnswerGenerator, QueryProcessors, and Redis"
         )

@@ -58,7 +58,7 @@ class DataLoader:
         self.table_config = {}
         self._initialize_table_config(config_path)
         self.sql_llm = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
+            model="gemini-2.5-flash",
             google_api_key=GOOGLE_API_KEY_FIX_SQL,
             temperature=0,
             max_output_tokens=2024,
