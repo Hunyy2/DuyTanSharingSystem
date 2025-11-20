@@ -29,7 +29,7 @@ import emoji
 from datetime import datetime, date, time, timedelta
 
 # from vector_store import VectorStore
-from Promft import TablePromptGenerator
+from .Promft import TablePromptGenerator
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
