@@ -12,7 +12,7 @@ from contextlib import asynccontextmanager
 import uuid
 import aioodbc
 from langchain_google_genai import ChatGoogleGenerativeAI
-from config import SQL_SERVER_CONNECTION, GOOGLE_API_KEY_FIX_SQL
+from .config import SQL_SERVER_CONNECTION, GOOGLE_API_KEY_FIX_SQL
 import pyodbc
 from decimal import Decimal
 from langchain.prompts import PromptTemplate
