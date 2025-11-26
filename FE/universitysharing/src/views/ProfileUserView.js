@@ -1,23 +1,22 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom"; // Add useLocation
-import ProfileHeader from "../components/ProfileUserComponent/ProfileHeader";
-import ProfilePhotos from "../components/ProfileUserComponent/ProfilePhotos";
-import ProfileFriends from "../components/ProfileUserComponent/ProfileFriends";
-import ProfileIntro from "../components/ProfileUserComponent/ProfileIntro";
-import Header from "../components/HomeComponent/Header";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { userProfile } from "../stores/action/profileActions";
-import "../styles/ProfileView.scss";
+import { useLocation } from "react-router-dom"; // Add useLocation
+import AllPosts from "../components/HomeComponent/AllPostHome";
+import FooterHome from "../components/HomeComponent/FooterHome";
+import Header from "../components/HomeComponent/Header";
+import PostInput from "../components/HomeComponent/PostInputHome";
+import ProfileFriends from "../components/ProfileUserComponent/ProfileFriends";
+import ProfileHeader from "../components/ProfileUserComponent/ProfileHeader";
+import ProfileIntro from "../components/ProfileUserComponent/ProfileIntro";
+import ProfilePhotos from "../components/ProfileUserComponent/ProfilePhotos";
+import AllRideRatings from "../components/RideComponent/AllRideRatings";
+import { fetchListFriend } from "../stores/action/friendAction";
+import { fetchPostsByOwner } from "../stores/action/listPostActions";
+import { fetchPostImagesPreview, userProfile } from "../stores/action/profileActions";
 import "../styles/MoblieReponsive/HomeViewMobile/HomeMobile.scss";
 import "../styles/ProfileTabs.scss";
-import AllPosts from "../components/HomeComponent/AllPostHome";
-import { fetchPostsByOwner } from "../stores/action/listPostActions";
-import PostInput from "../components/HomeComponent/PostInputHome";
-import { fetchListFriend } from "../stores/action/friendAction";
+import "../styles/ProfileView.scss";
 import getUserIdFromToken from "../utils/JwtDecode";
-import { fetchPostImagesPreview } from "../stores/action/profileActions";
-import FooterHome from "../components/HomeComponent/FooterHome";
-import AllRideRatings from "../components/RideComponent/AllRideRatings";
 
 const ProfileUserView = () => {
   const dispatch = useDispatch();
@@ -98,6 +97,8 @@ const ProfileUserView = () => {
                   usersProfile={users}
                   post={post}
                   showOwnerPosts={true}
+                  isFriendProfile={false} // Thêm prop này
+                  userFriendId={null}
                 />
               </div>
             )}

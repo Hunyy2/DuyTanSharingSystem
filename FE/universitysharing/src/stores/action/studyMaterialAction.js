@@ -74,29 +74,47 @@ export const createStudyMaterial = createAsyncThunk(
 );
 
 // ==================== UPDATE STUDY MATERIAL ====================
+// ==================== UPDATE STUDY MATERIAL (SỬA ĐÚNG) ====================
 export const updateStudyMaterial = createAsyncThunk(
   "studyMaterial/update",
-  async (
-    { id, title, description, subject, semester, faculty, files, existingFiles }, // Thêm existingFiles
-    { rejectWithValue }
-  ) => {
+  async (formDataFromModal, { rejectWithValue }) => {
     try {
-      const formData = new FormData();
-      formData.append('Id', id);
-      formData.append('Title', title);
-      formData.append('Description', description || '');
-      formData.append('Subject', subject || '');
-      formData.append('Semester', semester || '');
-      formData.append('Faculty', faculty);
+      // formDataFromModal đã là FormData từ Modal → dùng luôn, không tạo mới
+      const formData = formDataFromModal instanceof FormData 
+        ? formDataFromModal 
+        : new FormData();
 
-      // Append files mới nếu có
-      if (files && files.length > 0) {
-        files.forEach((file) => {
-          formData.append('Files', file); // Giữ nguyên 'Files' plural theo BE
-        });
-      } else if (existingFiles && existingFiles.length > 0) {
-        // Nếu không có file mới, gửi list URL file cũ để BE giữ nguyên (không upload lại)
-        formData.append('ExistingFileUrls', JSON.stringify(existingFiles));
+      // Nếu truyền object → chuyển sang FormData (trường hợp cũ)
+      if (!(formDataFromModal instanceof FormData)) {
+        formData.append("Id", formDataFromModal.id);
+        formData.append("Title", formDataFromModal.title || "");
+        formData.append("Description", formDataFromModal.description || "");
+        formData.append("Subject", formDataFromModal.subject || "");
+        formData.append("Semester", formDataFromModal.semester || "");
+        formData.append("Faculty", formDataFromModal.faculty || "");
+
+        // File mới
+        if (formDataFromModal.files?.length > 0) {
+          formDataFromModal.files.forEach(file => {
+            formData.append("FileUrls", file); // ĐÚNG TÊN: FileUrls (chứ không phải Files)
+          });
+        }
+
+        // File cũ cần giữ lại → gửi từng URL riêng lẻ (BE nhận List<string>)
+        if (formDataFromModal.existingFiles?.length > 0) {
+          formDataFromModal.existingFiles.forEach(url => {
+            formData.append("ExistingFileUrls", url); // ĐÚNG TÊN + gửi từng cái
+          });
+        } else if (formDataFromModal.existingFiles?.length === 0) {
+          // Gửi mảng rỗng → BE sẽ xóa hết file cũ
+          formData.append("ExistingFileUrls", ""); // hoặc không append gì cũng được
+        }
+      }
+
+      // Debug xem gửi đúng chưa
+      console.log("Đang gửi update StudyMaterial:");
+      for (let [key, value] of formData.entries()) {
+        console.log(key, value);
       }
 
       const response = await axiosClient.put(
@@ -105,22 +123,22 @@ export const updateStudyMaterial = createAsyncThunk(
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
+            // Không set Content-Type → để browser tự set boundary
           },
         }
       );
 
       if (!response.data.success) {
-        return rejectWithValue(response.data.message || "Lỗi từ server khi cập nhật tài liệu");
+        return rejectWithValue(response.data.message || "Cập nhật thất bại");
       }
 
-      toast.success(response.data.message || "Cập nhật tài liệu thành công!");
+      toast.success("Cập nhật tài liệu thành công!");
       return response.data.data;
     } catch (error) {
-      console.error("Error in updateStudyMaterial:", error);
-      const errorMessage =
-        error.response?.data?.message || "Lỗi mạng hoặc server không phản hồi";
-      toast.error(errorMessage);
-      return rejectWithValue(errorMessage);
+      console.error("Lỗi updateStudyMaterial:", error.response?.data || error);
+      const msg = error.response?.data?.message || "Lỗi mạng hoặc server";
+      toast.error(msg);
+      return rejectWithValue(msg);
     }
   }
 );

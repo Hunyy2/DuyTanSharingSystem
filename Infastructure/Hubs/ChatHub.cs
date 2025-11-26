@@ -75,11 +75,12 @@ namespace Infrastructure.Hubs
                     // Kiểm tra xem người bạn đó có đang online không trước khi gửi
                     // Mặc dù `Clients.Group` sẽ chỉ gửi đến các kết nối đang hoạt động,
                     // việc kiểm tra `IsUserOnlineAsync` giúp tránh gửi quá nhiều sự kiện không cần thiết
-                    if (await _redisService.IsUserOnlineAsync(friendId.ToString()))
-                    {
-                        await Clients.Group(friendId.ToString()).SendAsync("UserOnline", userId.ToString());
-                        Console.WriteLine($"📤 Đã gửi UserOnline đến {friendId}");
-                    }
+                    //if (await _redisService.IsUserOnlineAsync(friendId.ToString()))
+                    //{
+                    //    await Clients.Group(friendId.ToString()).SendAsync("UserOnline", userId.ToString());
+                    //    Console.WriteLine($"📤 Đã gửi UserOnline đến {friendId}");
+                    //}
+                    await Clients.Group(friendId.ToString()).SendAsync("UserOnline", userId.ToString());
                 }
             }
 
@@ -140,11 +141,12 @@ namespace Infrastructure.Hubs
                     {
                         // Chỉ gửi tín hiệu "UserOffline" nếu người bạn đó đang online
                         // Điều này giúp tránh gửi sự kiện đến các client không cần biết
-                        if (await _redisService.IsUserOnlineAsync(friendId.ToString()))
-                        {
-                            await Clients.Group(friendId.ToString()).SendAsync("UserOffline", userId.ToString());
-                            Console.WriteLine($"📤 Đã gửi UserOffline đến {friendId}");
-                        }
+                        //if (await _redisService.IsUserOnlineAsync(friendId.ToString()))
+                        //{
+                        //    await Clients.Group(friendId.ToString()).SendAsync("UserOffline", userId.ToString());
+                        //    Console.WriteLine($"📤 Đã gửi UserOffline đến {friendId}");
+                        //}
+                        await Clients.Group(friendId.ToString()).SendAsync("UserOffline", userId.ToString());
                     }
                 }
             }
@@ -164,35 +166,28 @@ namespace Infrastructure.Hubs
             var userIdString = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
             {
-                Console.WriteLine("KeepAlive: UserId không hợp lệ");
                 return;
             }
 
-            // Kiểm tra xem ConnectionId hiện tại có hợp lệ với userId không (từ bộ nhớ cục bộ trước)
-            if (_connectedUsers.TryGetValue(Context.ConnectionId, out var storedUserId) && storedUserId == userId)
-            {
-                // Kiểm tra lại trong Redis Set để đảm bảo ConnectionId vẫn tồn tại
-                // Điều này hữu ích nếu có sự cố với ConcurrentDictionary (ví dụ: Hub instance bị tái tạo)
-                var isMember = await _redisService.IsMemberOfSetAsync($"user_connections:{userId}", Context.ConnectionId);
+            // --- SỬA ĐỔI: Kiểm tra Redis trước hoặc song song ---
 
-                if (isMember)
-                {
-                    // Làm mới thời gian tồn tại của khóa user_status:{userId} trong Redis
-                    // Điều này giữ cho trạng thái "online" được duy trì.
-                    await _redisService.SaveDataAsync($"user_status:{userId}", "online", TimeSpan.FromSeconds(30)); // Đặt lại 30 giây
-                    Console.WriteLine($"🔄 Làm mới trạng thái online cho user {userId} từ KeepAlive. ConnectionId: {Context.ConnectionId}");
-                }
-                else
-                {
-                    Console.WriteLine($"⚠️ KeepAlive: ConnectionId {Context.ConnectionId} không tồn tại trong Redis Set cho user {userId}. Ngắt kết nối.");
-                    Context.Abort(); // Ngắt kết nối nếu ConnectionId không còn trong Redis Set
-                }
+            // Kiểm tra trong Redis Set để đảm bảo ConnectionId vẫn tồn tại
+            var isMember = await _redisService.IsMemberOfSetAsync($"user_connections:{userId}", Context.ConnectionId);
+
+            if (isMember)
+            {
+                // Nếu tồn tại trong Redis, update expire luôn, không cần quá phụ thuộc vào _connectedUsers cục bộ
+                await _redisService.SaveDataAsync($"user_status:{userId}", "online", TimeSpan.FromSeconds(30));
+
+                // Đồng bộ lại dictionary cục bộ nếu nó bị thiếu (ví dụ sau khi restart server)
+                _connectedUsers.TryAdd(Context.ConnectionId, userId);
+
+                Console.WriteLine($"🔄 Làm mới trạng thái online cho user {userId}");
             }
             else
             {
-                // Nếu ConnectionId không khớp hoặc không tồn tại trong bản đồ cục bộ, có thể là lỗi hoặc kết nối cũ
-                Console.WriteLine($"⚠️ KeepAlive: ConnectionId {Context.ConnectionId} không hợp lệ hoặc không khớp với user {userId}. Ngắt kết nối.");
-                Context.Abort(); // Ngắt kết nối để client thử kết nối lại đúng cách
+                Console.WriteLine($"⚠️ KeepAlive: ConnectionId không tồn tại trong Redis. Abort.");
+                Context.Abort();
             }
         }
         public async Task JoinConversation(string conversationId)
@@ -255,6 +250,7 @@ namespace Infrastructure.Hubs
                 // Ghi log chi tiết lỗi
             }       
         }
+
         
     }
 }

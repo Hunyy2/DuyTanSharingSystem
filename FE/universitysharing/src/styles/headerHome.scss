@@ -56,9 +56,45 @@ $transition: all 0.3s ease;
     align-items: center;
     justify-content: space-between;
     cursor: pointer;
+    
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 19px;
+      border-radius: 10px;
+      transition: $transition;
+      
+      &:hover {
+        background-color: rgba(0, 123, 255, 0.05);
+      }
 
-    .logowebsite {
-      max-width: 150px;
+      .logowebsite {
+        max-width: 50px; // Giảm kích thước logo
+        max-height: 50px;
+        object-fit: contain;
+      }
+
+      .app-name {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        line-height: 1.1;
+
+        .university-text {
+          font-size: 16px;
+          font-weight: 700;
+          color: #2c3e50;
+          letter-spacing: 0.5px;
+        }
+
+        .sharing-text {
+          font-size: 14px;
+          font-weight: 600;
+          color: #007bff;
+          letter-spacing: 1px;
+        }
+      }
     }
     .btn-search {
       align-items: center;
@@ -870,5 +906,32 @@ $transition: all 0.3s ease;
 @media (max-width: 768px) {
   .footer {
     display: none;
+  }
+}
+@media (max-width: 768px) {
+  .header {
+    .logoWeb {
+      .logo-container {
+        .app-name {
+          display: none; // Ẩn tên ứng dụng trên mobile
+        }
+        
+        .logowebsite {
+          max-width: 40px;
+          max-height: 40px;
+        }
+      }
+    }
+  }
+}
+@media (max-width: 480px) {
+  .header {
+    padding: 8px 12px;
+    
+    .logoWeb {
+      .logo-container {
+        padding: 8px 12px;
+      }
+    }
   }
 }

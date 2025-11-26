@@ -39,10 +39,10 @@ namespace Application.CQRS.Commands.Comments
                 return ResponseFactory.Fail<ResultCommentDto>("Nội dung bình luận không được để trống", 400);
             }
 
-            if (!await _geminiService.ValidatePostContentAsync(request.Content))
-            {
-                return ResponseFactory.Fail<ResultCommentDto>("Warning! Content is not accepted! If you violate it again, your reputation will be deducted!!", 400);
-            }
+            //if (!await _geminiService.ValidatePostContentAsync(request.Content))
+            //{
+            //    return ResponseFactory.Fail<ResultCommentDto>("Warning! Content is not accepted! If you violate it again, your reputation will be deducted!!", 400);
+            //}
 
             await _unitOfWork.BeginTransactionAsync();
             try

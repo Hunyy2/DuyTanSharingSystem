@@ -16,7 +16,12 @@ namespace Infrastructure.Data.Repositories
         {
             throw new NotImplementedException();
         }
-
+        public async Task<long> GetTotalFileSizeByUserAsync(Guid userId)
+        {
+            return await _context.StudyMaterials
+                .Where(m => m.UserId == userId && !m.IsDeleted)
+                .SumAsync(m => m.TotalFileSize);
+        }
         public async Task<List<StudyMaterial>> GetAllStudyMaterialAsync(Guid? lastPostId, int pageSize)
         {
             const int MAX_PAGE_SIZE = 50;

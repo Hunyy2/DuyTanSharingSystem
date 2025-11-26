@@ -36,6 +36,15 @@ const STATUS_CONFIG = {
   Rejected: { color: '#F44336', label: 'Đã từ chối' },
 };
 
+// Hàm format kích thước file
+const formatFileSize = (bytes) => {
+  if (!bytes || bytes === 0) return '0 B';
+  
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+};
+
 const StudyMaterial = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -88,6 +97,15 @@ const StudyMaterial = () => {
   });
 }, [materialsList, searchTerm, selectedFaculty, selectedSubject, selectedSemester, selectedStatus]);
   console.log("Filtered materials:", filteredMaterials); // Debug
+  
+  // Tính tổng dung lượng của người dùng hiện tại
+  const totalUsedSize = useMemo(() => {
+    if (!materials || !currentUserId) return 0;
+    
+    return materials
+      .filter(m => m.userId === currentUserId) // Chỉ tính tài liệu của mình
+      .reduce((sum, m) => sum + (m.totalFileSize || 0), 0);
+  }, [materials, currentUserId]);
 
   // Get file icon based on extension
   const getFileIcon = (fileUrl) => {
@@ -102,6 +120,7 @@ const StudyMaterial = () => {
     if (!fileUrl) return 'Không có tên file';
     return fileUrl.split('/').pop() || 'File đính kèm';
   };
+
   // Handle edit material
   const handleEditMaterial = (material) => {
     setSelectedMaterial(material);
@@ -139,6 +158,7 @@ const StudyMaterial = () => {
   const isOwner = (material) => {
     return material.userId === currentUserId;
   };
+
   // Handle download file
  const handleDownload = async (fileUrl, materialId) => {
   try {
@@ -230,6 +250,44 @@ const isLoading = loading && materials.length === 0;
           </button>
         </div>
       </div>
+
+      {/* Thanh dung lượng - HIỆN Ở TRÊN CÙNG, CHỈ CHO NGƯỜI DÙNG ĐANG ĐĂNG NHẬP */}
+      {currentUserId && (
+        <div className="storage-usage-section">
+          <div className="storage-header">
+            <div className="storage-text">
+              <strong>Dung lượng đã dùng:</strong>{' '}
+              <span className="usage-value">
+                {formatFileSize(totalUsedSize)}
+              </span>{' '}
+              / 100 MB
+            </div>
+            {totalUsedSize > 90 * 1024 * 1024 && (
+              <div className="storage-warning">
+                ⚠️ Gần hết dung lượng!
+              </div>
+            )}
+          </div>
+          
+          <div className="progress-container">
+            <div 
+              className="progress-bar"
+              style={{ 
+                width: `${Math.min(100, (totalUsedSize / (100 * 1024 * 1024)) * 100)}%` 
+              }}
+            />
+          </div>
+
+          <div className="storage-footer">
+            <small>
+              {totalUsedSize > 90 * 1024 * 1024 
+                ? "⚠️ Bạn nên xóa bớt tài liệu cũ để tiếp tục đăng mới."
+                : `💾 Còn trống: ${formatFileSize(100 * 1024 * 1024 - totalUsedSize)}`
+              }
+            </small>
+          </div>
+        </div>
+      )}
         
       {/* Search and Filters */}
       <div className="filters-section">
@@ -320,26 +378,20 @@ const isLoading = loading && materials.length === 0;
             <div key={material.id} className="material-card">
                 {/* Status Badge và Menu */}
               <div className="card-header">
-                <div 
+                {/* <div 
                   className="status-badge"
                   style={{ backgroundColor: STATUS_CONFIG[material.approvalStatus]?.color || '#666' }}
                 >
                   {STATUS_CONFIG[material.approvalStatus]?.label || material.approvalStatus}
-                </div>
+                </div> */}
                 
                 {/* Menu cho chủ sở hữu */}
                 <StudyMaterialMenu 
                   material={material}
                   onEdit={handleEditMaterial}
+                  onDelete={handleDeleteMaterial}
                   isOwner={isOwner(material)}
                 />
-              </div>
-              {/* Status Badge */}
-              <div 
-                className="status-badge"
-                style={{ backgroundColor: STATUS_CONFIG[material.approvalStatus]?.color || '#666' }}
-              >
-                {STATUS_CONFIG[material.approvalStatus]?.label || material.approvalStatus}
               </div>
 
               {/* User Info */}
@@ -382,6 +434,10 @@ const isLoading = loading && materials.length === 0;
                   </span>
                   <span className="meta-item">
                     <strong>Học kỳ:</strong> {material.semester?.replace(/"/g, '') || 'N/A'}
+                  </span>
+                  {/* Hiển thị kích thước file cho tất cả bài viết */}
+                  <span className="meta-item">
+                    <strong>Kích thước:</strong> {formatFileSize(material.totalFileSize)}
                   </span>
                 </div>
 
@@ -430,8 +486,6 @@ const isLoading = loading && materials.length === 0;
                 >
                   <FaEye /> Xem chi tiết
                 </button>
-
-                
 
                 {material.fileUrls?.length > 0 && (
                   <button 

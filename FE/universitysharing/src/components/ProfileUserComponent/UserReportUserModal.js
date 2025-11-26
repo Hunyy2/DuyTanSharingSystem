@@ -5,7 +5,7 @@ import "../../styles/ProfileUserView/UserReportUserModal.scss";
 const UserReportUserModal = ({ isOpen, onClose, reportedUserId }) => {
   const [selectedReason, setSelectedReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const baseUrl = process.env.REACT_APP_API_BASE_URL;
   const reportReasons = [
     "Người dùng giả mạo",
     "Hành vi xúc phạm",
@@ -28,7 +28,7 @@ const UserReportUserModal = ({ isOpen, onClose, reportedUserId }) => {
     setIsSubmitting(true);
     try {
       const response = await fetch(
-        "https://universharing-web-app-gaereaceg0drc5e3.southeastasia-01.azurewebsites.net/api/UserProfile/user-report-user",
+        `${baseUrl}/api/UserProfile/user-report-user`,
         {
           method: "POST",
           headers: {

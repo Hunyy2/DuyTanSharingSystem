@@ -2,12 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { FiSearch } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import avatarDefault from "../../assets/AvatarDefault.png";
-import signalRService from "../../Service/signalRService";
 import { fetchFriends } from "../../stores/action/friendAction";
-import {
-  setUserOffline,
-  setUserOnline,
-} from "../../stores/reducers/onlineSlice";
 import "../../styles/MessageView/RightSidebar.scss";
 import Spinner from "../../utils/Spinner";
 
@@ -54,27 +49,6 @@ const RightSidebar = () => {
 
   useEffect(() => {
     dispatch(fetchFriends());
-
-    signalRService.onUserOnline((userId) => {
-      console.log("Nhận sự kiện userOnline:", userId);
-      dispatch(setUserOnline(userId));
-    });
-
-    signalRService.onUserOffline((userId) => {
-      console.log("Nhận sự kiện userOffline:", userId);
-      dispatch(setUserOffline(userId));
-    });
-
-    signalRService.onInitialOnlineFriends((onlineUsers) => {
-      console.log("Nhận initialOnlineUsers:", onlineUsers);
-      onlineUsers.forEach((userId) => dispatch(setUserOnline(userId)));
-    });
-
-    return () => {
-      signalRService.off("userOnline", signalRService.chatConnection);
-      signalRService.off("userOffline", signalRService.chatConnection);
-      signalRService.off("initialOnlineUsers", signalRService.chatConnection);
-    };
   }, [dispatch]);
 
   useEffect(() => {

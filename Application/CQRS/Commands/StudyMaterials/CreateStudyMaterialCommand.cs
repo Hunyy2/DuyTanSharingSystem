@@ -27,6 +27,8 @@ namespace Application.CQRS.Commands.StudyMaterial
 
         [MaxLength(100)]
         public string? Faculty { get; set; } // Khoa/Bộ môn
+        [Required]
+        public decimal TotalFileSize { get; set; }
 
         // Loại bỏ Price và Tags vì entity không có
     }
