@@ -28,6 +28,7 @@ namespace Domain.Entities
         public StudyMaterialApprovalStatus ApprovalStatus { get; private set; } = StudyMaterialApprovalStatus.Pending;
         public Guid? ApprovedBy { get; private set; } // ID của Admin/Giảng viên duyệt
         public decimal AverageRating { get; private set; } = 0.00m;
+        public long TotalFileSize { get; private set; }
         public bool IsDeleted { get; private set; } = false; // Đánh dấu xóa mềm
         // THUỘC TÍNH ĐIỀU HƯỚNG (Navigation Property)
         public ICollection<StudyMaterialRating> Ratings { get; private set; } = new List<StudyMaterialRating>();
@@ -51,6 +52,11 @@ namespace Domain.Entities
 
             // Mặc định trạng thái là chờ duyệt
             ApprovalStatus = StudyMaterialApprovalStatus.Pending;
+        }
+        public void SetTotalFileSize(long fileSize)
+        {
+            if (fileSize < 0) throw new ArgumentException("File size cannot be negative.");
+            TotalFileSize = fileSize;
         }
 
         /// <summary>

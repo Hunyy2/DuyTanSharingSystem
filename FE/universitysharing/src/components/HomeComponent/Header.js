@@ -1,23 +1,23 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 
+import avatarweb from "../../assets/AvatarDefault.png";
+import logoweb from "../../assets/Logo.png";
+import { useSignalR } from "../../Service/SignalRProvider";
 import "../../styles/headerHome.scss";
 import "../../styles/MoblieReponsive/HomeViewMobile/HeaderHomeReponsive.scss";
-import logoweb from "../../assets/Logo.png";
-import avatarweb from "../../assets/AvatarDefault.png";
-import { useSignalR } from "../../Service/SignalRProvider";
 
-import { FiSearch, FiBell, FiMessageSquare, FiArrowLeft } from "react-icons/fi";
+import { FiArrowLeft, FiBell, FiMessageSquare, FiSearch } from "react-icons/fi";
 
-import NotifyModal from "../NotifyModal";
 import MessengerModal from "../MessengerModal";
+import NotifyModal from "../NotifyModal";
 import SettingModal from "../SettingModal";
 
-import { useNavigate } from "react-router-dom";
-import { searchPost } from "../../stores/action/searchAction";
-import { useDispatch } from "react-redux";
-import { fetchUnreadNotificationCount } from "../../stores/action/notificationAction";
 import "animate.css";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { fetchUnreadNotificationCount } from "../../stores/action/notificationAction";
+import { searchPost } from "../../stores/action/searchAction";
 
 const Header = ({ usersProfile }) => {
   const [unreadCount, setUnreadCount] = useState(0);
@@ -147,12 +147,17 @@ const Header = ({ usersProfile }) => {
     <>
       <div className="header">
         <div className="logoWeb" ref={logoRef}>
-          <img
-            className="logowebsite"
-            src={logoweb}
-            alt="University Sharing"
-            onClick={handleHomeView}
-          />
+          <div className="logo-container" onClick={handleHomeView}>
+            <img
+              className="logowebsite"
+              src={logoweb}
+              alt="University Sharing"
+            />
+            <div className="app-name">
+              <span className="university-text">UNIVERSITY</span>
+              <span className="sharing-text">SHARING</span>
+            </div>
+          </div>
           <div className="btn-search" onClick={showSearchBox}>
             <FiSearch className="search-icon-btn"></FiSearch>
           </div>

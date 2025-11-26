@@ -28,49 +28,67 @@ namespace Application.CQRS.Commands.StudyMaterials
                 var userId = _userContextService.UserId();
                 if (userId == Guid.Empty)
                     return ResponseFactory.Fail<StudyMaterialDto>("User not authenticated", 401);
+
                 var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
                 if (user == null)
                     return ResponseFactory.Fail<StudyMaterialDto>("User not found", 404);
-                if (user.TrustScore < 30 && user.TrustScore >= 0)
-                    return ResponseFactory.Fail<StudyMaterialDto>("Để thao tác được chức năng này, bàn cần đạt ít nhất 31 điểm uy tín", 403);
-                // Xử lý upload nhiều file (nếu có)
-                List<string> fileUrls = new List<string>();
-                if (request.Files != null && request.Files.Any())
+
+                if (user.TrustScore < 30)
+                    return ResponseFactory.Fail<StudyMaterialDto>("Cần ít nhất 31 điểm uy tín để đăng tài liệu", 403);
+
+                // === KIỂM TRA GIỚI HẠN 100MB/USER ===
+                const long MAX_STORAGE_PER_USER = 100L * 1024 * 1024; // 100MB
+
+                var currentTotalSize = await _unitOfWork.StudyMaterialRepository
+                    .GetTotalFileSizeByUserAsync(userId); // ← Bạn cần thêm method này ở repo
+
+                long newFilesSize = request.Files?.Sum(f => f.Length) ?? 0;
+
+                if (currentTotalSize + newFilesSize > MAX_STORAGE_PER_USER)
                 {
-                    foreach (var file in request.Files)
-                    {
-                        if (file.Length > 0)
-                        {
-                            var fileUrl = await _fileService.SaveFileAsync(file, "study-materials", isImage: false);
-                            if (string.IsNullOrEmpty(fileUrl))
-                                return ResponseFactory.Fail<StudyMaterialDto>("One or more files upload failed", 400);
-                            fileUrls.Add(fileUrl);
-                        }
-                    }
-                }
-                else
-                {
-                    return ResponseFactory.Fail<StudyMaterialDto>("No files provided", 400);
+                    var usedMB = currentTotalSize / (1024.0 * 1024);
+                    var limitMB = MAX_STORAGE_PER_USER / (1024.0 * 1024);
+                    return ResponseFactory.Fail<StudyMaterialDto>(
+                        $"Bạn đã vượt quá giới hạn lưu trữ: {usedMB:F1}MB / {limitMB}MB. Vui lòng xóa bớt tài liệu cũ.",
+                        400);
                 }
 
-                // Tạo Entity (sử dụng list fileUrls đã upload)
+                // Upload file
+                List<string> fileUrls = new();
+                if (request.Files == null || !request.Files.Any())
+                    return ResponseFactory.Fail<StudyMaterialDto>("Vui lòng đính kèm ít nhất 1 file", 400);
+
+                foreach (var file in request.Files)
+                {
+                    if (file.Length == 0) continue;
+                    if (file.Length > 50 * 1024 * 1024)
+                        return ResponseFactory.Fail<StudyMaterialDto>($"File {file.FileName} vượt quá 50MB", 400);
+
+                    var fileUrl = await _fileService.SaveFileAsync(file, "study-materials", isImage: false);
+                    if (string.IsNullOrEmpty(fileUrl))
+                        return ResponseFactory.Fail<StudyMaterialDto>("Upload file thất bại", 500);
+
+                    fileUrls.Add(fileUrl);
+                }
+
+                // Tạo entity
                 var material = new Domain.Entities.StudyMaterial(
                     userId: userId,
                     title: request.Title,
-                    fileUrl: string.Join(",", fileUrls), // Giả sử entity có List<string> FileUrls; nếu string thì: string.Join(",", fileUrls)
+                    fileUrl: string.Join(",", fileUrls),
                     subject: request.Subject,
                     description: request.Description,
                     semester: request.Semester,
                     faculty: request.Faculty
                 );
 
-                // Lưu vào DB
+                // Cập nhật dung lượng
+                material.SetTotalFileSize(newFilesSize);
+
                 await _unitOfWork.StudyMaterialRepository.AddAsync(material);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransactionAsync();
 
-
-                // Trả về DTO (FileUrls là list URL full)
                 return ResponseFactory.Success(
                     new StudyMaterialDto
                     {
@@ -83,16 +101,13 @@ namespace Application.CQRS.Commands.StudyMaterials
                         Subject = material.Subject ?? string.Empty,
                         Semester = material.Semester,
                         Faculty = material.Faculty,
-                        FileUrls = material.FileUrl?
-                            .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                            .Select(url => $"{Constaint.baseUrl}{url}")
-                            .ToList() ?? new List<string>(),
+                        FileUrls = fileUrls.Select(url => $"{Constaint.baseUrl}{url}").ToList(),
                         DownloadCount = material.DownloadCount,
                         ViewCount = material.ViewCount,
                         ApprovalStatus = material.ApprovalStatus.ToString(),
                         CreatedAt = FormatUtcToLocal(material.CreatedAt)
                     },
-                    "Study Materials created successfully",
+                    "Đăng tài liệu thành công!",
                     201);
             }
             catch (Exception e)

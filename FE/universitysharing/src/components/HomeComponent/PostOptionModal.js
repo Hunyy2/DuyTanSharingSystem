@@ -1,11 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
-import "../../styles/PostOptionModal.scss";
 import PropTypes from "prop-types";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
-import { closePostOptionModal } from "../../stores/reducers/listPostReducers";
-import ReportModal from "../ReportModal";
-
+import "../../styles/PostOptionModal.scss";
 import EditModal from "../EditPostModal";
+import ReportModal from "../ReportModal";
 
 const PostOptionsModal = ({
   isOwner,
@@ -15,78 +13,124 @@ const PostOptionsModal = ({
   handleDeletePost,
   post,
 }) => {
-  //console.log("Nội dung>>", post);
-  const modalRef = useRef(null); // Tạo ref để kiểm tra click ra ngoài modal
+  const modalRef = useRef(null);
   const dispatch = useDispatch();
-  const [isHidden, setIsHidden] = useState(false); // Thêm state để ẩn/hiện modal
-  //Update bài viếtviết
+  const [isHidden, setIsHidden] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
-  const [isReportModalOpen, setIsReportModalOpen] = useState(false); // thêm state
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [adjustedPosition, setAdjustedPosition] = useState({ top: 0, left: 0 });
 
   const handleOpenEditModal = () => {
     setOpenEdit(true);
-    setIsHidden(true); // Ẩn PostOptionsModal
+    setIsHidden(true);
   };
+
   const handleCloseEditModal = () => {
     setOpenEdit(false);
     onClose();
   };
+
   const handleOpenReportModal = () => {
     setIsReportModalOpen(true);
-    setIsHidden(true); // ẩn menu options
+    setIsHidden(true);
   };
 
   const handleCloseReportModal = () => {
     setIsReportModalOpen(false);
-    onClose(); // đóng luôn modal options
+    onClose();
   };
 
-  // //đóng PostOption
-
-  // useEffect(() => {
-  //   const handleClickOutside = (event) => {
-  //     if (modalRef.current && !modalRef.current.contains(event.target)) {
-  //       onClose(); // Đóng modal nếu click ra ngoài
-  //     }
-  //   };
-
-  //   document.addEventListener("click", handleClickOutside);
-  //   return () => {
-  //     document.removeEventListener("click", handleClickOutside);
-  //   };
-  // }, [onClose]);
-
-  //Tắt modal khi có sự kiện srcoll
+  // Điều chỉnh vị trí modal để không bị tràn ra ngoài màn hình
   useEffect(() => {
-    const handleScroll = () => {
-      dispatch(closePostOptionModal());
-    };
+    if (position) {
+      const modalWidth = 180; // Chiều rộng ước tính của modal
+      const modalHeight = 120; // Chiều cao ước tính của modal
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
 
-    const scrollContainer = document.querySelector(".center-content"); // Chọn phần tử có class all-posts
+      let adjustedLeft = position.left;
+      let adjustedTop = position.top;
 
-    if (scrollContainer) {
-      scrollContainer.addEventListener("scroll", handleScroll);
+      // Kiểm tra và điều chỉnh vị trí trái/phải
+      if (position.left + modalWidth > viewportWidth) {
+        adjustedLeft = viewportWidth - modalWidth - 10; // Cách lề phải 10px
+      } else if (position.left < 10) {
+        adjustedLeft = 10; // Cách lề trái 10px
+      }
+
+      // Kiểm tra và điều chỉnh vị trí trên/dưới
+      if (position.top + modalHeight > viewportHeight) {
+        adjustedTop = viewportHeight - modalHeight - 10; // Cách lề dưới 10px
+      } else if (position.top < 10) {
+        adjustedTop = 10; // Cách lề trên 10px
+      }
+
+      setAdjustedPosition({
+        top: adjustedTop,
+        left: adjustedLeft
+      });
     }
+  }, [position]);
 
-    return () => {
-      if (scrollContainer) {
-        scrollContainer.removeEventListener("scroll", handleScroll);
+  // Xử lý click outside để đóng modal
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        onClose();
       }
     };
-  }, [dispatch]);
+
+    const timer = setTimeout(() => {
+      document.addEventListener("mousedown", handleClickOutside);
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [onClose]);
+
+  // Xử lý sự kiện scroll để đóng modal
+  useEffect(() => {
+    const handleScroll = () => {
+      onClose();
+    };
+
+    window.addEventListener("scroll", handleScroll, true);
+    
+    return () => {
+      window.removeEventListener("scroll", handleScroll, true);
+    };
+  }, [onClose]);
+
+  // Xử lý sự kiện escape key
+  useEffect(() => {
+    const handleEscapeKey = (event) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleEscapeKey);
+    return () => {
+      document.removeEventListener("keydown", handleEscapeKey);
+    };
+  }, [onClose]);
 
   return (
     <>
       {!isHidden && (
-        <div
-          className="modal-postOption-overlay"
-          // onClick={onClose}
-          // style={{ top: `${position.top}px`, left: `${position.left}px` }}
-        >
+        <div className="modal-postOption-overlay">
           <div
             className="modal-postOption-content"
             onClick={(e) => e.stopPropagation()}
             ref={modalRef}
+            style={{
+              position: "fixed",
+              top: `${adjustedPosition.top}px`,
+              left: `${adjustedPosition.left}px`,
+              zIndex: 10001
+            }}
           >
             {isOwner ? (
               <>
@@ -117,16 +161,16 @@ const PostOptionsModal = ({
           </div>
         </div>
       )}
-      {isOpenEdit &&
-        (console.log("Render EditModal"),
-        (
-          <EditModal
-            isOpen={isOpenEdit}
-            postId={postId}
-            post={post}
-            onClose={handleCloseEditModal}
-          ></EditModal>
-        ))}
+      
+      {isOpenEdit && (
+        <EditModal
+          isOpen={isOpenEdit}
+          postId={postId}
+          post={post}
+          onClose={handleCloseEditModal}
+        />
+      )}
+      
       {isReportModalOpen && (
         <ReportModal postId={postId} onClose={handleCloseReportModal} />
       )}
@@ -137,6 +181,13 @@ const PostOptionsModal = ({
 PostOptionsModal.propTypes = {
   isOwner: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
+  position: PropTypes.shape({
+    top: PropTypes.number,
+    left: PropTypes.number,
+  }),
+  postId: PropTypes.string,
+  handleDeletePost: PropTypes.func,
+  post: PropTypes.object,
 };
 
 export default PostOptionsModal;

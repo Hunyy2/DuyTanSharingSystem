@@ -32,6 +32,10 @@ namespace Application.DTOs.StudyMaterial
             public int ViewCount { get; set; } = 0;
             public string ApprovalStatus { get; set; } = string.Empty; // Trạng thái duyệt (chuỗi)
             public string CreatedAt { get; set; } = string.Empty;
+            public long TotalFileSize
+            {
+                get; set;
+            }
         }
     }
 }

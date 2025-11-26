@@ -19,14 +19,15 @@ const CreateStudyMaterialModal = ({ isOpen, onClose }) => {
   const [errors, setErrors] = useState({});
 
   // Các lựa chọn cho dropdown (có thể fetch từ API nếu cần)
+  // === ĐỔI TÊN "Khoa" → "Chuyên ngành" ===
   const facultyOptions = [
-    "Công nghệ Thông tin",
-    "Điện - Điện tử",
-    "Cơ khí",
-    "Xây dựng",
-    "Kinh tế",
-    "Quản trị Kinh doanh",
-    "Ngoại ngữ",
+    "Trường Công nghệ & Kỹ thuật (SET)",
+    "Trường Y Dược (Med–Pharm)",
+    "Trường Kinh tế (School of Economics)",
+    "Trường Kiến trúc & Xây dựng (SAC)",
+    "Trường Ngoại ngữ - Xã hội Nhân văn",
+    "Khoa Du lịch",
+    "Khoa Luật",
     "Khác"
   ];
 
@@ -35,22 +36,110 @@ const CreateStudyMaterialModal = ({ isOpen, onClose }) => {
     "Học kỳ 2",
     "Học kỳ Hè",
     "Năm 1",
-    "Năm 2", 
+    "Năm 2",
     "Năm 3",
     "Năm 4"
   ];
 
-  const subjectOptions = [
-    "Toán cao cấp",
-    "Lập trình C++",
-    "Cấu trúc dữ liệu",
-    "Cơ sở dữ liệu",
-    "Mạng máy tính",
-    "Giải tích",
-    "Vật lý đại cương",
-    "Tiếng Anh",
-    "Khác"
-  ];
+  // === DANH SÁCH MÔN HỌC THEO CHUYÊN NGÀNH (Đại học Duy Tân) ===
+  const subjectsByFaculty = {
+    "Trường Công nghệ & Kỹ thuật (SET)": [
+      "Lập trình C/C++",
+      "Cấu trúc dữ liệu và giải thuật",
+      "Cơ sở dữ liệu",
+      "Mạng máy tính",
+      "Lập trình Java",
+      "Phát triển ứng dụng Web",
+      "Trí tuệ nhân tạo",
+      "An toàn thông tin",
+      "Hệ điều hành",
+      "Kỹ thuật phần mềm"
+    ],
+    "Trường Y Dược (Med–Pharm)": [
+      "Giải phẫu học",
+      "Sinh lý học",
+      "Hóa sinh y học",
+      "Dược lý học",
+      "Bệnh học",
+      "Vi sinh y học",
+      "Kỹ năng lâm sàng",
+      "Dược lâm sàng",
+      "Hóa dược",
+      "Quản lý nhà thuốc"
+    ],
+    "Trường Kinh tế (School of Economics)": [
+      "Kinh tế vi mô",
+      "Kinh tế vĩ mô",
+      "Kế toán tài chính",
+      "Quản trị kinh doanh",
+      "Marketing căn bản",
+      "Tài chính doanh nghiệp",
+      "Luật kinh tế",
+      "Quản trị nhân lực",
+      "Kinh doanh quốc tế",
+      "Thống kê kinh tế"
+    ],
+    "Trường Kiến trúc & Xây dựng (SAC)": [
+      "Vẽ kỹ thuật",
+      "Cơ học kết cấu",
+      "Kiến trúc dân dụng",
+      "Thiết kế nội thất",
+      "Kỹ thuật xây dựng",
+      "Quy hoạch đô thị",
+      "Vật liệu xây dựng",
+      "Kết cấu thép",
+      "Đồ án kiến trúc",
+      "AutoCAD & Revit"
+    ],
+    "Trường Ngoại ngữ - Xã hội Nhân văn": [
+      "Tiếng Anh chuyên ngành",
+      "Ngữ âm - Ngữ pháp",
+      "Kỹ năng nghe nói",
+      "Văn học Anh - Mỹ",
+      "Biên phiên dịch",
+      "Tiếng Nhật cơ bản",
+      "Tiếng Hàn cơ bản",
+      "Văn hóa phương Tây",
+      "Tâm lý học đại cương",
+      "Truyền thông đại chúng"
+    ],
+    "Khoa Du lịch": [
+      "Quản trị khách sạn",
+      "Tổ chức sự kiện",
+      "Du lịch bền vững",
+      "Hướng dẫn du lịch",
+      "Marketing du lịch",
+      "Tiếng Anh du lịch",
+      "Văn hóa du lịch Việt Nam",
+      "Ẩm thực du lịch",
+      "Quản trị lữ hành",
+      "Địa lý du lịch"
+    ],
+    "Khoa Luật": [
+      "Luật dân sự",
+      "Luật hình sự",
+      "Luật hiến pháp",
+      "Luật thương mại",
+      "Luật hành chính",
+      "Luật quốc tế",
+      "Kỹ năng tranh tụng",
+      "Luật lao động",
+      "Luật đất đai",
+      "Tư pháp quốc tế"
+    ],
+    "Khác": [
+      "Toán cao cấp",
+      "Vật lý đại cương",
+      "Triết học Mác-Lênin",
+      "Tư tưởng Hồ Chí Minh",
+      "Giáo dục thể chất",
+      "Giáo dục quốc phòng",
+      "Kỹ năng mềm",
+      "Khởi nghiệp",
+      "Tiếng Anh học thuật",
+      "Tin học đại cương"
+    ]
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -247,8 +336,8 @@ const CreateStudyMaterialModal = ({ isOpen, onClose }) => {
                 className={`form-select ${errors.subject ? 'error' : ''}`}
               >
                 <option value="">Chọn môn học</option>
-                {subjectOptions.map(subject => (
-                  <option key={subject} value={subject}>{subject}</option>
+                {(subjectsByFaculty[formData.faculty] || subjectsByFaculty["Khác"]).map((subject, idx) => (
+                  <option key={idx} value={subject}>{subject}</option>
                 ))}
               </select>
               {errors.subject && <span className="error-message">{errors.subject}</span>}
@@ -257,7 +346,7 @@ const CreateStudyMaterialModal = ({ isOpen, onClose }) => {
             {/* Khoa */}
             <div className="form-group">
               <label className="form-label">
-                Khoa <span className="required">*</span>
+                Chuyên Ngành <span className="required">*</span>
               </label>
               <select
                 name="faculty"
@@ -265,7 +354,7 @@ const CreateStudyMaterialModal = ({ isOpen, onClose }) => {
                 onChange={handleInputChange}
                 className={`form-select ${errors.faculty ? 'error' : ''}`}
               >
-                <option value="">Chọn khoa</option>
+                <option value="">Chọn chuyên ngành</option>
                 {facultyOptions.map(faculty => (
                   <option key={faculty} value={faculty}>{faculty}</option>
                 ))}

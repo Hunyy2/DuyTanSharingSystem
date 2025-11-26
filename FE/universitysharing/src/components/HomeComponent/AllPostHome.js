@@ -347,7 +347,7 @@ const AllPosts = ({
         <>
           {posts.map((post) => (
             <div className="post" key={post.id}>
-              {isPostOptionsOpen &&
+              {/* {isPostOptionsOpen &&
                 selectedPostToOption &&
                 selectedPostToOption.post.id === post.id && (
                   <div className="Post-option-modal-Container">
@@ -361,7 +361,7 @@ const AllPosts = ({
                       post={selectedPostToOption.post}
                     />
                   </div>
-                )}
+                )} */}
 
               <div className="header-post">
                 <div className="AvaName">

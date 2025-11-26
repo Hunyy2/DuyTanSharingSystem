@@ -1,6 +1,6 @@
 .modal-postOption-overlay {
   // position: absolute; // Để modal hiện đúng vị trí gần dấu ba chấm
-  z-index: 99999;
+  z-index: 9999;
 }
 
 .modal-postOption-content {
@@ -9,7 +9,7 @@
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   min-width: 150px;
-
+  z-index: 10000;
   // Điều chỉnh để modal không bị lệch
   transform: translateY(5px);
 }
