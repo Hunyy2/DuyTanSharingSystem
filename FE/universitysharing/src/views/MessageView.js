@@ -6,7 +6,6 @@ import ChatHeader from "../components/MessageComponent/ChatHeader";
 import ChatList from "../components/MessageComponent/ChatList";
 import MessageArea from "../components/MessageComponent/MessageArea";
 import MessageInput from "../components/MessageComponent/MessageInput";
-import RightSidebar from "../components/MessageComponent/RightSidebar";
 import { fetchFriends } from "../stores/action/friendAction";
 import { userProfile } from "../stores/action/profileActions";
 import {
@@ -303,12 +302,12 @@ const MessageView = () => {
           )}
         </div>
 
-        <RightSidebar
+        {/* <RightSidebar
           navigateUser={navigateUser}
           isOpen={isSidebarOpen}
           toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           selectedFriend={selectFriend}
-        />
+        /> */}
       </div>
     </div>
   );

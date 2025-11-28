@@ -1,15 +1,9 @@
+// IntroductView.js (Updated with DTU Colors)
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import logowhile from "../../src/assets/Logo white.png";
 import AI from "../../src/assets/ai.png";
-import giaotiep from "../../src/assets/giatieppchuyenbiet.png";
-import info from "../../src/assets/dadangthongtin.png";
-import chiasexe from "../../src/assets/chiasexe.png";
-import baomat from "../../src/assets/baomat.png";
-import trainghiem from "../../src/assets/trainghiemnguoidunghiendai.png";
 import avt from "../../src/assets/avatar-intro/avata.jpg";
-import avt1 from "../../src/assets/avatar-intro/avata8.jpg";
 import avt2 from "../../src/assets/avatar-intro/avata1.jpg";
 import avt3 from "../../src/assets/avatar-intro/avata2.jpg";
 import avt4 from "../../src/assets/avatar-intro/avata3.jpg";
@@ -17,7 +11,13 @@ import avt5 from "../../src/assets/avatar-intro/avata4.jpg";
 import avt6 from "../../src/assets/avatar-intro/avata5.jpg";
 import avt7 from "../../src/assets/avatar-intro/avata6.jpg";
 import avt8 from "../../src/assets/avatar-intro/avata7.jpg";
-import "../styles/LandingPage.scss"; // Ensure you have the appropriate CSS file for styling
+import avt1 from "../../src/assets/avatar-intro/avata8.jpg";
+import baomat from "../../src/assets/baomat.png";
+import chiasexe from "../../src/assets/chiasexe.png";
+import info from "../../src/assets/dadangthongtin.png";
+import giaotiep from "../../src/assets/giatieppchuyenbiet.png";
+import trainghiem from "../../src/assets/trainghiemnguoidunghiendai.png";
+import "../styles/LandingPage.scss";
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -27,42 +27,42 @@ const LandingPage = () => {
   const features = [
     {
       title: "Môi trường giao tiếp chuyên biệt",
-      description:
-        "Nền tảng an toàn để sinh viên trao đổi thông tin, chia sẻ kiến thức và kinh nghiệm học tập.",
+      description: "Nền tảng an toàn để sinh viên trao đổi thông tin, chia sẻ kiến thức và kinh nghiệm học tập.",
       image: giaotiep,
+      icon: "💬"
     },
     {
       title: "Chia sẻ đa dạng thông tin",
-      description:
-        "Đăng tải hành trình đi lại, tài liệu học tập, đồ dùng cá nhân và các hoạt động hỗ trợ.",
+      description: "Đăng tải hành trình đi lại, tài liệu học tập, đồ dùng cá nhân và các hoạt động hỗ trợ.",
       image: info,
+      icon: "📚"
     },
     {
       title: "Chia sẻ chuyến đi",
-      description:
-        "Tạo, chia sẻ và tham gia các chuyến đi giữa các cơ sở hoặc đến trường.",
+      description: "Tạo, chia sẻ và tham gia các chuyến đi giữa các cơ sở hoặc đến trường.",
       image: chiasexe,
+      icon: "🚗"
     },
     {
       title: "Trải nghiệm người dùng hiện đại",
-      description:
-        "Nhắn tin, thông báo, tìm kiếm thông minh và gợi ý bài đăng theo sở thích.",
+      description: "Nhắn tin, thông báo, tìm kiếm thông minh và gợi ý bài đăng theo sở thích.",
       image: trainghiem,
+      icon: "✨"
     },
     {
       title: "Hỗ trợ AI",
-      description:
-        "Tìm kiếm thông tin nhanh chóng và tương tác với hệ thống một cách tự nhiên.",
+      description: "Tìm kiếm thông tin nhanh chóng và tương tác với hệ thống một cách tự nhiên.",
       image: AI,
+      icon: "🤖"
     },
     {
       title: "Bảo mật và kiểm duyệt",
-      description:
-        "Giải pháp bảo mật hiện đại với hệ thống kiểm duyệt nội dung chặt chẽ.",
+      description: "Giải pháp bảo mật hiện đại với hệ thống kiểm duyệt nội dung chặt chẽ.",
       image: baomat,
+      icon: "🔒"
     },
   ];
-  // Danh sách testimonials (9 thẻ)
+
   const testimonials = [
     {
       feedback:
@@ -129,27 +129,23 @@ const LandingPage = () => {
     },
   ];
 
-  // Số lượng thẻ hiển thị cùng lúc
   const cardsPerPage = 3;
-  const totalCards = testimonials.length; // 9 thẻ
+  const totalCards = testimonials.length;
 
-  // Hàm chuyển đến thẻ tiếp theo
   const handleNext = () => {
     setCurrentIndex((prevIndex) => {
       const newIndex = prevIndex + cardsPerPage;
-      return newIndex >= totalCards ? 0 : newIndex; // Quay lại thẻ đầu tiên nếu vượt quá
+      return newIndex >= totalCards ? 0 : newIndex;
     });
   };
 
-  // Hàm chuyển đến thẻ trước đó
   const handlePrev = () => {
     setCurrentIndex((prevIndex) => {
       const newIndex = prevIndex - cardsPerPage;
-      return newIndex < 0 ? totalCards - cardsPerPage : newIndex; // Quay lại thẻ cuối nếu nhỏ hơn 0
+      return newIndex < 0 ? totalCards - cardsPerPage : newIndex;
     });
   };
 
-  // Lấy danh sách thẻ hiển thị dựa trên currentIndex
   const displayedTestimonials = testimonials.slice(
     currentIndex,
     currentIndex + cardsPerPage
@@ -159,28 +155,40 @@ const LandingPage = () => {
     <div className="landing-container">
       {/* Hero Section */}
       <section className="hero-section">
+        <div className="hero-background">
+          <div className="gradient-overlay"></div>
+        </div>
         <div className="hero-content">
-          <motion.h1
-            initial={{ opacity: 0, y: -20 }}
+          <motion.div
+            initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="hero-title"
+            className="logo-container"
           >
-            <img
-              src={logowhile}
-              alt="University Sharing Logo"
-              className="hero-logo"
-            />
-          </motion.h1>
+            <div className="dtu-logo">
+              <div className="logo-letters">
+                <span className="letter-d">D</span>
+                <span className="letter-t">T</span>
+                <span className="letter-t">U</span>
+              </div>
+              <div className="logo-text">
+                <div className="university-text">UNIVERSITY</div>
+                <div className="sharing-text">SHARING</div>
+              </div>
+            </div>
+          </motion.div>
+          
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             className="hero-subtitle"
           >
-            Nền tảng mạng xã hội dành riêng cho sinh viên <p />
-            Kết nối - Chia sẻ - Học hỏi
+            Nền tảng kết nối và chia sẻ dành cho sinh viên
+            <br />
+            <span className="highlight">Kết nối - Chia sẻ - Phát triển</span>
           </motion.p>
+          
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -194,99 +202,139 @@ const LandingPage = () => {
               onClick={() => navigate("/register")}
               className="btn-secondary"
             >
-              Đăng ký
+              Đăng ký ngay
             </button>
           </motion.div>
+        </div>
+        
+        <div className="scroll-indicator">
+          <span>Khám phá ngay</span>
+          <div className="arrow-down"></div>
         </div>
       </section>
 
       {/* Features Section */}
       <section className="features-section">
-        <h2 className="section-title">Tính năng nổi bật</h2>
-        <div className="features-container">
-          <div className="features-list">
+        <div className="container">
+          <motion.h2 
+            className="section-title"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            Tính năng nổi bật
+          </motion.h2>
+          
+          <div className="features-grid">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className={`feature-card ${
-                  activeFeature === index ? "active" : ""
-                }`}
-                onClick={() => setActiveFeature(index)}
+                className="feature-card"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.05, y: -5 }}
+                transition={{ duration: 0.4, delay: index * 0.1 }}
               >
-                <img
-                  src={feature.image}
-                  alt={feature.title}
-                  className="feature-image"
-                  loading="lazy" // Tối ưu hóa hiệu suất
-                />
+                <div className="feature-icon">
+                  <span className="emoji">{feature.icon}</span>
+                </div>
                 <h3>{feature.title}</h3>
+                <p>{feature.description}</p>
+                <div className="feature-image">
+                  <img src={feature.image} alt={feature.title} />
+                </div>
               </motion.div>
             ))}
-          </div>
-          <div className="feature-detail">
-            <motion.div
-              key={activeFeature}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
-              className="feature-content"
-            >
-              <h3>{features[activeFeature].title}</h3>
-              <p>{features[activeFeature].description}</p>
-            </motion.div>
           </div>
         </div>
       </section>
 
       {/* Testimonials Section */}
       <section className="testimonials-section">
-        <h2 className="section-title">Sinh viên nói gì về chúng tôi</h2>
-        <div className="testimonials-container">
-          <button className="arrow-btn prev-btn" onClick={handlePrev}>
-            &#10094; {/* Mũi tên trái */}
-          </button>
-          <div className="testimonials-grid">
-            {displayedTestimonials.map((testimonial, index) => (
-              <motion.div
-                key={index}
-                whileHover={{ y: -10 }}
-                className="testimonial-card"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                <p>"{testimonial.feedback}"</p>
-                <div className="testimonial-author">
-                  <img src={testimonial.avatar} alt={testimonial.name} />
-                  <div>
-                    <h4>{testimonial.name}</h4>
-                    <span>{testimonial.major}</span>
+        <div className="container">
+          <motion.h2 
+            className="section-title"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            Sinh viên nói gì về chúng tôi
+          </motion.h2>
+          
+          <div className="testimonials-container">
+            <button className="arrow-btn prev-btn" onClick={handlePrev}>
+              ‹
+            </button>
+            
+            <div className="testimonials-grid">
+              {displayedTestimonials.map((testimonial, index) => (
+                <motion.div
+                  key={index}
+                  className="testimonial-card"
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <div className="testimonial-content">
+                    <p>"{testimonial.feedback}"</p>
+                    <div className="testimonial-author">
+                      <img src={testimonial.avatar} alt={testimonial.name} />
+                      <div className="author-info">
+                        <h4>{testimonial.name}</h4>
+                        <span>Sinh viên</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))}
+            </div>
+            
+            <button className="arrow-btn next-btn" onClick={handleNext}>
+              ›
+            </button>
           </div>
-          <button className="arrow-btn next-btn" onClick={handleNext}>
-            &#10095; {/* Mũi tên phải */}
-          </button>
         </div>
       </section>
 
       {/* CTA Section */}
       <section className="cta-section">
-        <div className="cta-content">
-          <h2>Bạn đã sẵn sàng trải nghiệm?</h2>
-          <p>Tham gia ngay để kết nối với cộng đồng sinh viên trong trường</p>
-          <div className="cta-buttons">
-            <button
-              onClick={() => navigate("/register")}
-              className="btn-primary-footer"
-            >
-              Đăng ký ngay
-            </button>
-          </div>
+        <div className="container">
+          <motion.div 
+            className="cta-content"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="cta-logo">
+              <div className="logo-letters">
+                <span className="letter-d">D</span>
+                <span className="letter-t">T</span>
+                <span className="letter-t">U</span>
+              </div>
+              <div className="logo-text">
+                <div className="university-text">UNIVERSITY</div>
+                <div className="sharing-text">SHARING</div>
+              </div>
+            </div>
+            
+            <h2>Bạn đã sẵn sàng trải nghiệm?</h2>
+            <p>Tham gia ngay để kết nối với cộng đồng sinh viên</p>
+            
+            <div className="cta-buttons">
+              <button
+                onClick={() => navigate("/register")}
+                className="btn-primary"
+              >
+                Đăng ký ngay
+              </button>
+              <button
+                onClick={() => navigate("/about")}
+                className="btn-outline"
+              >
+                Tìm hiểu thêm
+              </button>
+            </div>
+          </motion.div>
         </div>
       </section>
     </div>

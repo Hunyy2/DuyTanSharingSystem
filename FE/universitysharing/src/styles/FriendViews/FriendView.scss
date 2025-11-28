@@ -1,22 +1,57 @@
+// File: styles/FriendViews/FriendView.scss
+
 .friend-tab-buttons {
   display: flex;
-  gap: 10px;
-  // max-width: 640px;
-  width: 100%;
-  padding-left: 10px; // hoặc bạn tăng để đẩy ra xa hơn chút
-  margin-top: 1rem;
+  gap: 12px;
+  padding: 16px 20px 0 20px;
+  border-bottom: 1px solid #e0e0e0;
+  background: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 
   button {
-    padding: 10px 20px; // tăng kích thước nút
-    font-size: 16px; // chữ lớn hơn
+    padding: 10px 20px;
+    font-size: 15px;
+    font-weight: 500;
     border: none;
-    background-color: #e0e0e0;
-    border-radius: 5px;
+    background: transparent;
+    color: #666;
+    border-radius: 8px 8px 0 0;
     cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
 
     &.active {
-      background-color: #1877f2;
+      background: #1877f2;
       color: white;
+      font-weight: 600;
     }
+
+    &:hover:not(.active) {
+      background: #f0f2f5;
+      color: #333;
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 12px 12px 0;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}
+
+// Nội dung tab
+.friend-tab-content {
+  padding: 16px 20px;
+  min-height: calc(100vh - 140px);
+
+  @media (max-width: 768px) {
+    padding: 12px;
   }
 }

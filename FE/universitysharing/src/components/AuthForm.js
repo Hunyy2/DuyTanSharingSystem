@@ -1,3 +1,4 @@
+// AuthForm.js (Updated with Red Theme)
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import logo from "../assets/Logo.png";
@@ -22,7 +23,7 @@ const AuthForm = ({ type, onSubmit, loading, error }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (onSubmit) {
-      onSubmit(e, formData); // Gửi dữ liệu formData lên component cha
+      onSubmit(e, formData);
     }
   };
 
@@ -90,17 +91,21 @@ const AuthForm = ({ type, onSubmit, loading, error }) => {
             </>
           )}
 
-          {error && <p className="text-red-500 mb-4">{error}</p>}
+          {error && <p className="text-red-500">{error}</p>}
 
           <div className="options">
             {isRegister && (
               <label>
-                <input type="checkbox" name="policyAgreed" required /> Đồng ý
-                với chính sách
+                <input type="checkbox" name="policyAgreed" required /> 
+                Đồng ý với chính sách
               </label>
             )}
-            {isLogin && <NavLink to="/forgotpassword">Quên mật khẩu?</NavLink>}
-            {isForgot && <NavLink to="/login">Quay lại Đăng Nhập</NavLink>}
+            {isLogin && (
+              <NavLink to="/forgotpassword">Quên mật khẩu?</NavLink>
+            )}
+            {isForgot && (
+              <NavLink to="/login">Quay lại Đăng Nhập</NavLink>
+            )}
             <a href="#">Chính sách</a>
           </div>
 

@@ -93,13 +93,12 @@
 // export default CommentModalBackGround;
 
 import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { clearDeeplink, closeCommentModal as closeDeeplinkModal } from "../stores/reducers/deepLinkReducer";
+import { closeCommentModal as closeNormalModal } from "../stores/reducers/listPostReducers";
 import CommentModal from "./CommentModal";
 import CommentModalNoImg from "./CommentModal-NoImge/CommentNoImage";
-import { useSelector, useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { closeCommentModal as closeNormalModal } from "../stores/reducers/listPostReducers";
-import { closeCommentModal as closeDeeplinkModal } from "../stores/reducers/deepLinkReducer";
-import { clearDeeplink } from "../stores/reducers/deepLinkReducer"; // Thêm dòng này
 const CommentModalBackGround = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();

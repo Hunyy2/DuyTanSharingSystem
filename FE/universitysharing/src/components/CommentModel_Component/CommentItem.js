@@ -1,20 +1,19 @@
-import React, { useState, useRef, useEffect } from "react";
-import "../../styles/CommentOverlay.scss";
-import avatarDefaut from "../../assets/AvatarDefault.png";
+import { debounce } from "lodash";
+import { useEffect, useRef, useState } from "react";
+import { FaHeart } from "react-icons/fa";
 import {
-  FiMoreHorizontal,
-  FiMessageSquare,
-  FiHeart,
   FiChevronDown,
   FiChevronUp,
+  FiHeart,
+  FiMessageSquare,
+  FiMoreHorizontal,
 } from "react-icons/fi";
-import { FaHeart } from "react-icons/fa";
-import { getReplyComment } from "../../stores/action/listPostActions";
 import { useDispatch } from "react-redux";
-import { debounce } from "lodash";
-import CommentOption from "./CommentOption";
+import avatarDefaut from "../../assets/AvatarDefault.png";
+import { getReplyComment, updateComment } from "../../stores/action/listPostActions";
+import "../../styles/CommentOverlay.scss";
 import getUserIdFromToken from "../../utils/JwtDecode";
-import { updateComment } from "../../stores/action/listPostActions";
+import CommentOption from "./CommentOption";
 
 const CommentItem = ({
   comments,

@@ -1,37 +1,37 @@
-// RightSidebar.scss
+// RightSidebar.scss - Bố cục MỚI & Màu Sắc MỚI (Từ LeftSidebar: #ff4444)
+// **********************************************
 
 // --- Biến ---
 *,
 *::before,
 *::after {
-  box-sizing: border-box; // Áp dụng cho tất cả các phần tử
+  box-sizing: border-box; 
 }
-// Bảng màu (Refined Palette)
-$primary-color: #4a55e6; // Slightly adjusted primary blue
-$secondary-color: #3b82f6; // A complementary blue
-$text-color: #1f2937; // Darker gray for better contrast
-$text-light-gray: #6b7280; // Lighter gray for secondary text
-$bg-color: #ffffff;
-$bg-hover: #f3f4f6; // Light gray for hover
-$bg-active: #e5e7eb; // Slightly darker gray for active
-$online-color: #10b981; // Emerald green for online
-$offline-color: #9ca3af; // Medium gray for offline/borders
-$border-color: #e5e7eb; // Match active background
-$search-bg: #f3f4f6; // Match hover background
-$placeholder-color: #9ca3af; // Match offline color
-$danger-color: #ef4444; // For errors
+
+// Bảng màu MỚI (Dựa trên màu #ff4444)
+$primary-color: #ff4444; // Màu Chủ Đạo - Đỏ/Hồng Đậm (Từ LeftSidebar)
+$secondary-color: #ff6347; // Màu nhấn nhẹ hơn (Tomato)
+$text-color: #1f2937; // Chữ chính
+$text-light-gray: #6b7280; // Chữ phụ
+$bg-color: #ffffff; // Nền chính
+$bg-hover: rgba(255, 68, 68, 0.1); // Hover item (Dùng màu chủ đạo với alpha)
+$bg-active: rgba(255, 68, 68, 0.15); // Active item (Dùng màu chủ đạo với alpha)
+$online-color: #10b981; // Xanh lá cây - Giữ nguyên cho Online để phân biệt
+$offline-color: #9ca3af; // Xám - Offline
+$border-color: #e5e7eb; // Đường viền/Ngăn cách
+$search-bg: #f3f4f6; // Nền thanh tìm kiếm
+$placeholder-color: #9ca3af;
+$danger-color: #ef4444;
 
 // Bóng đổ & Chuyển tiếp (Shadows & Transitions)
-$shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.06);
-$shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.08); // Softer main shadow
-$transition-base: all 0.25s ease-in-out; // Slightly faster transition
+$shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.08);
+$transition-base: all 0.25s ease-in-out;
 
 // Khoảng cách & Bo góc (Spacing & Borders)
-$padding-base: 16px; // Base padding unit
-$padding-item: 10px 12px; // Padding for list items
-$radius-base: 8px; // Standard border radius
+$padding-base: 16px;
+$padding-item: 12px $padding-base; // Padding mới cho list items
+$radius-base: 8px;
 $radius-round: 50%;
-$radius-input: 20px;
 $sidebar-width: 280px;
 
 // --- Mixins ---
@@ -53,25 +53,22 @@ $sidebar-width: 280px;
   width: $sidebar-width;
   background-color: $bg-color;
   border-left: 1px solid $border-color;
-  padding: $padding-base 0; // Use variable
+  padding: 0; 
   overflow-y: auto;
-  box-shadow: $shadow-medium; // Apply softer shadow
+  box-shadow: $shadow-medium;
   transition: $transition-base;
   position: relative;
-  // z-index: 10;
 
-  // Custom Scrollbar
-  scrollbar-width: thin; // Firefox
-  scrollbar-color: darken($border-color, 10%) $bg-color; // Firefox
+  // Custom Scrollbar (Giữ nguyên)
+  scrollbar-width: thin;
+  scrollbar-color: darken($border-color, 10%) $bg-color;
 
   &::-webkit-scrollbar {
     width: 6px;
   }
-
   &::-webkit-scrollbar-track {
-    background: transparent; // Cleaner track
+    background: transparent;
   }
-
   &::-webkit-scrollbar-thumb {
     background-color: darken($border-color, 10%);
     border-radius: 3px;
@@ -80,55 +77,65 @@ $sidebar-width: 280px;
     }
   }
 
-  // Search Section
-  .search-container {
-    padding: 0 $padding-base $padding-base;
+  // Header MỚI - Cố định trên cùng
+  .sidebar-header {
+    @include flex-between;
+    padding: $padding-base;
     position: sticky;
     top: 0;
     background-color: $bg-color;
-    z-index: 1; // Ensure it's above list items
+    z-index: 2;
     border-bottom: 1px solid $border-color;
-    margin-bottom: 10px; // Space below search
 
     h3 {
-      color: $primary-color;
-      font-size: 1.25rem; // Slightly smaller heading
-      margin-bottom: $padding-base;
-      font-weight: 600;
-      padding-left: 4px; // Small indent
+      color: $primary-color; // Áp dụng màu chủ đạo
+      font-size: 1.25rem; 
+      font-weight: 700;
+      margin: 0;
     }
+
+    .action-button {
+      background: none;
+      border: none;
+      color: $text-light-gray;
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 5px;
+      border-radius: $radius-base/2;
+      transition: $transition-base;
+
+      &:hover {
+        background-color: $bg-hover;
+        color: $primary-color; // Hover đổi sang màu chủ đạo
+      }
+    }
+  }
+
+  // Search Section MỚI - Cố định dưới Header
+  .search-container {
+    padding: $padding-base;
+    position: sticky;
+    top: 57px; 
+    background-color: $bg-color;
+    z-index: 1;
+    border-bottom: 1px solid $border-color; 
 
     .search-box {
       position: relative;
-      width: 100%;
 
-      // Recommend using an icon font (e.g., Font Awesome, Heroicons) or SVG
-      // <i class="search-icon"></i> or <svg>...</svg>
-      // Example with pseudo-element for icon placeholder:
-      &::before {
-        // content: '\f002'; // Example using Font Awesome unicode
-        // font-family: "Font Awesome 5 Free";
-        // content: "🔍"; // Keeping emoji for simplicity, but SVG is better
-        position: absolute;
-        left: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: $placeholder-color;
-        font-size: 0.9rem;
-        z-index: 1;
-        pointer-events: none; // Prevent icon from blocking input focus
-      }
       .search-icon {
         position: absolute;
         width: 20px;
         height: 20px;
-        top: 0.56rem;
-        left: 0.6rem;
+        top: 0.5rem;
+        left: 0.75rem;
+        color: $placeholder-color;
       }
+
       input {
         width: 100%;
-        padding: 10px 15px 10px 40px; // Adjust padding for icon
-        border-radius: $radius-input;
+        padding: 10px 15px 10px 40px;
+        border-radius: 20px; 
         border: 1px solid $border-color;
         background-color: $search-bg;
         transition: $transition-base;
@@ -137,177 +144,151 @@ $sidebar-width: 280px;
 
         &::placeholder {
           color: $placeholder-color;
-          opacity: 1; // Ensure placeholder is visible
         }
 
         &:focus {
           outline: none;
-          border-color: $primary-color;
-          background-color: $bg-color; // White background on focus
-          box-shadow: 0 0 0 3px rgba($primary-color, 0.15); // Refined focus ring
+          border-color: $primary-color; // Viền màu chủ đạo khi focus
+          background-color: $bg-color;
+          box-shadow: 0 0 0 3px rgba($primary-color, 0.15); // Shadow màu chủ đạo
         }
       }
     }
   }
 
-  // Friends List Section
+  // Friends List Section MỚI - Chia nhóm rõ ràng
   .friends-list {
-    padding: 0 ($padding-base / 2); // Slightly reduced horizontal padding
+    padding: $padding-base 0; 
 
-    .friend-count {
-      font-size: 0.75rem; // Smaller text
-      color: $text-light-gray; // Use light gray
-      margin-bottom: 12px;
-      padding: 5px ($padding-base / 2);
-      @include flex-between;
-      text-transform: uppercase; // Optional styling
-      letter-spacing: 0.5px; // Optional styling
-
-      .online-count {
-        color: $online-color;
-        font-weight: 600; // Bolder online count
+    .list-group-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: $primary-color; // Tiêu đề nhóm dùng màu chủ đạo
+      text-transform: uppercase;
+      margin: $padding-base/2 $padding-base $padding-base/2;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid rgba($primary-color, 0.1); // Đường kẻ nhẹ
+      padding-bottom: 4px;
+      &:first-of-type {
+        margin-top: 0;
       }
     }
 
     ul {
       list-style: none;
-      padding: 0;
+      padding: 0 $padding-base; 
       margin: 0;
 
       li {
         @include flex-between;
         padding: $padding-item;
-        margin-bottom: 5px; // Space between items
-        border-radius: $radius-base;
         cursor: pointer;
-        transition: background-color 0.2s ease, box-shadow 0.2s ease; // Smoother transitions
-        position: relative;
-        overflow: hidden; // Important for effects like borders/shadows
+        transition: $transition-base;
+        margin-bottom: 4px;
+        border-radius: $radius-base;
 
         &:hover {
           background-color: $bg-hover;
-          // Optional subtle lift effect
-          // box-shadow: $shadow-subtle;
-
-          .friend-info img {
-            border-color: rgba(
-              $primary-color,
-              0.5
-            ); // Subtle border highlight on avatar
-          }
         }
 
         &.active {
           background-color: $bg-active;
-          box-shadow: none; // Remove shadow when active if using bg color
-
-          .friend-name {
-            color: $primary-color; // Highlight name when active
-            font-weight: 600;
-          }
-          .friend-info img {
-            border-color: $primary-color; // Stronger border highlight on active
-          }
         }
 
         .friend-info {
-          display: flex; // Use flex directly
+          display: flex;
           align-items: center;
-          flex: 1; // Take available space
-          overflow: hidden; // Prevent content overflow
-          gap: 12px; // Spacing between avatar and text
+          flex: 1;
+          overflow: hidden;
+          gap: 12px;
 
-          img {
-            width: 40px;
-            height: 40px;
-            border-radius: $radius-round;
-            object-fit: cover;
-            // border: 2px solid $border-color; // Use transparent initially or bg color
-            border: 2px solid transparent;
-            transition: border-color $transition-base; // Animate border color change
-            flex-shrink: 0; // Prevent avatar from shrinking
-            background-color: $border-color; // Placeholder background while loading
+          .avatar-container {
+            position: relative;
+            flex-shrink: 0;
+
+            img {
+              width: 44px; 
+              height: 44px;
+              border-radius: $radius-round;
+              object-fit: cover;
+              border: 2px solid $border-color; 
+              transition: border-color 0.2s ease;
+              background-color: $border-color;
+            }
+
+            .status-dot {
+              position: absolute;
+              bottom: 0px;
+              right: 0px;
+              width: 12px;
+              height: 12px;
+              border-radius: $radius-round;
+              border: 3px solid $bg-color;
+              z-index: 10;
+              transition: background-color 0.2s ease;
+
+              &.online {
+                background-color: $online-color;
+                box-shadow: 0 0 5px rgba($online-color, 0.6);
+                animation: pulse 2s infinite ease-in-out;
+              }
+
+              &.offline {
+                background-color: $offline-color;
+              }
+            }
           }
 
           .name-status {
-            flex: 1; // Allow text to take remaining space
-            overflow: hidden; // Hide overflow text
+            flex: 1;
+            overflow: hidden;
 
             .friend-name {
-              font-weight: 500;
+              font-weight: 600;
               color: $text-color;
               white-space: nowrap;
               overflow: hidden;
               text-overflow: ellipsis;
-              margin-bottom: 2px; // Slightly less space
-              font-size: 0.9rem; // Consistent font size
+              font-size: 1rem;
             }
 
-            .status-container {
-              display: flex;
-              align-items: center;
-              gap: 6px;
-              font-size: 0.75rem; // Kích thước chữ cho trạng thái
+            .status-text {
+              font-size: 0.8rem;
+              color: $text-light-gray;
               white-space: nowrap;
               overflow: hidden;
               text-overflow: ellipsis;
 
-              .status-dot {
-                width: 8px;
-                height: 8px;
-                border-radius: $radius-round;
-                flex-shrink: 0; // Ngăn chấm bị co lại
-
-                &.online {
-                  background-color: $online-color;
-                  box-shadow: 0 0 5px rgba($online-color, 0.6); // Hiệu ứng glow
-                  animation: pulse 2s infinite ease-in-out; // Hiệu ứng pulse
-                }
-
-                &.offline {
-                  background-color: $offline-color;
-                }
-              }
-
-              .status-text {
-                color: $text-light-gray; // Màu mặc định cho văn bản trạng thái
-                overflow: hidden;
-                text-overflow: ellipsis;
-
-                &.online {
-                  color: $online-color; // Màu xanh cho trạng thái online
-                }
+              &.online-text {
+                color: $online-color; // Màu xanh cho text Online
+                font-weight: 500;
               }
             }
           }
-        }
-
-        .last-seen {
-          font-size: 0.7rem;
-          color: $text-light-gray; // Consistent light gray
-          text-align: right;
-          min-width: 60px; // Adjust as needed
-          flex-shrink: 0; // Prevent shrinking
-          margin-left: 8px; // Space before last seen time
         }
       }
     }
   }
 
   // Loading and Error States
-  .loading-error {
+  .loading-error, .error-message {
     text-align: center;
     padding: 20px;
     font-size: 0.9rem;
     color: $text-light-gray;
 
-    &.error {
-      color: $danger-color; // Use danger color for errors
+    &.error-message {
+        color: $danger-color;
     }
+  }
+
+  .loading-message {
+    padding: $padding-base;
+    @include flex-center;
   }
 }
 
-// --- Animations ---
+// --- Animations (Giữ nguyên) ---
 @keyframes pulse {
   0%,
   100% {
@@ -317,10 +298,9 @@ $sidebar-width: 280px;
   50% {
     opacity: 1;
     transform: scale(1.1);
-  } // Add subtle scale
+  }
 }
 
-// Staggered fade-in animation for list items (keep as is, seems fine)
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -336,37 +316,9 @@ $sidebar-width: 280px;
   animation: fadeIn 0.3s ease forwards;
   opacity: 0;
 
-  // Apply delay based on item index
   @for $i from 1 through 30 {
-    // Increased max items if needed
     &:nth-child(#{$i}) {
-      animation-delay: $i * 0.04s; // Slightly faster delay increment
+      animation-delay: $i * 0.04s;
     }
   }
-}
-
-.right-sidebar-message {
-  width: 350px;
-  transition: transform 0.3s ease;
-  background-color: #fff;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
-  position: relative;
-}
-.right-sidebar-message.closed {
-  display: none;
-}
-
-.right-sidebar-message.open {
-  display: block;
-  transform: translateX(0);
-  .return-chat {
-    display: none;
-  }
-}
-
-.loading-message {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
 }
