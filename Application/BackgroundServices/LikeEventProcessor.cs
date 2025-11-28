@@ -70,7 +70,7 @@ namespace Application.BackgroundServices
                     }
                 }
 
-                await Task.Delay(5000, stoppingToken); // Chạy lại sau 5 giây
+                await Task.Delay(3000, stoppingToken); // Chạy lại sau 5 giây
             }
         }
 

@@ -518,7 +518,7 @@ const renderMediaItems = (post) => {
                   <FaHeart 
                   // Dùng post.isLikedByCurrentUser để thêm class 'liked'
                   // Nếu true, class 'liked' được thêm vào và CSS sẽ chuyển màu đỏ
-                  className={`like-button ${post.isLikedByCurrentUser ? 'liked' : ''}`}
+                  className={`like-button ${post.hasLiked ? 'liked' : ''}`}
               />
                 </div>
               </div>
@@ -536,6 +536,7 @@ const renderMediaItems = (post) => {
                     className="comment-text-input"
                     value={commentTexts[post.id] || ""}
                     onChange={(e) => handleCommentTextChange(post.id, e.target.value)}
+                    onClick={() => handleOpenCommentModal(post, 0)}
                     onKeyPress={(e) => handleKeyPress(e, post)}
                   />
                   <BsEmojiSmile className="emoji-icon" />

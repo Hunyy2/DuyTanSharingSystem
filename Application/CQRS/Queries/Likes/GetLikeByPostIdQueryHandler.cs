@@ -27,7 +27,7 @@ namespace Application.CQRS.Queries.Likes
             public async Task<ResponseModel<GetLikeWithCursorResponse>> Handle(GetLikeByPostIdQuery request, CancellationToken cancellationToken)
             {
             var userId = _userContextService.UserId();
-            var response = await _likeService.GetLikesByPostIdWithCursorAsync(request.PostId, request.LastUserId);
+            var response = await _likeService.GetLikesByPostIdWithCursorAsync(request.PostId, request.LastUserId,userId);
 
             if (response == null || !response.LikedUsers.Any()) // Kiểm tra response hợp lệ
             {

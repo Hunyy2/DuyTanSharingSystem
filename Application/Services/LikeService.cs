@@ -20,7 +20,7 @@ namespace Application.Services
         {
             _unitOfWork = unitOfWork;
         }
-        public async Task<GetLikeWithCursorResponse> GetLikesByPostIdWithCursorAsync(Guid postId, Guid? lastUserId)
+        public async Task<GetLikeWithCursorResponse> GetLikesByPostIdWithCursorAsync(Guid postId, Guid? lastUserId, Guid userId)
         {
             int pageSize = 10; // 📌 Set cứng lấy 2 người mỗi lần
 
@@ -38,7 +38,7 @@ namespace Application.Services
             return new GetLikeWithCursorResponse
             {
                 LikeCount = likeCount,
-                
+                IsLikedByCurrentUser = await _unitOfWork.LikeRepository.IsPostLikedByUserAsync(postId, userId),
                 LikedUsers = likedUserDtos,
                 NextCursor = nextCursor
             };
