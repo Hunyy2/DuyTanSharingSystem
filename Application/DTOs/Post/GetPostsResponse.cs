@@ -9,6 +9,7 @@ namespace Application.DTOs.Post
     public class GetPostsResponse
     {
         public List<GetAllPostDto> Posts { get; set; } = new();
+        
         public Guid? NextCursor { get; set; } // ID bài cuối cùng trong danh sách
     }
 

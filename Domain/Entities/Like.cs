@@ -31,6 +31,7 @@ namespace Domain.Entities
             Id = Guid.NewGuid();
             UserId = userId;
             PostId = postId;
+            IsLike = true;
             CreatedAt = DateTime.UtcNow;
         }
 

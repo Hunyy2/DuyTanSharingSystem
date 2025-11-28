@@ -9,6 +9,6 @@ namespace Application.Interface
 {
     public interface ILikeService
     {
-        Task<GetLikeWithCursorResponse> GetLikesByPostIdWithCursorAsync(Guid postId, Guid? lastUserId);
+        Task<GetLikeWithCursorResponse> GetLikesByPostIdWithCursorAsync(Guid postId, Guid? lastUserId,Guid userId);
     }
 }

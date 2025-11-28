@@ -107,6 +107,13 @@ const listPostSlice = createSlice({
       })
       .addCase(fetchPosts.fulfilled, (state, action) => {
         state.loading = false;
+        const rawPosts = action.payload.posts;
+
+      // THÊM DÒNG NÀY - QUAN TRỌNG NHẤT
+      const posts = rawPosts.map(post => ({
+        ...post,
+        hasLiked: post.hasLiked || post.isLikedByCurrentUser || false, // chuẩn hóa tên trường
+      }));
         if (action.meta.arg) {
           state.posts = [...state.posts, ...action.payload.posts];
         } else {
@@ -115,6 +122,13 @@ const listPostSlice = createSlice({
         state.hasMoreAllPosts = action.payload.hasMore;
       })
       .addCase(fetchPostsByOwner.fulfilled, (state, action) => {
+        const rawPosts = action.payload.posts;
+
+        // THÊM DÒNG NÀY
+        const posts = rawPosts.map(post => ({
+          ...post,
+          hasLiked: post.hasLiked || post.isLikedByCurrentUser || false,
+        }));
         if (action.meta.arg) {
           const newPosts = action.payload.posts.filter(
             (newPost) =>
@@ -129,7 +143,13 @@ const listPostSlice = createSlice({
         state.hasMoreOwnerPosts = action.payload.hasMore;
       })
       .addCase(fetchPostsByOtherUser.fulfilled, (state, action) => {
-        const { posts, hasMore } = action.payload;
+        const { posts: rawPosts, hasMore } = action.payload;
+
+        // THÊM DÒNG NÀY
+        const posts = rawPosts.map(post => ({
+          ...post,
+          hasLiked: post.hasLiked || post.isLikedByCurrentUser || false,
+        }));
         if (action.meta.arg?.lastPostId) {
           state.posts = [...state.posts, ...posts];
         } else {
@@ -143,10 +163,10 @@ const listPostSlice = createSlice({
       const post = state.posts.find((p) => p.id === postId);
 
       if (post) {
-          const isCurrentlyLiked = post.isLikedByCurrentUser;
+          const isCurrentlyLiked = post.hasLiked;
           
           // 1. Cập nhật Lạc quan: Đảo ngược trạng thái và đổi màu nút tim ngay lập tức
-          post.isLikedByCurrentUser = !isCurrentlyLiked;
+          post.hasLiked = !isCurrentlyLiked;
           
           // 2. Cập nhật Like Count ngay lập tức
           post.likeCount += isCurrentlyLiked ? -1 : 1; 
