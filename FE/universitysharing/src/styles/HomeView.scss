@@ -4,39 +4,36 @@
   flex-direction: column;
   height: 100vh;
 
+  // Thêm class with-sidebar để áp dụng hiệu ứng co giãn
+  &.with-sidebar {
+    .main-content {
+      margin-left: 260px;
+      width: calc(100% - 260px);
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      &.sidebar-collapsed {
+        margin-left: 72px;
+        width: calc(100% - 72px);
+      }
+    }
+  }
+
   .header {
     border-bottom: 1px solid #ddd;
     display: flex;
     align-items: center;
-    //padding: 0 20px;
     justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: white;
   }
 
   .main-content {
     display: flex;
     flex: 1;
-    //padding: 10px;
-    height: calc(100vh - 100px);
+    height: calc(100vh - 70px);
   }
-
-  .left-sidebar {
-    width: 250px;
-    flex-shrink: 0;
-    background-color: #fff;
-    padding: 10px 0px;
-    border-right: 1px solid #ddd;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between; // Đẩy footer xuống dưới
-  }
-
-  // .right-sidebar {
-  //   width: 250px;
-  //   flex-shrink: 0;
-  //   background-color: #fff;
-  //   padding: 20px;
-  //   border-left: 1px solid #ddd;
-  // }
 
   .center-content {
     flex: 1;
@@ -44,13 +41,12 @@
     flex-direction: column;
     align-items: center;
     padding: 5px;
-    overflow-y: auto; // Khi có nhiều bài post, phần này sẽ cuộn
-    // max-height: 100%; // Giữ phần giữa không bị co giãn quá mức
+    overflow-y: auto;
   }
 
   .post-input {
     width: 100%;
-    max-width: 600px;
+    max-width: 780px;
     padding: 10px;
     border-radius: 10px;
     border: 1px solid #ccc;
@@ -63,5 +59,20 @@
     font-size: 14px;
     padding: 10px;
     border-top: 1px solid #ddd;
+  }
+}
+
+// Trên mobile, main content chiếm full width
+@media (max-width: 768px) {
+  .home-view.with-sidebar {
+    .main-content {
+      margin-left: 0 !important;
+      width: 100% !important;
+      
+      &.sidebar-collapsed {
+        margin-left: 0 !important;
+        width: 100% !important;
+      }
+    }
   }
 }

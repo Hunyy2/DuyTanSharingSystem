@@ -58,6 +58,10 @@ namespace Domain.Entities
         {
             IsDeleted = true;
         }
+        public void IsLiked()
+        {
+            IsLike = true;
+        }
     }
 }
 

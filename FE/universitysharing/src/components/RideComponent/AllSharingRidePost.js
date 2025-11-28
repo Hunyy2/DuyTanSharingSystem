@@ -20,12 +20,12 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import avatarDefault from "../../assets/AvatarDefault.png";
 import checkIcon from "../../assets/iconweb/checkIcon.svg";
-import likeFillIcon from "../../assets/iconweb/likefillIcon.svg";
 
 import { useNavigate } from "react-router-dom";
 import { userProfile } from "../../stores/action/profileActions";
 import getUserIdFromToken from "../../utils/JwtDecode";
 
+import { FiMessageSquare } from "react-icons/fi";
 import {
   createRide,
   deleteRidePost,
@@ -35,23 +35,19 @@ import {
 import { resetPostState } from "../../stores/reducers/ridePostReducer";
 import "../../styles/AllSharingCar.scss";
 import UpdateRidePost from "./UpdateRidePost";
-import { FiMessageSquare } from "react-icons/fi";
 
 import {
-  useChatHandle,
-  useMessageReceiver,
-  useMessageReceiverData,
+  useChatHandle
 } from "../../utils/MesengerHandle";
 
 import {
   getConversationss,
-  getInbox,
-  getMessagess,
+  getMessagess
 } from "../../stores/action/messageAction";
 
 import {
-  openChatBox,
   closeChatBox,
+  openChatBox,
   resetMessages,
   setSelectFriend,
 } from "../../stores/reducers/messengerReducer";

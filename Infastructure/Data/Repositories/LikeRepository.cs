@@ -131,5 +131,10 @@ namespace Infrastructure.Data.Repositories
             var firstDayOfWeek = firstThursday.AddDays((weekOfYear - 1) * 7);
             return firstDayOfWeek;
         }
+
+        public async Task<bool> IsPostLikedByUserAsync(Guid postId, Guid userId)
+        {
+            return await _context.Likes.AnyAsync(l => l.PostId == postId && l.UserId == userId && l.IsLike && !l.IsDeleted);
+        }
     }
 }

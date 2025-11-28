@@ -1,8 +1,10 @@
+// SharingPost.js - Phiên bản cập nhật
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import avatarWeb from "../../assets/AvatarDefault.png";
+import dieImage from "../../assets/Imgae Not found.png";
 import "../../styles/SharingPost.scss";
 import getUserIdFromToken from "../../utils/JwtDecode";
 
@@ -12,83 +14,97 @@ const SharedPost = ({ post }) => {
   const location = useLocation();
   const userId = getUserIdFromToken();
   const baseUrl = process.env.REACT_APP_BASE_URL;
-  // Mở comment modal
+
   const handleOpenCommentModal = (post, index = 0) => {
     navigate(`/post/${post.postId}`, { state: { background: location } });
   };
 
   const navigateUser = (userId) => {
-    if (userId === userId) {
+    if (userId === getUserIdFromToken()) {
       navigate("/ProfileUserView");
     } else {
       navigate(`/profile/${userId}`);
     }
   };
 
-  // Lấy thông hình ảnh và video set lên post nhiều hay 1 ảnh và 1 video
-  const getMediaContainerClass = (post) => {
-    const imageCount = post.imageUrl ? post.imageUrl.split(",").length : 0;
-    const hasVideo = !!post.videoUrl;
-    const totalMedia = imageCount + (hasVideo ? 1 : 0);
-
-    let className = "media-container";
-    switch (totalMedia) {
-      case 1:
-        className += hasVideo ? " single-video" : " single-image";
-        break;
-      case 2:
-        className += " two-items";
-        if (hasVideo) className += " has-video";
-        break;
-      default:
-        if (totalMedia >= 3) {
-          className += " multi-items";
-          if (hasVideo) className += " has-video";
-        }
-    }
-    return className;
-  };
-
-  // Render media items
-  const renderMediaItems = (post) => {
-    const imageUrls = post.imageUrl ? post.imageUrl.split(",") : [];
+  // Xác định class grid dựa trên số lượng media
+  const getMediaGridClass = (post) => {
+    const imageUrls = post.imageUrl ? post.imageUrl.split(",").map(url => url.trim()) : [];
     const hasVideo = !!post.videoUrl;
     const totalMedia = imageUrls.length + (hasVideo ? 1 : 0);
+    const displayCount = Math.min(totalMedia, 4);
+
+    return `media-container-share grid-${displayCount}`;
+  };
+
+  // Render media items với grid layout mới
+  const renderMediaItems = (post) => {
+    const imageUrls = post.imageUrl ? post.imageUrl.split(",").map(url => url.trim()) : [];
+    const hasVideo = !!post.videoUrl;
+    const totalMedia = imageUrls.length + (hasVideo ? 1 : 0);
+    const displayCount = Math.min(totalMedia, 4);
+    const hasMore = totalMedia > 4;
+
     if (totalMedia === 0) return null;
 
+    // Tạo danh sách media hỗn hợp
+    let mediaList = imageUrls.map(url => ({ 
+      type: 'image', 
+      url: url.startsWith("http") ? url : `${baseUrl}${url}` 
+    }));
+    if (hasVideo) {
+      mediaList.push({ type: 'video', url: post.videoUrl });
+    }
+
     return (
-      <div className={getMediaContainerClass(post)}>
-        {imageUrls.map((url, index) => {
-          const fullUrl = url.startsWith("http")
-            ? url.trim()
-            : `${baseUrl}${url.trim()}`;
-          const showOverlay = totalMedia > 2 && index === (hasVideo ? 0 : 1);
+      <div className={getMediaGridClass(post)}>
+        <div className="media-grid-share">
+          {mediaList.slice(0, displayCount).map((media, index) => {
+            const isLastDisplayed = index === 3;
+            const isOverlayItem = isLastDisplayed && hasMore;
 
-          if (totalMedia > 2 && index > (hasVideo ? 0 : 1)) return null;
-          if (hasVideo && index > 0) return null;
-
-          return (
-            <div className="media-item" key={index}>
-              <img
-                src={fullUrl}
-                alt={`Post media ${index}`}
-                onClick={() => handleOpenCommentModal(post, index)}
+            const mediaContent = media.type === 'video' ? (
+              <video 
+                src={media.url} 
+                controls 
+                onClick={(e) => {
+                  e.stopPropagation(); 
+                  handleOpenCommentModal(post, index);
+                }} 
               />
-              {showOverlay && (
-                <div className="media-overlay">
-                  +{totalMedia - (hasVideo ? 1 : 2)}
-                </div>
-              )}
-            </div>
-          );
-        })}
-        {hasVideo && (
-          <div className="media-item video-item">
-            <video controls>
-              <source src={post.videoUrl} type="video/mp4" />
-            </video>
-          </div>
-        )}
+            ) : (
+              <img 
+                src={media.url} 
+                alt={`Post media ${index}`}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = dieImage;
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleOpenCommentModal(post, index);
+                }}
+              />
+            );
+
+            return (
+              <div key={index} className="media-item-share">
+                {mediaContent}
+                {isOverlayItem && (
+                  <div 
+                    className="more-images-overlay-share"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenCommentModal(post, index);
+                    }}
+                  >
+                    <span>+{totalMedia - 4}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     );
   };
@@ -99,13 +115,15 @@ const SharedPost = ({ post }) => {
       case 0:
         return "Công khai";
       case 1:
-        return "riêng tư";
+        return "Riêng tư";
       case 2:
-        return "bạn bè";
+        return "Bạn bè";
       default:
-        return "Công khai"; // Mặc định nếu không có giá trị
+        return "Công khai";
     }
   };
+
+  const privacyStatus = getPrivacyStatus(post.originalPost.scope);
 
   return (
     <div className="shared-post-container">
@@ -131,8 +149,11 @@ const SharedPost = ({ post }) => {
                     locale: vi,
                   })}
                 </span>
-                <span className="status-post-share">
-                  {getPrivacyStatus(post.originalPost.scope)}
+                <span 
+                  className="status-post-share"
+                  data-privacy={privacyStatus}
+                >
+                  {privacyStatus}
                 </span>
               </div>
             </div>
@@ -142,6 +163,7 @@ const SharedPost = ({ post }) => {
         {/* Nội dung bài viết */}
         <span className="content-posts-share">{post.originalPost.content}</span>
 
+        {/* Media với grid layout mới */}
         {renderMediaItems(post.originalPost)}
       </div>
     </div>

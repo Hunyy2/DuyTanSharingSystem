@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import "../../styles/headerHome.scss";
+import { useState } from "react";
+import "../../styles/RideViews/RidePostInput.scss";
 import CreateRidePost from "../RideComponent/CreateRidePost";
 
 const InputCreateRide = ({ usersProfile }) => {

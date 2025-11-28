@@ -138,20 +138,20 @@ const listPostSlice = createSlice({
         state.hasMoreOwnerPosts = hasMore;
       })
       .addCase(likePost.pending, (state, action) => {
-        const postId = action.meta.arg;
-        state.posts = state.posts.map((post) =>
-          post.id === postId
-            ? {
-                ...post,
-                hasLiked: !post.hasLiked,
-                likeCount: post.hasLiked
-                  ? post.likeCount - 1
-                  : post.likeCount + 1,
-                isLiking: true,
-              }
-            : post
-        );
-      })
+      // action.meta.arg chứa postId được truyền vào likePost(postId)
+      const postId = action.meta.arg; 
+      const post = state.posts.find((p) => p.id === postId);
+
+      if (post) {
+          const isCurrentlyLiked = post.isLikedByCurrentUser;
+          
+          // 1. Cập nhật Lạc quan: Đảo ngược trạng thái và đổi màu nút tim ngay lập tức
+          post.isLikedByCurrentUser = !isCurrentlyLiked;
+          
+          // 2. Cập nhật Like Count ngay lập tức
+          post.likeCount += isCurrentlyLiked ? -1 : 1; 
+      }
+  })
       .addCase(likePost.fulfilled, (state, action) => {
         const postId = action.payload;
         state.posts = state.posts.map((post) =>
@@ -228,36 +228,48 @@ const listPostSlice = createSlice({
         state.commentsHasMore[postId] = hasMore;
       })
       .addCase(addCommentPost.fulfilled, (state, action) => {
-        const { postId, data, userId } = action.payload;
-        if (!postId || !data) return;
+  const { postId, data, userId } = action.payload;
+  if (!postId || !data) return;
 
-        const newComment = {
-          id: data.commentId,
-          userId: userId || "",
-          userName: data.fullName,
-          profilePicture: data.profilePicture,
-          content: data.content,
-          createdAt: data.createdAt,
-          hasLiked: 0,
-          likeCountComment: 0,
-          hasMoreReplies: false,
-          replies: [],
-          parentCommentId: null,
-        };
+  const newComment = {
+    id: data.commentId,
+    userId: userId || "",
+    userName: data.fullName,
+    profilePicture: data.profilePicture,
+    content: data.content,
+    createdAt: data.createdAt,
+    hasLiked: 0,
+    likeCountComment: 0,
+    hasMoreReplies: false,
+    replies: [],
+    parentCommentId: data.parentCommentId || null,
+  };
 
-        if (!Array.isArray(state.comments[postId])) {
-          state.comments[postId] = [];
-        } else if (state.comments[postId].some((c) => c.id === newComment.id)) {
-          return; // Không thêm nếu đã tồn tại
-        }
+  // Nếu là reply → KHÔNG thêm vào root, để replyComments xử lý
+  if (newComment.parentCommentId) {
+    return;
+  }
 
-        state.comments[postId].push(newComment);
+  // Đảm bảo mảng tồn tại
+  if (!Array.isArray(state.comments[postId])) {
+    state.comments[postId] = [];
+  }
 
-        const postIndex = state.posts.findIndex((post) => post.id === postId);
-        if (postIndex !== -1) {
-          state.posts[postIndex].commentCount += 1;
-        }
-      })
+  // Kiểm tra trùng lặp (rất quan trọng)
+  const exists = state.comments[postId].some(c => c.id === newComment.id);
+  if (exists) {
+    return; // Không thêm nếu đã có
+  }
+
+  // CHỈ THÊM 1 LẦN DUY NHẤT Ở ĐÂY
+  state.comments[postId].push(newComment);
+
+  // Tăng commentCount
+  const postIndex = state.posts.findIndex(p => p.id === postId);
+  if (postIndex !== -1) {
+    state.posts[postIndex].commentCount += 1;
+  }
+})
       .addCase(updateComment.fulfilled, (state, action) => {
         const { postId, commentId, content } = action.payload;
         if (state.comments[postId]) {

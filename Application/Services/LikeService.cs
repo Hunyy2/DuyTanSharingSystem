@@ -38,6 +38,7 @@ namespace Application.Services
             return new GetLikeWithCursorResponse
             {
                 LikeCount = likeCount,
+                
                 LikedUsers = likedUserDtos,
                 NextCursor = nextCursor
             };

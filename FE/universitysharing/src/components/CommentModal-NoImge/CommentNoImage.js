@@ -1,20 +1,19 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import logoweb from "../../assets/Logo.png";
+import { useDispatch, useSelector } from "react-redux";
 import avatarDefaut from "../../assets/AvatarDefault.png";
 import "../../styles/CommentModalNoImg.scss";
 import "../../styles/MoblieReponsive/CommentModalMobile/CommentModalMobileNoImage.scss";
-import ContentPostComment from "./ContenPostComment";
 import CommentList from "./CommentList";
-import { useDispatch, useSelector } from "react-redux";
+import ContentPostComment from "./ContenPostComment";
 
+import { FiSend } from "react-icons/fi";
 import {
-  commentPost,
   addCommentPost,
+  commentPost,
   likeComment,
 } from "../../stores/action/listPostActions";
 import getUserIdFromToken from "../../utils/JwtDecode";
-import { FiSend } from "react-icons/fi";
 
 const CommentModalNoImg = ({ post, onClose, usersProfile }) => {
   const userId = getUserIdFromToken();

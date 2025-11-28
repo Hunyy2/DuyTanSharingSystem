@@ -35,6 +35,7 @@ export const fetchLikes = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       });
+      console.log("Fetched likes:", response.data);
 
       return {
         postId,

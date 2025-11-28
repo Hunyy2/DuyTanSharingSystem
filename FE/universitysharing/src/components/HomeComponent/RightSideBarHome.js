@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FiSearch } from "react-icons/fi";
+import { FiMoreVertical, FiSearch } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import avatarDefault from "../../assets/AvatarDefault.png";
 import { fetchFriends } from "../../stores/action/friendAction";
@@ -24,7 +24,6 @@ import {
 const RightSidebar = () => {
   const dispatch = useDispatch();
 
-  //Các hàm tin nhắn từ chat handle
   const {
     handleJoin,
     handleLeaveChat,
@@ -43,35 +42,53 @@ const RightSidebar = () => {
     error: onlineError,
   } = useSelector((state) => state.onlineUsers);
 
-  const [openChats, setOpenChats] = useState([]);
   const [activeFriend, setActiveFriendLocal] = useState(null);
-  const [searchQuery, setSearchQuery] = useState(""); // Thêm state cho từ khóa tìm kiếm
+  const [searchQuery, setSearchQuery] = useState(""); 
 
   useEffect(() => {
     dispatch(fetchFriends());
   }, [dispatch]);
 
-  useEffect(() => {
-    if (friends.length > 0 && !friendsLoading && !friendsError) {
-      const friendIds = friends.map((friend) => friend.friendId);
-      //dispatch(checkOnlineUsers(friendIds));
-    }
-  }, [friends, friendsLoading, friendsError, dispatch]);
-
+  // Hàm tính toán thời gian lastSeen
   const getLastSeenText = useCallback((lastSeen) => {
-    if (!lastSeen) return "";
+    if (!lastSeen) return "Đã ẩn trạng thái"; 
     const diff = (new Date() - new Date(lastSeen)) / 1000 / 60;
     if (diff < 1) return "Vừa mới hoạt động";
     if (diff < 60) return `Hoạt động ${Math.floor(diff)} phút trước`;
-    return `Hoạt động ${Math.floor(diff / 60)} giờ trước`;
+
+    const diffHours = Math.floor(diff / 60);
+    if (diffHours < 24) return `Hoạt động ${diffHours} giờ trước`;
+
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays === 1) return "Hôm qua";
+    return `Hoạt động ${diffDays} ngày trước`;
   }, []);
 
-  const sortedFriends = useMemo(() => {
-    return [...friends].sort((a, b) => {
+  // Lọc và Chia Nhóm Bạn Bè (Logic Đã Sửa Lỗi Tìm Kiếm)
+  const { onlineFriends, offlineFriends } = useMemo(() => {
+    // Tăng tính ổn định: đảm bảo friends là mảng
+    const friendList = Array.isArray(friends) ? friends : []; 
+
+    // Lọc theo tên
+    const filtered = friendList.filter((friend) =>
+      friend.fullName.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    const result = {
+      onlineFriends: [],
+      offlineFriends: [],
+    };
+
+    // 1. Sắp xếp: Online trước, sau đó là LastSeen
+    const sorted = [...filtered].sort((a, b) => {
       const isOnlineA = onlineStatus[a.friendId] ?? false;
       const isOnlineB = onlineStatus[b.friendId] ?? false;
+
+      // Online vs Offline
       if (isOnlineA && !isOnlineB) return -1;
       if (!isOnlineA && isOnlineB) return 1;
+
+      // Nếu cả hai cùng Offline, sắp xếp theo lastSeen gần nhất
       if (!isOnlineA && !isOnlineB) {
         const lastSeenA = new Date(a.lastSeen || 0).getTime();
         const lastSeenB = new Date(b.lastSeen || 0).getTime();
@@ -79,31 +96,36 @@ const RightSidebar = () => {
       }
       return 0;
     });
-  }, [friends, onlineStatus]);
 
-  // Lọc danh sách bạn bè theo searchQuery
-  const filteredFriends = useMemo(() => {
-    return sortedFriends.filter((friend) =>
-      friend.fullName.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [sortedFriends, searchQuery]);
+    // 2. Chia nhóm
+    sorted.forEach(friend => {
+        const isOnline = onlineStatus[friend.friendId] ?? false;
+        if (isOnline) {
+            result.onlineFriends.push(friend);
+        } else {
+            result.offlineFriends.push(friend);
+        }
+    });
+
+    return result;
+  }, [friends, onlineStatus, searchQuery]); 
+
 
   // Xử lý thay đổi giá trị tìm kiếm
-  const handleSearchChange = (e) => {
+  const handleSearchChange = (e) => { 
     setSearchQuery(e.target.value);
   };
 
   const messengerState = useSelector((state) => state.messenges || {});
 
-  //chọn bạn nhắn tin để mở chatbox
+  //chọn bạn nhắn tin để mở chatbox (Giữ nguyên)
   const handleSelectedFriend = async (friendData) => {
     const token = localStorage.getItem("token");
     try {
-      //Thoát khỏi cuộc trò chuyện nếu join vào cuộc trò chuyện nào trước đó
       if (messengerState.conversationId) {
         await handleLeaveChat(messengerState.conversationId);
       }
-      // Lấy dữ liệu cuộc trò chuyện mới
+      
       const conversationData = await dispatch(
         getConversationss({ friendId: friendData.friendId, token })
       ).unwrap();
@@ -112,8 +134,6 @@ const RightSidebar = () => {
 
       dispatch(resetMessages());
       dispatch(setSelectFriend(friendData));
-
-      // Tham gia cuộc trò chuyện mới qua SignalR
 
       await handleJoin(conversationId);
       const messages = await dispatch(
@@ -126,41 +146,89 @@ const RightSidebar = () => {
       );
 
       await markConversationAsSeen({
-        conversationId: conversationId, // Dùng trực tiếp conversationId mới
-        friendId: friendData.friendId, // Dùng trực tiếp friendId mới
-        messages: messages.payload.data || [], // ✅ Lấy đúng mảng tin nhắn
+        conversationId: conversationId,
+        friendId: friendData.friendId,
+        messages: messages.payload.data || [],
         status: 2,
       });
 
       dispatch(closeChatBox());
-
       dispatch(openChatBox());
     } catch (error) {
       console.error("Lỗi chọn bạn để chat:", error);
     }
   };
+  
+  // Hàm render danh sách bạn bè
+  const renderFriendList = (list) => (
+    <ul>
+        {list.map((friend) => {
+        const isOnline = onlineStatus[friend.friendId] ?? false;
+        return (
+            <li
+            key={friend.friendId}
+            className={activeFriend === friend.friendId ? "active" : ""}
+            onClick={() =>
+                handleSelectedFriend({
+                friendId: friend.friendId,
+                fullName: friend.fullName,
+                pictureProfile: friend.pictureProfile,
+                conversationId: 0,
+                })
+            }
+            >
+            <div className="friend-info">
+                <div className="avatar-container">
+                    <img
+                        src={friend.pictureProfile || avatarDefault}
+                        alt={`${friend.fullName || "Bạn bè"}'s avatar`}
+                    />
+                    <span
+                        className={`status-dot ${
+                        isOnline ? "online" : "offline"
+                        }`}
+                    ></span>
+                </div>
+                
+                <div className="name-status">
+                <div className="friend-name">
+                    {friend.fullName || "Không tên"}
+                </div>
+                <div className="status-text">
+                    <span className={isOnline ? "online-text" : ""}>
+                    {isOnline
+                        ? "Đang hoạt động" 
+                        : getLastSeenText(friend.lastSeen)}
+                    </span>
+                </div>
+                </div>
+            </div>
+            </li>
+        );
+        })}
+    </ul>
+  );
 
-  // if (friendsLoading || onlineLoading) {
-  //   return (
-  //     <aside className="right-sidebar">
-  //       <p>Đang tải...</p>
-  //     </aside>
-  //   );
-  // }
+  const totalFriendsCount = onlineFriends.length + offlineFriends.length;
+  const totalAvailableFriends = Array.isArray(friends) ? friends.length : 0; 
+  const isListEmpty = totalAvailableFriends === 0 && searchQuery === "";
+  const isNoResult = totalFriendsCount === 0 && searchQuery !== "";
 
-  // if (friendsError) {
-  //   return (
-  //     <aside className="right-sidebar">
-  //       <p>Lỗi tải danh sách bạn bè: {friendsError}</p>
-  //     </aside>
-  //   );
-  // }
 
   return (
     <>
       <aside className="right-sidebar">
+        
+        {/* BỐ CỤC MỚI - HEADER */}
+        <div className="sidebar-header">
+            <h3>Bạn Bè & Chuyện Trò</h3>
+            <button className="action-button">
+                <FiMoreVertical />
+            </button>
+        </div>
+
+        {/* BỐ CỤC MỚI - SEARCH CONTAINER */}
         <div className="search-container">
-          <h3>Bạn Bè</h3>
           <div className="search-box">
             <FiSearch className="search-icon" />
             <input
@@ -172,11 +240,10 @@ const RightSidebar = () => {
           </div>
         </div>
 
-        {/* Thêm phần loading và error ở đây */}
+        {/* LOADING & ERROR */}
         {(friendsLoading || onlineLoading) && (
-          // <p className="loading-message">Đang tải danh sách bạn bè...</p>
           <div className="loading-message">
-            <Spinner size={70} />
+            <Spinner size={30} />
           </div>
         )}
 
@@ -192,59 +259,53 @@ const RightSidebar = () => {
           </p>
         )}
 
-        <div className="friends-list">
-          <ul>
-            {filteredFriends.map((friend) => {
-              const isOnline = onlineStatus[friend.friendId] ?? false;
-              return (
-                <li
-                  key={friend.friendId}
-                  className={activeFriend === friend.friendId ? "active" : ""}
-                  onClick={() =>
-                    handleSelectedFriend({
-                      friendId: friend.friendId,
-                      fullName: friend.fullName,
-                      pictureProfile: friend.pictureProfile,
-                      conversationId: 0,
-                    })
-                  }
-                >
-                  <div className="friend-info">
-                    <img
-                      src={friend.pictureProfile || avatarDefault}
-                      alt={`${friend.fullName || "Bạn bè"}'s avatar`}
-                    />
-                    <div className="name-status">
-                      <div className="friend-name">
-                        {friend.fullName || "Không tên"}
-                      </div>
-                      <div className="status-container">
-                        <span
-                          className={`status-dot ${
-                            isOnline ? "online" : "offline"
-                          }`}
-                        ></span>
-                        <span className="status-text">
-                          {isOnline
-                            ? "Online"
-                            : getLastSeenText(friend.lastSeen)}
-                        </span>
-                      </div>
+        {/* BỐ CỤC MỚI - DANH SÁCH CHIA NHÓM */}
+        {!friendsLoading && !friendsError && (
+            <div className="friends-list">
+
+                {/* Nhóm 1: Online */}
+                {onlineFriends.length > 0 && (
+                    <>
+                        <div className="list-group-title">
+                            Đang Hoạt Động ({onlineFriends.length})
+                        </div>
+                        {renderFriendList(onlineFriends)}
+                    </>
+                )}
+
+                {/* Nhóm 2: Gần Đây / Kết quả tìm kiếm khác */}
+                {/* ĐÃ SỬA: Xóa điều kiện 'searchQuery === ""' để hiển thị bạn bè offline khi đang tìm kiếm */}
+                {offlineFriends.length > 0 && ( 
+                    <>
+                        <div className="list-group-title">
+                            {/* Đổi tiêu đề khi đang tìm kiếm */}
+                            {searchQuery 
+                                ? "Kết Quả Khác" 
+                                : `Hoạt Động Gần Đây (${offlineFriends.length})`
+                            }
+                        </div>
+                        {renderFriendList(offlineFriends)}
+                    </>
+                )}
+
+                {/* Trạng thái Không có kết quả tìm kiếm */}
+                {isNoResult && (
+                    <div className="loading-error">
+                        Không tìm thấy bạn bè có tên "{searchQuery}".
                     </div>
-                  </div>
-                </li>
-              );
-            })}
-            {filteredFriends.length === 0 &&
-              !(friendsLoading || onlineLoading || friendsError) && (
-                <div className="loading-error">Không tìm thấy bạn bè.</div>
-              )}
-          </ul>
-        </div>
+                )}
+                
+                {/* Trạng thái Danh sách trống */}
+                {isListEmpty && (
+                    <div className="loading-error">
+                        Bạn chưa có bạn bè nào.
+                    </div>
+                )}
+            </div>
+        )}
       </aside>
     </>
   );
 };
 
 export default RightSidebar;
-
