@@ -5,6 +5,7 @@ using Application.DTOs.Message;
 using Application.Interface;
 using Application.Interface.ContextSerivce;
 using Application.Model;
+using Application.Services;
 using Domain.Interface;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -22,15 +23,24 @@ namespace DuyTanSharingSystem.Controllers
         private readonly IMediator _mediator;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserContextService _userContextService;
-
-        public MessageController(IMessageService messageService, IMediator mediator,IUnitOfWork unitOfWork,IUserContextService userContextService)
+        private readonly IFileService _fileService;
+        public MessageController(IMessageService messageService, IMediator mediator,IUnitOfWork unitOfWork,IUserContextService userContextService,IFileService fileService)
         {
             _messageService = messageService;
             _mediator = mediator;
             _unitOfWork = unitOfWork;
             _userContextService = userContextService;
+            _fileService = fileService;
         }
+        // UploadController.cs
+        [HttpPost("upload")]
+        public async Task<IActionResult> UploadFile(IFormFile file, string folderName = "chat-media")
+        {
+            if (file == null) return BadRequest("No file uploaded.");
+            var filePath = await _fileService.SaveFileAsync(file, folderName, _fileService.IsImage(file));
 
+            return Ok(new { success = true, filePath });
+        }
         [HttpGet("conversations")]
         public async Task<IActionResult> GetConversations()
         {

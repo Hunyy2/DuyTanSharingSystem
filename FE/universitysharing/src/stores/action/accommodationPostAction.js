@@ -34,7 +34,7 @@ export const createAccommodationPost = createAsyncThunk(
         return rejectWithValue(response.data.message || "Lỗi từ server khi tạo bài trọ");
       }
 
-      toast.success(response.data.message || "Đăng bài trọ thành công!");
+      //toast.success(response.data.message || "Đăng bài trọ thành công!");
       return response.data.data;
     } catch (error) {
       console.error("Error in createAccommodationPost:", error);
@@ -74,7 +74,7 @@ export const updateAccommodationPost = createAsyncThunk(
         return rejectWithValue(response.data.message || "Lỗi từ server khi cập nhật bài trọ");
       }
 
-      toast.success(response.data.message || "Cập nhật bài trọ thành công!");
+      //toast.success(response.data.message || "Cập nhật bài trọ thành công!");
       return response.data.data;
     } catch (error) {
       console.error("Error in updateAccommodationPost:", error);
@@ -162,7 +162,7 @@ export const deleteAccommodationPost = createAsyncThunk(
         return rejectWithValue(response.data.message || "Lỗi khi xóa bài trọ");
       }
 
-      toast.success(response.data.message || "Xóa bài trọ thành công!");
+      //toast.success(response.data.message || "Xóa bài trọ thành công!");
       return postId; // Trả về ID để Reducer xử lý xóa khỏi state
     } catch (error) {
       const errorMessage =
