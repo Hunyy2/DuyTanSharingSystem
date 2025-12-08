@@ -145,21 +145,32 @@ namespace Infrastructure.Data.Repositories
             return result;
         }
 
+        // Repository Layer
         public async Task<IEnumerable<(string TrustCategory, int Count)>> GetUserTrustDistributionAsync()
         {
+            // 1. Lấy danh sách điểm uy tín của User
             var users = await _context.Users
                  .Where(u => u.Role == RoleEnum.User)
                  .Select(u => new { u.TrustScore })
                  .ToListAsync();
 
-            var trustedCount = users.Count(u => u.TrustScore >= 50);
-            var untrustedCount = users.Count(u => u.TrustScore < 50);
+            // 2. Thực hiện đếm theo 3 nhóm yêu cầu
+            // Nhóm Thấp: 0 - 30
+            var lowCount = users.Count(u => (u.TrustScore) <= 30);
 
+            // Nhóm Trung bình: 31 - 50
+            var mediumCount = users.Count(u => (u.TrustScore) > 30 && (u.TrustScore) <= 50);
+
+            // Nhóm Cao: 51 - 100
+            var highCount = users.Count(u => (u.TrustScore) > 50);
+
+            // 3. Trả về danh sách kết quả với Label tiếng Việt
             var result = new List<(string TrustCategory, int Count)>
-            {
-                ("Người dùng uy tín", trustedCount),
-                ("Người dùng chưa uy tín", untrustedCount)
-            };
+    {
+        ("Thấp (0 - 30)", lowCount),
+        ("Trung bình (31 - 50)", mediumCount),
+        ("Cao (51 - 100)", highCount)
+    };
 
             return result;
         }

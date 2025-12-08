@@ -1,62 +1,63 @@
-import React, { useEffect } from "react";
-import "../../styles/CommentOverlay.scss";
-import CommentItem from "./CommentItem";
 import { debounce } from "lodash";
+import { useCallback } from "react";
+import { useDispatch } from "react-redux";
 import { replyComments } from "../../stores/action/listPostActions";
-import { useDispatch, useSelector } from "react-redux";
+import "../../styles/PostDetail/CommentList.scss";
 import getUserIdFromToken from "../../utils/JwtDecode";
 import Spinner from "../../utils/Spinner";
+import CommentItem from "./CommentItem";
+
 const CommentList = ({
   comment,
   commentEndRef,
   handleLikeComment,
   post,
   usersProfile,
-  onLoadMore, // New prop for loading more comments
-  isLoadingMore, // New prop to track loading state
-  hasMoreComments, // New prop to check if more comments exist
+  isLoadingMore,
 }) => {
-  // console.log("Danh sách bình luận ở CommentList:", comment);
   const dispatch = useDispatch();
   const userId = getUserIdFromToken();
-  const handleReplyComment = debounce((commentId, content) => {
-    if (!content.trim()) return;
-    dispatch(
-      replyComments({
-        postId: post.id, // ID bài viết
-        parentId: commentId, // ID của comment đang reply
-        content: content, // Nội dung trả lời
-        userId: userId,
-      })
-    );
-  }, 1000);
-  return (
-    <div className="comments-section">
-      {Array.isArray(comment) && comment.length > 0 ? (
-        <>
-          {comment.map((comments) => (
-            <CommentItem
-              key={comments.id}
-              comments={comments}
-              handleLikeComment={handleLikeComment}
-              post={post}
-              handleReplyComment={handleReplyComment}
-              usersProfile={usersProfile}
-            />
-          ))}
 
-          {/* Loading indicator */}
-          {isLoadingMore && (
-            <div className="comment-loading">
-              <Spinner size={70} />
-            </div>
-          )}
-        </>
+  // Sử dụng useCallback để không tạo lại hàm mỗi lần render
+  // Debounce được bọc bên trong để tránh gọi API quá nhiều
+  const handleReplyComment = useCallback(
+    debounce((commentId, content) => {
+      if (!content.trim()) return;
+      dispatch(
+        replyComments({
+          postId: post.id,
+          parentId: commentId,
+          content: content,
+          userId: userId,
+        })
+      );
+    }, 500),
+    [dispatch, post.id, userId]
+  );
+
+  return (
+    <div className="comment-list-container">
+      {Array.isArray(comment) && comment.length > 0 ? (
+        comment.map((item) => (
+          <CommentItem
+            key={item.id}
+            comments={item}
+            handleLikeComment={handleLikeComment}
+            post={post}
+            handleReplyComment={handleReplyComment}
+            usersProfile={usersProfile}
+          />
+        ))
       ) : (
-        <span className="No-Comment-modal">Không có bình luận nào</span>
+        <div className="no-comment">Chưa có bình luận nào. Hãy là người đầu tiên!</div>
       )}
 
-      {/* Sentinel element for infinite scroll */}
+      {isLoadingMore && (
+        <div className="loading-more-spinner">
+          <Spinner size={30} />
+        </div>
+      )}
+
       <div ref={commentEndRef} style={{ height: "1px" }} />
     </div>
   );

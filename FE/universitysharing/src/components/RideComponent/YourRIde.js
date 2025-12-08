@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { cancelRide, rateDriver } from "../../stores/action/ridePostAction";
 import RatingModal from "../RatingModal";
 
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 
 import L from "leaflet";
 import { useEffect, useRef, useState } from "react";
@@ -17,11 +17,11 @@ import {
   TileLayer,
 } from "react-leaflet";
 import { useDispatch, useSelector } from "react-redux";
-import { useAuth } from "../../contexts/AuthContext"; // Thêm import useAuth
+import { useAuth } from "../../contexts/AuthContext";
 import axiosInstance from "../../Service/axiosClient";
 
 // Icons
-import { FaCar } from "react-icons/fa6";
+import { FaCar, FaLocationArrow } from "react-icons/fa6";
 import {
   FiAlertTriangle,
   FiArchive,
@@ -32,45 +32,29 @@ import {
   FiChevronDown,
   FiChevronUp,
   FiClock,
-  FiInbox,
-  FiMap,
   FiMapPin,
   FiNavigation,
   FiRefreshCw,
   FiSearch,
   FiShield,
-  FiUser,
+  FiUser
 } from "react-icons/fi";
 
 // Leaflet assets
-import markerIconPng from "leaflet/dist/images/marker-icon.png";
-import markerShadowPng from "leaflet/dist/images/marker-shadow.png";
 
 // Styles
 import "leaflet/dist/leaflet.css";
+import "react-confirm-alert/src/react-confirm-alert.css"; // Import css cho confirm alert nếu cần
 import "react-toastify/dist/ReactToastify.css";
 import "../../styles/YourRide.scss";
+
 // Redux actions
 import {
   fetchLocation,
   fetchRidesByUserId,
 } from "../../stores/action/ridePostAction";
 
-// Placeholder animation for empty state
-const emptyRideAnimation = {
-  v: "5.5.2",
-  fr: 60,
-  ip: 0,
-  op: 60,
-  w: 500,
-  h: 500,
-  nm: "Empty Animation",
-  ddd: 0,
-  assets: [],
-  layers: [],
-};
-
-// Custom Leaflet marker icons
+// --- Custom Markers ---
 const startIcon = new L.Icon({
   iconUrl:
     "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
@@ -95,17 +79,17 @@ const movingCarIcon = new L.Icon({
   popupAnchor: [1, -34],
 });
 
-const defaultIcon = L.icon({
-  iconUrl: markerIconPng,
-  shadowUrl: markerShadowPng,
+const otherUserIcon = new L.Icon({
+  iconUrl:
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png",
   iconSize: [25, 41],
   iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
 });
 
-// Main component for managing user rides
 const YourRide = () => {
-  // State declarations
-  const [showHistory, setShowHistory] = useState(false);
+  // --- STATE & HOOKS ---
+  const [showHistory, setShowHistory] = useState(true);
   const [routePaths, setRoutePaths] = useState({});
   const [notifications, setNotifications] = useState([]);
   const [currentPosition, setCurrentPosition] = useState(null);
@@ -118,49 +102,37 @@ const YourRide = () => {
   const [mapBounds, setMapBounds] = useState(null);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedRide, setSelectedRide] = useState(null);
-  const currentUserLocation = useSelector(
-    (state) => state.rides.currentUserLocation
-  );
-  const navigate = useNavigate();
-
-  const [mapReady, setMapReady] = useState(false); // Thêm state để kiểm tra bản đồ sẵn sàng
+  const [mapReady, setMapReady] = useState(false);
   const [otherUserPosition, setOtherUserPosition] = useState(null);
-  // Refs for managing intervals and connections
+
   const mapRef = useRef(null);
   const intervalRef = useRef(null);
   const watchIdRef = useRef(null);
-  const lastToastTime = useRef(0); // Theo dõi thời gian toast lần cuối
+  const positionRef = useRef(currentPosition);
 
-  // Redux hooks
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { driverRides, passengerRides, locations, loading, error } =
     useSelector((state) => state.rides);
-  // Lấy authData từ useAuth
   const { userId: authUserId, isAuthenticated, isLoading } = useAuth();
-  const positionRef = useRef(currentPosition);
+  const currentUserLocation = useSelector(
+    (state) => state.rides.currentUserLocation
+  );
+
+  // Update position ref
   useEffect(() => {
     positionRef.current = currentPosition;
   }, [currentPosition]);
-  const otherUserIcon = new L.Icon({
-    iconUrl:
-      "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png", // Marker màu vàng
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-  });
+
+  // --- LOGIC EFFECTS (GIỮ NGUYÊN) ---
+
+  // 1. Update other user location
   useEffect(() => {
     const currentRide = getCurrentRide();
-    console.log("[YourRide] userId:", userId);
-    console.log("[YourRide] locations:", locations);
-    console.log("[YourRide] currentRide:", currentRide);
-
     if (locations && locations.length > 0 && userId && currentRide) {
-      // Lọc vị trí của người dùng khác và lấy bản ghi mới nhất
       const otherUserLocation = locations
         .filter((loc) => loc.userId !== userId)
-
         .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
-
 
       if (
         otherUserLocation &&
@@ -170,132 +142,77 @@ const YourRide = () => {
         setOtherUserPosition({
           lat: otherUserLocation.latitude,
           lon: otherUserLocation.longitude,
-          isDriver: otherUserLocation.isDriver, // Sử dụng isDriver từ API
+          isDriver: otherUserLocation.isDriver,
           timestamp: otherUserLocation.timestamp,
         });
-        console.log(
-          "[YourRide] Cập nhật otherUserPosition:",
-          otherUserLocation
-        );
-      } else {
-        console.warn(
-          "[YourRide] Không tìm thấy vị trí hợp lệ của người dùng khác hoặc tọa độ không hợp lệ"
-        );
       }
-    } else {
-      console.warn(
-        "[YourRide] Thiếu dữ liệu: locations, userId hoặc currentRide"
-      );
     }
-  }, [locations, userId, driverRides, passengerRides]); // Thêm driverRides, passengerRides để cập nhật khi currentRide thay đổi
+  }, [locations, userId, driverRides, passengerRides]);
 
+  // 2. Fetch location periodically
   useEffect(() => {
     const currentRide = getCurrentRide();
     if (currentRide && currentRide.rideId) {
+      dispatch(fetchLocation(currentRide.rideId));
+      const fetchInterval = setInterval(() => {
         dispatch(fetchLocation(currentRide.rideId));
-
-        const fetchInterval = setInterval(() => {
-            console.log("[YourRide] Đang lấy vị trí định kỳ...");
-            dispatch(fetchLocation(currentRide.rideId));
-        }, 20000); // 60 giây
-        return () => clearInterval(fetchInterval);
-
+      }, 20000);
+      return () => clearInterval(fetchInterval);
     }
-}, [dispatch, driverRides, passengerRides]); // Chỉ chạy lại khi rides thay đổi để lấy rideId
+  }, [dispatch, driverRides, passengerRides]);
 
+  // 3. Check Permissions
   const checkLocationPermission = (callback) => {
     if (!navigator.geolocation) {
-      toast.error("Thiết bị không hỗ trợ định vị!", {
-        toastId: "location-error",
-      });
+      toast.error("Thiết bị không hỗ trợ định vị!");
       return callback(false);
     }
-
     navigator.permissions
       .query({ name: "geolocation" })
       .then((result) => {
         if (result.state === "denied") {
-          toast.error(
-            "Vui lòng bật tính năng định vị trong trình duyệt để sử dụng chức năng này!",
-            { toastId: "location-denied" }
-          );
+          toast.error("Vui lòng bật tính năng định vị!");
           return callback(false);
         } else if (result.state === "prompt") {
-          toast.info("Vui lòng cho phép truy cập vị trí khi được yêu cầu!", {
-            toastId: "location-prompt",
-          });
           navigator.geolocation.getCurrentPosition(
-            () => {
-              callback(true); // Quyền được cấp
-            },
-            (err) => {
-              // Chỉ hiển thị lỗi nếu không phải lỗi người dùng hủy prompt
-              if (err.code !== err.PERMISSION_DENIED) {
-                toast.error(
-                  `Không thể truy cập vị trí: ${err.message}. Vui lòng bật định vị!`,
-                  { toastId: "location-error" }
-                );
-              }
-              callback(false);
-            }
+            () => callback(true),
+            (err) => callback(false)
           );
         } else {
-          callback(true); // Quyền đã được cấp
+          callback(true);
         }
       })
       .catch((err) => {
-        console.error("Lỗi kiểm tra quyền định vị:", err);
-        toast.error("Không thể kiểm tra quyền định vị!", {
-          toastId: "location-error",
-        });
+        console.error(err);
         callback(false);
       });
   };
+
   useEffect(() => {
-    if (currentUserLocation) {
-      console.log(
-        "Vị trí hiện tại của người dùng từ Redux:",
-        currentUserLocation
-      );
-      // Cập nhật marker trên bản đồ, v.v.
-    }
-  }, [currentUserLocation]);
-  useEffect(() => {
-    // Kiểm tra quyền vị trí khi component mount
-    checkLocationPermission((hasPermission) => {
-      if (hasPermission) {
-        console.log("[YourRide] Quyền vị trí đã được cấp");
-      } else {
-        console.log("[YourRide] Quyền vị trí bị từ chối hoặc lỗi");
-      }
-    });
+    checkLocationPermission((has) =>
+      console.log(has ? "Quyền đã cấp" : "Chưa có quyền")
+    );
   }, []);
-  // Cập nhật userId từ AuthContext
+
+  // 4. Auth & User ID
   useEffect(() => {
     if (isAuthenticated && authUserId) {
       setUserId(authUserId);
-      console.log("[YourRide] UserId from AuthContext:", authUserId);
       dispatch(fetchRidesByUserId());
     } else if (!isLoading && !isAuthenticated) {
-      console.warn("[YourRide] Không có người dùng đăng nhập");
       setUserId(null);
     }
   }, [isAuthenticated, authUserId, isLoading, dispatch]);
-  // Đánh dấu bản đồ đã sẵn sàng sau khi khởi tạo
+
+  // 5. Map Ready
   useEffect(() => {
     if (mapRef.current) {
-      // Đảm bảo Leaflet cập nhật kích thước bản đồ
       mapRef.current.invalidateSize();
       setMapReady(true);
-      console.log("[YourRide] Map is ready");
     }
   }, [mapRef.current]);
-  useEffect(() => {
-    const currentRide = getCurrentRide();
-    if (currentRide && userId) {
-      dispatch(fetchLocation(currentRide.rideId));
-    }
-  }, [dispatch, userId]);
+
+  // 6. Notifications
   useEffect(() => {
     if (locations && locations.length > 0) {
       const newNotifications = locations.map((loc, idx) => ({
@@ -311,71 +228,59 @@ const YourRide = () => {
       setNotifications(newNotifications);
     }
   }, [locations, userId]);
-  // Update map bounds when current ride or position changes
+
+  // 7. Map Bounds
   useEffect(() => {
     const currentRide = getCurrentRide();
     if (currentRide && mapReady) {
       const start = parseLatLon(currentRide.latLonStart);
       const end = parseLatLon(currentRide.latLonEnd);
-
       if (start && end) {
-        const points = [start, end]; // Bắt đầu với điểm đầu và cuối
-
-        if (currentPosition) {
+        const points = [start, end];
+        if (currentPosition)
           points.push([currentPosition.lat, currentPosition.lon]);
-        }
-        if (otherUserPosition) {
+        if (otherUserPosition)
           points.push([otherUserPosition.lat, otherUserPosition.lon]);
-        }
 
-        // Chỉ tạo bounds nếu có ít nhất một điểm hợp lệ
-        if (points.length >= 1) {
-          // Kiểm tra xem tất cả các điểm có hợp lệ không
-          const validPoints = points.filter(
-            (p) => p && !isNaN(p[0]) && !isNaN(p[1])
-          );
-          if (validPoints.length > 0) {
-            const bounds = L.latLngBounds(validPoints).pad(0.2);
-            setMapBounds(bounds);
-            if (mapRef.current) {
-              mapRef.current.flyToBounds(bounds, { maxZoom: 16, duration: 1 });
-              console.log("[YourRide] Fly to bounds (bao gồm cả hai):", bounds);
-            }
+        const validPoints = points.filter(
+          (p) => p && !isNaN(p[0]) && !isNaN(p[1])
+        );
+        if (validPoints.length > 0) {
+          const bounds = L.latLngBounds(validPoints).pad(0.2);
+          setMapBounds(bounds);
+          if (mapRef.current) {
+            mapRef.current.flyToBounds(bounds, { maxZoom: 16, duration: 1 });
           }
         }
       }
     }
   }, [currentPosition, otherUserPosition, mapReady]);
 
-  // Center map on current position when following
+  // 8. Auto Follow
   useEffect(() => {
     if (isFollowing && mapRef.current && currentPosition && mapReady) {
-      const newCenter = [currentPosition.lat, currentPosition.lon];
       const currentZoom = mapRef.current.getZoom() || 14;
       mapRef.current.flyTo(
-        newCenter,
+        [currentPosition.lat, currentPosition.lon],
         currentZoom >= 12 && currentZoom <= 16 ? currentZoom : 14,
         { duration: 0.5 }
       );
     }
   }, [currentPosition, isFollowing]);
 
-  // Calculate distance between two points using Haversine formula (in km)
+  // --- HELPER FUNCTIONS ---
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371e3;
     const φ1 = (lat1 * Math.PI) / 180;
     const φ2 = (lat2 * Math.PI) / 180;
     const Δφ = ((lat2 - lat1) * Math.PI) / 180;
     const Δλ = ((lon2 - lon1) * Math.PI) / 180;
-
     const a =
       Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
       Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return (R * c) / 1000;
+    return (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) * R) / 1000;
   };
 
-  // Fetch address from coordinates using OpenStreetMap Nominatim
   const getAddressFromCoordinates = async (lat, lon) => {
     try {
       const response = await fetch(
@@ -383,37 +288,29 @@ const YourRide = () => {
       );
       const data = await response.json();
       return data.display_name || `${lat}, ${lon}`;
-    } catch (error) {
-      console.error("Error fetching address:", error);
+    } catch {
       return `${lat}, ${lon}`;
     }
   };
+
   useEffect(() => {
-    // Kiểm tra trạng thái hoàn thành trong localStorage
     const rideCompleted = localStorage.getItem("rideCompleted");
     if (rideCompleted === "true") {
       toast.success("Chuyến đi đã hoàn thành!");
-      // Xóa trạng thái sau khi hiển thị thông báo
       localStorage.removeItem("rideCompleted");
     }
-  }, []); // Chỉ chạy khi component mount
-  // Send current location to server
+  }, []);
+
   const sendLocationToServer = async (
     rideId,
     latitude,
     longitude,
-    isNearDestination = false
+    isNearDestination
   ) => {
     try {
       const location = await getAddressFromCoordinates(latitude, longitude);
       const cleanLocation = location.split(", ").slice(0, -2).join(", ");
       const token = localStorage.getItem("token");
-
-      // Log giá trị isNearDestination trước khi gửi
-      console.log(
-        "[sendLocationToServer] isNearDestination:",
-        isNearDestination
-      );
 
       const payload = {
         rideId,
@@ -422,7 +319,6 @@ const YourRide = () => {
         isNearDestination,
         location: cleanLocation,
       };
-      console.log("[sendLocationToServer] Payload:", payload);
 
       const response = await axiosInstance.post(
         "/api/updatelocation/update",
@@ -431,200 +327,76 @@ const YourRide = () => {
       );
 
       setLastSentPosition({ lat: latitude, lon: longitude });
+      setNotifications((prev) => [
+        ...prev,
+        {
+          id: `location-${Date.now()}`,
+          message: `Bạn đã cập nhật vị trí tại: ${cleanLocation}`,
+          timestamp: new Date().toISOString(),
+          isNew: true,
+        },
+      ]);
 
-      // Thêm vị trí hiện tại vào notifications
-      const newNotification = {
-        id: `location-${Date.now()}`,
-        message: `Bạn đã cập nhật vị trí tại: ${cleanLocation}`,
-        timestamp: new Date().toISOString(),
-        isNew: true,
-      };
-      setNotifications((prev) => [...prev, newNotification]);
-
-      // Kiểm tra rideStatus từ server
-      const { rideStatus } = response.data?.data || {};
-      if (rideStatus === "Completed") {
-        console.log("[YourRide] Ride completed, setting localStorage...");
-        // Lưu trạng thái hoàn thành vào localStorage
+      if (response.data?.data?.rideStatus === "Completed") {
         localStorage.setItem("rideCompleted", "true");
         window.location.reload();
       }
-
-      console.log(
-        `Location sent: ${latitude}, ${longitude} - Address: ${cleanLocation}`
-      );
     } catch (error) {
       console.error("Error sending location:", error);
     }
   };
 
-  // Track current position using geolocation
+  // Tracking Geolocation
   useEffect(() => {
-  if (!navigator.geolocation) {
-    console.error("Device does not support geolocation!");
-    return;
-  }
+    if (!navigator.geolocation) return;
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      ({ coords: { latitude, longitude } }) => {
+        const newPosition = { lat: latitude, lon: longitude };
+        setCurrentPosition((prev) => {
+          if (
+            !prev ||
+            calculateDistance(prev.lat, prev.lon, latitude, longitude) > 0.01
+          ) {
+            return newPosition;
+          }
+          return prev;
+        });
+      },
+      (err) => console.error(err),
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+    );
+    return () => {
+      if (watchIdRef.current)
+        navigator.geolocation.clearWatch(watchIdRef.current);
+    };
+  }, []);
 
-  const handlePositionError = (err) => {
-    console.error(`Geolocation error: ${err.message}`);
-  };
-
-  watchIdRef.current = navigator.geolocation.watchPosition(
-    ({ coords: { latitude, longitude } }) => {
-      const newPosition = { lat: latitude, lon: longitude };
-
-      // Dùng functional update để lấy state trước đó (prevPosition)
-      // mà không cần đưa 'currentPosition' vào mảng phụ thuộc.
-      setCurrentPosition((prevPosition) => {
-        if (
-          !prevPosition ||
-          calculateDistance(
-            prevPosition.lat,
-            prevPosition.lon,
-            latitude,
-            longitude
-          ) > 0.01 // > 10m
-        ) {
-          console.log(`[YourRide] New position received: ${latitude}, ${longitude}`);
-          
-          // Cập nhật lastNotifiedPosition bên trong này luôn
-          setLastNotifiedPosition((prevNotified) => {
-            if (
-              !prevNotified ||
-              calculateDistance(
-                prevNotified.lat,
-                prevNotified.lon,
-                latitude,
-                longitude
-              ) > 0.01
-            ) {
-              return newPosition;
-            }
-            return prevNotified;
-          });
-
-          return newPosition; // Cập nhật currentPosition
-        }
-        return prevPosition; // Không cập nhật nếu vị trí thay đổi < 10m
-      });
-    },
-    handlePositionError,
-    { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
-  );
-
-  // Hàm dọn dẹp này giờ sẽ CHỈ CHẠY KHI COMPONENT UNMOUNT
-  return () => {
-    if (watchIdRef.current)
-      navigator.geolocation.clearWatch(watchIdRef.current);
-  };
-}, []); // <-- Mảng phụ thuộc RỖNG
+  // Interval Sending
   useEffect(() => {
     const currentRide = getCurrentRide();
-    if (!currentRide) return; // Nếu currentRide không tồn tại thì dừng
-
-    const rideId = currentRide.rideId;
-    if (!currentPosition || !rideId) return;
-
-    const intervalId = setInterval(() => {
-      console.log("Gửi vị trí định kỳ mỗi 5 phút:", currentPosition);
-      sendLocationToServer(
-        rideId,
-        currentPosition.lat,
-        currentPosition.lon,
-        false
-      );
-    }, 300000); // 5 phút = 300000 ms
-
-    return () => clearInterval(intervalId);
-  }, [currentPosition]);
-
-  // Periodically send location for current ride
-  //trước
-//   useEffect(() => {
-//   const currentRide = getCurrentRide();
-//   if (!currentPosition || !currentRide || !userId) return;
-
-//   const rideId = currentRide.rideId;
-//   const endLatLon = parseLatLon(currentRide.latLonEnd);
-//   const { lat, lon } = currentPosition;
-//   // isDriver đã được xác định ở trên
-
-//   // Đã bỏ kiểm tra điều kiện isSafetyTrackingEnabled
-//   // Điều này giả định cả tài xế và hành khách nên luôn gửi vị trí
-//   intervalRef.current = setInterval(() => {
-//     if (
-//       lastSentPosition &&
-//       calculateDistance(
-//         lastSentPosition.lat,
-//         lastSentPosition.lon,
-//         lat,
-//         lon
-//       ) < 0.05
-//     ) {
-//       console.log("Vị trí không thay đổi (< 50m), bỏ qua việc gửi...");
-//       return;
-//     }
-
-//     const distanceToEnd = endLatLon
-//       ? calculateDistance(lat, lon, endLatLon[0], endLatLon[1])
-//       : Infinity;
-//     const isNearDestination = distanceToEnd <= 1;
-
-//     sendLocationToServer(rideId, lat, lon, isNearDestination);
-//   }, 20000); // Gửi mỗi 20 giây
-//   return () => clearInterval(intervalRef.current);
-// }, [currentPosition, driverRides, passengerRides, lastSentPosition, userId]);
-//sau
-// YourRide.js: SỬA LỖI GỬI VỊ TRÍ (thay cho code ở dòng 593)
-useEffect(() => {
-  const currentRide = getCurrentRide();
-  
-  // Nếu không có chuyến đi hoặc user, đảm bảo interval bị hủy
-  if (!currentRide || !userId) {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    return; // Dừng lại
-  }
-
-  // Lấy thông tin cố định của chuyến đi
-  const rideId = currentRide.rideId;
-  const endLatLon = parseLatLon(currentRide.latLonEnd);
-
-  // Tạo interval MỘT LẦN
-  intervalRef.current = setInterval(() => {
-    // Lấy vị trí MỚI NHẤT từ ref
-    const pos = positionRef.current; 
-    
-    if (!pos) {
-      console.log("[Sender Interval] Chưa có vị trí, bỏ qua gửi...");
+    if (!currentRide || !userId) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
       return;
     }
+    const rideId = currentRide.rideId;
+    const endLatLon = parseLatLon(currentRide.latLonEnd);
 
-    const { lat, lon } = pos;
-    const distanceToEnd = endLatLon
-      ? calculateDistance(lat, lon, endLatLon[0], endLatLon[1])
-      : Infinity;
-    const isNearDestination = distanceToEnd <= 1;
+    intervalRef.current = setInterval(() => {
+      const pos = positionRef.current;
+      if (!pos) return;
 
-    console.log(`[Sender Interval] Đang gửi vị trí cho ride ${rideId}`);
-    sendLocationToServer(rideId, lat, lon, isNearDestination);
+      const { lat, lon } = pos;
+      const distanceToEnd = endLatLon
+        ? calculateDistance(lat, lon, endLatLon[0], endLatLon[1])
+        : Infinity;
+      const isNearDestination = distanceToEnd <= 1;
+      sendLocationToServer(rideId, lat, lon, isNearDestination);
+    }, 20000);
 
-  }, 20000); // Gửi mỗi 20 giây
+    return () => clearInterval(intervalRef.current);
+  }, [driverRides, passengerRides, userId]);
 
-  // Hàm dọn dẹp: Sẽ chạy khi 'currentRide' thay đổi (kết thúc)
-  // hoặc khi component unmount
-  return () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-  };
-
-  // Chỉ chạy lại effect này khi chuyến đi thay đổi (bắt đầu/kết thúc)
-}, [driverRides, passengerRides, userId]);// lastSentPosition có thể bị xóa khỏi dependencies vì nó không còn được sử dụng để bỏ qua các lần gửi
-  // Fetch route from GraphHopper API
+  // Routing
   const fetchRoute = async (rideId, startLatLon, endLatLon) => {
     const apiKey = process.env.REACT_APP_GRAPHHOPPER_API_KEY;
     const url = `https://graphhopper.com/api/1/route?point=${startLatLon.join(
@@ -632,204 +404,119 @@ useEffect(() => {
     )}&point=${endLatLon.join(
       ","
     )}&vehicle=car&locale=vi&key=${apiKey}&points_encoded=false`;
-
     try {
-      const response = await fetch(url);
-      const data = await response.json();
+      const res = await fetch(url);
+      const data = await res.json();
       if (data.paths?.[0]?.points?.coordinates) {
-        const coordinates = data.paths[0].points.coordinates.map(
-          ([lon, lat]) => [lat, lon]
-        );
-        setRoutePaths((prev) => ({ ...prev, [rideId]: coordinates }));
+        const coords = data.paths[0].points.coordinates.map(([lon, lat]) => [
+          lat,
+          lon,
+        ]);
+        setRoutePaths((prev) => ({ ...prev, [rideId]: coords }));
       }
-    } catch (error) {
-      console.error("Error fetching route:", error);
+    } catch (e) {
+      console.error(e);
     }
   };
 
-  // Parse latitude and longitude from string
-  const parseLatLon = (latLonString) => {
-    if (!latLonString || latLonString === "0") return null;
-    return latLonString.split(",").map(Number);
-  };
+  const parseLatLon = (str) =>
+    !str || str === "0" ? null : str.split(",").map(Number);
 
-  // Fetch route for current ride
   useEffect(() => {
     const currentRide = getCurrentRide();
     if (currentRide) {
-      const startLatLon = parseLatLon(currentRide.latLonStart);
-      const endLatLon = parseLatLon(currentRide.latLonEnd);
-      if (startLatLon && endLatLon && !routePaths[currentRide.rideId]) {
-        fetchRoute(currentRide.rideId, startLatLon, endLatLon);
+      const start = parseLatLon(currentRide.latLonStart);
+      const end = parseLatLon(currentRide.latLonEnd);
+      if (start && end && !routePaths[currentRide.rideId]) {
+        fetchRoute(currentRide.rideId, start, end);
       }
     }
   }, [driverRides, passengerRides, routePaths]);
 
-  // Calculate ride progress percentage
-  // Tính toán điểm gần nhất trên polyline (tuyến đường)
-  const findNearestPointOnPolyline = (point, polylineCoords) => {
-    if (!polylineCoords || polylineCoords.length < 2) return null;
+  // Calculations
+  const calculatePolylineLength = (coords) => {
+    let total = 0;
+    for (let i = 0; i < coords.length - 1; i++) {
+      total += calculateDistance(
+        coords[i][0],
+        coords[i][1],
+        coords[i + 1][0],
+        coords[i + 1][1]
+      );
+    }
+    return total;
+  };
 
-    let nearestPoint = null;
-    let minDistance = Infinity;
-    let segmentIndex = -1;
-    let fraction = 0; // Tỷ lệ dọc theo đoạn
-
-    for (let i = 0; i < polylineCoords.length - 1; i++) {
-      const p1 = polylineCoords[i];
-      const p2 = polylineCoords[i + 1];
-
+  const findNearestPoint = (point, coords) => {
+    let nearest = null;
+    let minDst = Infinity;
+    let segIdx = -1;
+    let frac = 0;
+    for (let i = 0; i < coords.length - 1; i++) {
+      const p1 = coords[i];
+      const p2 = coords[i + 1];
       const A = point[0] - p1[0];
       const B = point[1] - p1[1];
       const C = p2[0] - p1[0];
       const D = p2[1] - p1[1];
-
       const dot = A * C + B * D;
       const lenSq = C * C + D * D;
-      let t = -1;
-
-      if (lenSq !== 0) {
-        t = dot / lenSq;
-      }
-
-      let closest;
-      if (t < 0) {
-        closest = p1;
-        t = 0; // Đảm bảo t không âm
-      } else if (t > 1) {
-        closest = p2;
-        t = 1; // Đảm bảo t không quá 1
-      } else {
-        closest = [p1[0] + t * C, p1[1] + t * D];
-      }
-
-      const dist = calculateDistance(
-        point[0],
-        point[1],
-        closest[0],
-        closest[1]
-      );
-
-      if (dist < minDistance) {
-        minDistance = dist;
-        nearestPoint = closest;
-        segmentIndex = i;
-        fraction = t;
+      let t = lenSq !== 0 ? dot / lenSq : -1;
+      let closest =
+        t < 0 ? p1 : t > 1 ? p2 : [p1[0] + t * C, p1[1] + t * D];
+      const dist = calculateDistance(point[0], point[1], closest[0], closest[1]);
+      if (dist < minDst) {
+        minDst = dist;
+        nearest = closest;
+        segIdx = i;
+        frac = t < 0 ? 0 : t > 1 ? 1 : t;
       }
     }
-    return { nearestPoint, segmentIndex, fraction };
+    return { nearest, segIdx, frac };
   };
 
-  // Tính toán độ dài đã đi trên polyline
-  const calculateTraveledDistanceOnPolyline = (
-    currentPosition,
-    routePaths,
-    rideId
-  ) => {
-    if (!routePaths[rideId] || !currentPosition) return 0;
-    const polyline = routePaths[rideId];
-    if (polyline.length < 2) return 0;
-
-    const { nearestPoint, segmentIndex, fraction } = findNearestPointOnPolyline(
-      [currentPosition.lat, currentPosition.lon],
-      polyline
+  const calculateTraveled = (currPos, paths, rideId) => {
+    if (!paths[rideId] || !currPos) return 0;
+    const poly = paths[rideId];
+    if (poly.length < 2) return 0;
+    const { nearest, segIdx, frac } = findNearestPoint(
+      [currPos.lat, currPos.lon],
+      poly
     );
-
-    if (!nearestPoint || segmentIndex === -1) return 0;
-
-    let traveledDistance = 0;
-    for (let i = 0; i < segmentIndex; i++) {
-      traveledDistance += calculateDistance(
-        polyline[i][0],
-        polyline[i][1],
-        polyline[i + 1][0],
-        polyline[i + 1][1]
+    if (!nearest || segIdx === -1) return 0;
+    let traveled = 0;
+    for (let i = 0; i < segIdx; i++) {
+      traveled += calculateDistance(
+        poly[i][0],
+        poly[i][1],
+        poly[i + 1][0],
+        poly[i + 1][1]
       );
     }
-    // Thêm phần khoảng cách trên đoạn hiện tại
-    traveledDistance +=
+    traveled +=
       calculateDistance(
-        polyline[segmentIndex][0],
-        polyline[segmentIndex][1],
-        nearestPoint[0],
-        nearestPoint[1]
-      ) * fraction; // Nhân với fraction để lấy đúng khoảng cách trên đoạn
-
-    return traveledDistance;
+        poly[segIdx][0],
+        poly[segIdx][1],
+        nearest[0],
+        nearest[1]
+      ) * frac;
+    return traveled;
   };
 
-  // Tính toán tổng chiều dài của một tuyến đường (polyline)
-  const calculatePolylineLength = (polylineCoords) => {
-    let totalLength = 0;
-    for (let i = 0; i < polylineCoords.length - 1; i++) {
-      totalLength += calculateDistance(
-        polylineCoords[i][0],
-        polylineCoords[i][1],
-        polylineCoords[i + 1][0],
-        polylineCoords[i + 1][1]
-      );
-    }
-    return totalLength;
+  const calculateProgress = (ride, currPos, paths) => {
+    if (!ride || !currPos || !paths || !paths[ride.rideId]) return 0;
+    const total = calculatePolylineLength(paths[ride.rideId]);
+    const traveled = calculateTraveled(currPos, paths, ride.rideId);
+    return total === 0 ? 0 : Math.min((traveled / total) * 100, 100);
   };
 
-  // Cập nhật hàm calculateProgress
-  const calculateProgress = (ride, currentPosition, routePaths) => {
-    // Kiểm tra đầy đủ: ride, currentPosition, routePaths, và routePaths[ride.rideId]
-    if (!ride || !currentPosition || !routePaths || !routePaths[ride.rideId]) {
-      console.warn(
-        `[calculateProgress] Skipping calculation: Missing data for rideId ${ride?.rideId}`
-      );
-      return 0; // Trả về 0 nếu thiếu bất kỳ dữ liệu nào
-    }
-
-    const polyline = routePaths[ride.rideId];
-    if (polyline.length < 2) {
-      console.warn(
-        `[calculateProgress] Polyline too short for rideId ${ride.rideId}`
-      );
-      return 0;
-    }
-
-    const totalDistance = calculatePolylineLength(polyline);
-    const traveledDistance = calculateTraveledDistanceOnPolyline(
-      currentPosition,
-      routePaths,
-      ride.rideId
-    );
-
-    if (totalDistance === 0) return 0;
-    return Math.min((traveledDistance / totalDistance) * 100, 100);
+  const calculateRemaining = (ride, currPos, paths) => {
+    if (!ride || !currPos || !paths || !paths[ride.rideId]) return 0;
+    const total = calculatePolylineLength(paths[ride.rideId]);
+    const traveled = calculateTraveled(currPos, paths, ride.rideId);
+    return Math.max(total - traveled, 0);
   };
 
-  // Cập nhật hàm calculateRemainingDistance
-  const calculateRemainingDistance = (ride, currentPosition, routePaths) => {
-    // Kiểm tra đầy đủ: ride, currentPosition, routePaths, và routePaths[ride.rideId]
-    if (!ride || !currentPosition || !routePaths || !routePaths[ride.rideId]) {
-      console.warn(
-        `[calculateRemainingDistance] Skipping calculation: Missing data for rideId ${ride?.rideId}`
-      );
-      return 0; // Trả về 0 nếu thiếu bất kỳ dữ liệu nào
-    }
-
-    const polyline = routePaths[ride.rideId];
-    if (polyline.length < 2) {
-      console.warn(
-        `[calculateRemainingDistance] Polyline too short for rideId ${ride.rideId}`
-      );
-      return 0;
-    }
-
-    const totalDistance = calculatePolylineLength(polyline);
-    const traveledDistance = calculateTraveledDistanceOnPolyline(
-      currentPosition,
-      routePaths,
-      ride.rideId
-    );
-
-    return Math.max(totalDistance - traveledDistance, 0);
-  };
-
-  // Helper function to get current ride
   const getCurrentRide = () =>
     (Array.isArray(driverRides)
       ? driverRides.find((ride) => ride.status === "Accepted")
@@ -837,124 +524,63 @@ useEffect(() => {
     (Array.isArray(passengerRides)
       ? passengerRides.find((ride) => ride.status === "Accepted")
       : null);
-  const currentRide = getCurrentRide();
-  console.log("[YourRide] Current ride:", currentRide);
 
-  // Smooth progress animation
-  // const currentRide = getCurrentRide();
+  const currentRide = getCurrentRide();
   const progress =
     currentRide && currentRide.rideId && routePaths[currentRide.rideId]
       ? calculateProgress(currentRide, currentPosition, routePaths)
       : 0;
+
   useEffect(() => {
     const timer = setTimeout(() => setSmoothedProgress(progress), 500);
     return () => clearTimeout(timer);
   }, [progress]);
 
-  // Toggle ride card expansion
-  const toggleRideExpansion = (rideId) => {
-    setExpandedRide(expandedRide === rideId ? null : rideId);
-  };
-
-  // Format timestamp to "time ago" string
-  const formatTimeAgo = (timestamp) => {
-    const now = new Date();
-    const diffInSeconds = Math.floor((now - new Date(timestamp)) / 1000);
-    if (diffInSeconds < 60) return "Just now";
-    if (diffInSeconds < 3600)
-      return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-    if (diffInSeconds < 86400)
-      return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-    return `${Math.floor(diffInSeconds / 86400)} days ago`;
-  };
-
-  // Center map on current location
-  const handleBackToCurrentLocation = () => {
-    checkLocationPermission((hasPermission) => {
-      if (hasPermission && mapRef.current && currentPosition) {
-        const newBounds = L.latLngBounds(
-          [currentPosition.lat, currentPosition.lon],
-          [currentPosition.lat, currentPosition.lon]
-        ).pad(0.5);
-        mapRef.current.flyToBounds(newBounds, { maxZoom: 16, duration: 1 });
-        setIsFollowing(true);
-      }
-    });
-  };
-
+  // Actions
   const handleCancelRide = (rideId) => {
-    toast.info("Đang hủy chuyến đi, vui lòng chờ...", { autoClose: 3000 });
+    toast.info("Đang hủy chuyến đi...");
     setTimeout(() => {
       dispatch(cancelRide(rideId))
         .unwrap()
-        .then(() => {
-          dispatch(fetchRidesByUserId());
-        })
-        .catch((err) => {
-          toast.error(`Lỗi khi hủy chuyến đi: ${err}`);
-        });
+        .then(() => dispatch(fetchRidesByUserId()))
+        .catch((e) => toast.error(`Lỗi: ${e}`));
     }, 3000);
   };
 
   const confirmCancelRide = (rideId) => {
     confirmAlert({
       title: "Xác nhận hủy",
-      message: "Bạn có chắc chắn muốn hủy chuyến đi này không?",
+      message: "Bạn có chắc chắn muốn hủy chuyến đi này?",
       buttons: [
         { label: "Có", onClick: () => handleCancelRide(rideId) },
-        { label: "Không", onClick: () => {} },
+        { label: "Không" },
       ],
     });
   };
 
   const handleRateDriver = (rideId, driverId, rating, comment) => {
-    dispatch(
-      rateDriver({
-        rideId,
-        driverId,
-        rating,
-        comment,
-      })
-    )
+    dispatch(rateDriver({ rideId, driverId, rating, comment }))
       .unwrap()
       .then(() => {
-        dispatch(fetchRidesByUserId()); // Fetch rides again to update IsRating
-        toast.success("Đánh giá đã được gửi!");
+        dispatch(fetchRidesByUserId());
+        toast.success("Đánh giá thành công!");
       })
-      .catch((err) => {
-        console.error("Rating error:", err);
-        toast.error("Lỗi khi gửi đánh giá!");
-      });
-  };
-  const handleSearchRide = () => navigate("/sharing-ride");
-  const isRideRated = (ride) => ride.isRating; // Use isRating directly from the ride object
-
-  const openRatingModal = (ride) => {
-    setSelectedRide(ride);
-    setShowRatingModal(true);
+      .catch(() => toast.error("Lỗi khi gửi đánh giá!"));
   };
 
-  const closeRatingModal = () => {
-    setShowRatingModal(false);
-    setSelectedRide(null);
-  };
-
-  if (loading) return <p className="loading">Loading data...</p>;
-  if (error) return <p className="error">Error: {error.message || error}</p>;
+  // Render Variables
+  if (loading) return <div className="loading">Đang tải dữ liệu...</div>;
+  if (error) return <div className="error">Lỗi: {error.message || error}</div>;
 
   const isDriver = currentRide && currentRide.driverId === userId;
-  const completedRides = [
-    ...(Array.isArray(driverRides)
-      ? driverRides.filter((ride) => ride.status === "Completed")
-      : []),
-    ...(Array.isArray(passengerRides)
-      ? passengerRides.filter((ride) => ride.status === "Completed")
-      : []),
-  ];
   const remainingDistance =
     currentRide && currentRide.rideId && routePaths[currentRide.rideId]
-      ? calculateRemainingDistance(currentRide, currentPosition, routePaths)
+      ? calculateRemaining(currentRide, currentPosition, routePaths)
       : 0;
+  const completedRides = [
+    ...(driverRides || []),
+    ...(passengerRides || []),
+  ].filter((ride) => ride.status === "Completed");
 
   const cityBounds = L.latLngBounds(
     L.latLng(15.9, 107.9),
@@ -963,438 +589,421 @@ useEffect(() => {
 
   return (
     <div className="rides-app">
-      <div className="rides-header">
-        <h2>
-          <FiNavigation className="header-icon" /> Chuyến đi của bạn
-        </h2>
-        <div className="header-gradient"></div>
-      </div>
-
-      {currentRide ? (
-        <motion.div
-          className={`ride-card ${
-            expandedRide === currentRide.rideId ? "expanded" : ""
-          } ${isDriver ? "driver-ride" : "passenger-ride"}`}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div
-            className="ride-summary"
-            onClick={() => toggleRideExpansion(currentRide.rideId)}
-          >
-            <div className="ride-info">
-              <div className="ride-badge">
-                {isDriver ? (
-                  <FaCar className="ride-icon" />
-                ) : (
-                  <FiUser className="ride-icon" />
-                )}
-                <span className="badge-text">
-                  {isDriver ? "Tài xế" : "Hành khách"}
-                </span>
-              </div>
-              <div className="route-info">
-                <h3>
-                  <span className="from-to">Điểm đi: </span>
-                  <span className="location">{currentRide.startLocation}</span>
-                  <FiArrowRight className="route-arrow" />
-                  <span className="from-to">Điểm đến: </span>
-                  <span className="location">{currentRide.endLocation}</span>
-                </h3>
-                <div className="progress-container">
-                  <div className="progress-bar">
-                    <motion.div
-                      className="progress-fill"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${smoothedProgress}%` }}
-                      transition={{ duration: 1, ease: "easeOut" }}
-                    >
-                      <div className="moving-indicator">
-                        <FaCar className="car-icon" />
-                      </div>
-                    </motion.div>
-                  </div>
-                  <span className="progress-text">
-                    Đã đi {Math.round(smoothedProgress)}% ( Còn lại{" "}
-                    {remainingDistance.toFixed(1)} km)
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="ride-meta">
-              <span className="ride-time">
-                <FiClock className="meta-icon" />{" "}
-                {new Date(currentRide.startTime).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </span>
-              <span className="ride-status active">
-                <div className="pulse-dot"></div> Đang di chuyển
-              </span>
-              <button
-                className="btn-cancel-ride"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  confirmCancelRide(currentRide.rideId);
-                }}
-              >
-                Hủy chuyến đi
-              </button>
-            </div>
-            <div className="expand-icon">
-              {expandedRide === currentRide.rideId ? (
-                <FiChevronUp />
-              ) : (
-                <FiChevronDown />
-              )}
-            </div>
+      <div className="container">
+        {/* HEADER */}
+        <header className="rides-header">
+          <h2>
+            <FiNavigation className="header-icon" /> Chuyến đi của bạn
+          </h2>
+          <div className="header-subtitle">
+            Theo dõi hành trình và lịch sử di chuyển
           </div>
+        </header>
 
-          {expandedRide === currentRide.rideId && (
-            <motion.div
-              className="ride-details"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="details-grid">
-                <div className="detail-item">
-                  <label>
-                    <FiCalendar /> Bắt đầu:
-                  </label>
-                  <span>
-                    {/* Chỉ hiển thị thời gian nếu currentRide.startTime tồn tại, ngược lại hiển thị "Đang chờ..." */}
-                    {currentRide.startTime
-                      ? new Date(currentRide.startTime).toLocaleString()
-                      : "Đang chờ..."}
-                  </span>
-                </div>
-                <div className="detail-item">
-                  <label>
-                    <FiCalendar /> Kết thúc:
-                  </label>
-                  <span>
-                    {/* Tương tự cho thời gian kết thúc */}
-                    {currentRide.endTime
-                      ? new Date(currentRide.endTime).toLocaleString()
-                      : "Đang chờ..."}
-                  </span>
-                </div>
-                <div className="detail-item">
-                  <label>
-                    <FiClock /> Thời gian dự kiến:
-                  </label>
-                  <span>{currentRide.estimatedDuration} phút</span>
-                </div>
-                <div className="detail-item">
-                  <label>
-                    <FiShield /> An toàn:
-                  </label>
-                  <span
-                    className={`safety-badge ${
-                      currentRide.isSafetyTrackingEnabled ? "safe" : "unsafe"
-                    }`}
+        {/* ACTIVE RIDE SECTION */}
+        <section className="active-ride-container">
+          <AnimatePresence mode="wait">
+            {currentRide ? (
+              <motion.div
+                key="active-ride"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className={`ride-card ${
+                  isDriver ? "driver-mode" : "passenger-mode"
+                }`}
+              >
+                {/* 1. Summary Header (Click to Toggle) */}
+                <div
+                  className="ride-summary"
+                  onClick={() =>
+                    setExpandedRide(
+                      expandedRide === currentRide.rideId
+                        ? null
+                        : currentRide.rideId
+                    )
+                  }
+                >
+                  {/* Role Icon */}
+                  <div
+                    className={`role-badge ${isDriver ? "driver" : "passenger"}`}
                   >
-                    {currentRide.isSafetyTrackingEnabled ? (
-                      <>
-                        <FiCheckCircle /> An toàn
-                      </>
-                    ) : (
-                      <>
-                        <FiAlertTriangle /> Cảnh báo
-                      </>
-                    )}
-                  </span>
-                </div>
-              </div>
-
-              <div className="interactive-section">
-                <div className="map-container">
-                  <div className="map-controls">
-                    <button
-                      className={`location-button ${
-                        isFollowing ? "active" : ""
-                      }`}
-                      onClick={handleBackToCurrentLocation}
-                      title="Về vị trí hiện tại"
-                    >
-                      <FiNavigation />
-                      {isFollowing && <span className="pulse-dot"></span>}
-                    </button>
+                    {isDriver ? <FaCar /> : <FiUser />}
+                    <span>{isDriver ? "Tài xế" : "Khách"}</span>
                   </div>
-                  <div className="map-header">
-                    <h4>
-                      <FiMap /> Hành trình
-                    </h4>
-                    <div className="distance-display">
-                      <FiNavigation /> Còn {remainingDistance.toFixed(1)} km
+
+                  {/* Route & Progress */}
+                  <div className="route-info">
+                    <div className="locations-flow">
+                      <span className="loc">{currentRide.startLocation}</span>
+                      <FiArrowRight className="arrow" />
+                      <span className="loc">{currentRide.endLocation}</span>
                     </div>
-                  </div>
-                  {parseLatLon(currentRide.latLonStart) &&
-                    parseLatLon(currentRide.latLonEnd) && (
-                      <MapContainer
-                        ref={mapRef}
-                        center={[16.06778, 108.22346]}
-                        zoom={14}
-                        bounds={mapBounds}
-                        style={{ height: "300px", width: "100%", zIndex: 1 }}
-                        minZoom={12}
-                        maxBounds={cityBounds}
-                        whenCreated={(map) => {
-                          mapRef.current = map;
-                          map.on("zoomstart", () => setIsFollowing(false));
-                          map.on("dragstart", () => setIsFollowing(false));
-                          map.on("drag", () => {
-                            if (!map.getBounds().intersects(cityBounds)) {
-                              map.fitBounds(cityBounds);
-                            }
-                          });
-                        }}
-                      >
-                        <TileLayer
-                          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                          attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        />
-                        <Marker
-                          position={parseLatLon(currentRide.latLonStart)}
-                          icon={startIcon}
-                        >
-                          <Popup>Điểm đón</Popup>
-                        </Marker>
-                        <Marker
-                          position={parseLatLon(currentRide.latLonEnd)}
-                          icon={endIcon}
-                        >
-                          <Popup>Điểm đến</Popup>
-                        </Marker>
-                        {currentPosition && (
-                          <Marker
-                            position={[
-                              currentPosition.lat,
-                              currentPosition.lon,
-                            ]}
-                            icon={movingCarIcon}
-                          >
-                            <Popup>Vị trí hiện tại</Popup>
-                          </Marker>
-                        )}
 
-                        {otherUserPosition &&
-                          !isNaN(otherUserPosition.lat) &&
-                          !isNaN(otherUserPosition.lon) && (
-                            <Marker
-                              position={[
-                                otherUserPosition.lat,
-                                otherUserPosition.lon,
-                              ]}
-                              icon={otherUserIcon}
-                            >
-                              <Popup>
-                                Vị trí của{" "}
-                                {otherUserPosition.isDriver
-                                  ? "Tài xế"
-                                  : "Hành khách"}
-                                <br />
-                                Cập nhật:{" "}
-                                {new Date(
-                                  otherUserPosition.timestamp
-                                ).toLocaleTimeString()}
-                              </Popup>
-                            </Marker>
-                          )}
-
-                        {routePaths[currentRide.rideId] && (
-                          <Polyline
-                            positions={routePaths[currentRide.rideId]}
-                            color={isDriver ? "#3a86ff" : "#28a745"}
-                            weight={4}
-                            dashArray="5, 5"
-                          />
-                        )}
-                      </MapContainer>
-                    )}
-                </div>
-
-                <div className="notifications-section">
-                  <div className="notifications-header">
-                    <h4>
-                      <FiBell /> Cập nhật vị trí
-                    </h4>
-                    <button
-                      className="refresh-btn"
-                      onClick={() => {
-                        setNotifications([]);
-                        dispatch(fetchLocation(currentRide.rideId));
-                      }}
-                    >
-                      <FiRefreshCw /> Làm mới
-                    </button>
-                  </div>
-                  {notifications.length > 0 ? (
-                    <div className="notifications-list">
-                      {notifications.slice(0, 5).map((notification, idx) => (
+                    <div className="progress-wrapper">
+                      <div className="progress-track">
                         <motion.div
-                          key={idx}
-                          className="notification-item"
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.3, delay: idx * 0.1 }}
+                          className="progress-bar"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${smoothedProgress}%` }}
+                          transition={{ duration: 1 }}
                         >
-                          <div className="notification-badge">
-                            <FiMapPin />
-                          </div>
-                          <div className="notification-content">
-                            <div className="notification-message">
-                              {notification.message}
-                            </div>
-                            <div className="notification-meta">
-                              <span className="notification-time">
-                                {formatTimeAgo(notification.timestamp)}
-                              </span>
-                            </div>
+                          <div className="car-indicator">
+                            <FaCar />
                           </div>
                         </motion.div>
-                      ))}
+                      </div>
+                      <span className="progress-text">
+                        Đã đi {Math.round(smoothedProgress)}% • Còn{" "}
+                        {remainingDistance.toFixed(1)} km
+                      </span>
                     </div>
-                  ) : (
-                    <div className="no-notifications">
-                      <FiInbox className="empty-icon" />
-                      <p>Chưa có cập nhật</p>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="action-area">
+                    <div className="status-pill">
+                      <div className="dot"></div> Đang di chuyển
                     </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </motion.div>
-      ) : (
-        <motion.div
-          className="empty-state"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="empty-animation">
-            <TbMoodEmptyFilled style={{ fontSize: 100, color: "#aaa" }} />
-          </div>
-          <h3>Không có chuyến đi hiện tại</h3>
-          <p>Bắt đầu chuyến đi mới để bắt đầu!</p>
-          <button className="find-ride-btn" onClick={handleSearchRide}>
-            <FiSearch /> Tìm chuyến đi
-          </button>
-        </motion.div>
-      )}
-
-      <div className="history-section">
-        <motion.button
-          className="history-toggle"
-          onClick={() => setShowHistory(!showHistory)}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          {showHistory ? (
-            <>
-              <FiChevronUp /> Ẩn lịch sử
-            </>
-          ) : (
-            <>
-              <FiChevronDown /> Xem lịch sử chuyến đi
-            </>
-          )}
-        </motion.button>
-
-        {showHistory && (
-          <motion.div
-            className="history-content"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            transition={{ duration: 0.3 }}
-          >
-            <h3 className="history-title">
-              <FiClock /> Lịch sử chuyến đi
-            </h3>
-            {completedRides.length > 0 ? (
-              <div className="history-list">
-                {completedRides.map((ride) => {
-                  const isDriverHistory = ride.driverId === userId;
-                  const isRated = isRideRated(ride);
-                  return (
-                    <motion.div
-                      className={`history-item ${
-                        isDriverHistory ? "driver-history" : "passenger-history"
-                      }`}
-                      key={ride.rideId}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
+                    <button
+                      className="btn-cancel"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        confirmCancelRide(currentRide.rideId);
+                      }}
                     >
-                      <div className="history-icon">
-                        {isDriverHistory ? <FaCar /> : <FiUser />}
-                      </div>
-                      <div className="history-details">
-                        <div className="history-route">
-                          <span className="location">{ride.startLocation}</span>
-                          <FiArrowRight className="route-arrow" />
-                          <span className="location">{ride.endLocation}</span>
+                      Hủy chuyến
+                    </button>
+                    {expandedRide === currentRide.rideId ? (
+                      <FiChevronUp size={20} color="#94a3b8" />
+                    ) : (
+                      <FiChevronDown size={20} color="#94a3b8" />
+                    )}
+                  </div>
+                </div>
+
+                {/* 2. Expanded Details & Map */}
+                <AnimatePresence>
+                  {expandedRide === currentRide.rideId && (
+                    <motion.div
+                      className="ride-details-panel"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                    >
+                      <div className="panel-content">
+                        {/* Info Stats */}
+                        <div className="info-grid">
+                          <div className="info-card">
+                            <label>
+                              <FiClock /> Thời gian bắt đầu
+                            </label>
+                            <span>
+                              {currentRide.startTime
+                                ? new Date(
+                                    currentRide.startTime
+                                  ).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })
+                                : "--:--"}
+                            </span>
+                          </div>
+                          <div className="info-card">
+                            <label>
+                              <FiCalendar /> Dự kiến đến
+                            </label>
+                            <span>
+                              {currentRide.estimatedDuration} phút nữa
+                            </span>
+                          </div>
+                          <div className="info-card">
+                            <label>
+                              <FiShield /> Trạng thái an toàn
+                            </label>
+                            <span
+                              className={
+                                currentRide.isSafetyTrackingEnabled
+                                  ? "badge-safe"
+                                  : "badge-warn"
+                              }
+                            >
+                              {currentRide.isSafetyTrackingEnabled ? (
+                                <>
+                                  <FiCheckCircle /> Được bảo vệ
+                                </>
+                              ) : (
+                                <>
+                                  <FiAlertTriangle /> Cảnh báo
+                                </>
+                              )}
+                            </span>
+                          </div>
                         </div>
-                        <div className="history-meta">
-                          <span className="date">
-                            {new Date(ride.startTime).toLocaleDateString()}
-                          </span>
-                          <span className="duration">
-                            {ride.estimatedDuration} phút
-                          </span>
-                          <span
-                            className={`safety ${
-                              ride.isSafetyTrackingEnabled ? "safe" : "unsafe"
-                            }`}
-                          >
-                            {ride.isSafetyTrackingEnabled
-                              ? "An toàn"
-                              : "Cảnh báo"}
-                          </span>
+
+                        {/* Map & Notifications Layout */}
+                        <div className="map-notify-split">
+                          {/* Left: Map */}
+                          <div className="map-box">
+                            {parseLatLon(currentRide.latLonStart) && (
+                              <MapContainer
+                                ref={mapRef}
+                                center={[16.06778, 108.22346]}
+                                zoom={14}
+                                bounds={mapBounds}
+                                minZoom={12}
+                                maxBounds={cityBounds}
+                                whenCreated={(map) => {
+                                  mapRef.current = map;
+                                  map.on("zoomstart", () =>
+                                    setIsFollowing(false)
+                                  );
+                                  map.on("dragstart", () =>
+                                    setIsFollowing(false)
+                                  );
+                                }}
+                              >
+                                <TileLayer
+                                  url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                                />
+                                <Marker
+                                  position={parseLatLon(
+                                    currentRide.latLonStart
+                                  )}
+                                  icon={startIcon}
+                                >
+                                  <Popup>Điểm đón</Popup>
+                                </Marker>
+                                <Marker
+                                  position={parseLatLon(currentRide.latLonEnd)}
+                                  icon={endIcon}
+                                >
+                                  <Popup>Điểm đến</Popup>
+                                </Marker>
+                                {currentPosition && (
+                                  <Marker
+                                    position={[
+                                      currentPosition.lat,
+                                      currentPosition.lon,
+                                    ]}
+                                    icon={movingCarIcon}
+                                  >
+                                    <Popup>Vị trí của bạn</Popup>
+                                  </Marker>
+                                )}
+                                {otherUserPosition &&
+                                  !isNaN(otherUserPosition.lat) && (
+                                    <Marker
+                                      position={[
+                                        otherUserPosition.lat,
+                                        otherUserPosition.lon,
+                                      ]}
+                                      icon={otherUserIcon}
+                                    >
+                                      <Popup>
+                                        {otherUserPosition.isDriver
+                                          ? "Tài xế"
+                                          : "Khách"}
+                                      </Popup>
+                                    </Marker>
+                                  )}
+                                {routePaths[currentRide.rideId] && (
+                                  <Polyline
+                                    positions={routePaths[currentRide.rideId]}
+                                    color={isDriver ? "#3b82f6" : "#10b981"}
+                                    weight={5}
+                                  />
+                                )}
+                              </MapContainer>
+                            )}
+                            <div className="map-overlay-ctrl">
+                              <button
+                                onClick={() => {
+                                  checkLocationPermission((has) => {
+                                    if (has && currentPosition) {
+                                      setIsFollowing(true);
+                                      mapRef.current.flyTo(
+                                        [currentPosition.lat, currentPosition.lon],
+                                        15
+                                      );
+                                    }
+                                  });
+                                }}
+                                className={isFollowing ? "active" : ""}
+                                title="Theo dõi tôi"
+                              >
+                                <FaLocationArrow />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Right: Notifications */}
+                          <div className="notify-box">
+                            <div className="notify-header">
+                              <h4>
+                                <FiBell /> Thông báo
+                              </h4>
+                              <button
+                                className="btn-refresh"
+                                onClick={() => {
+                                  setNotifications([]);
+                                  dispatch(fetchLocation(currentRide.rideId));
+                                }}
+                                title="Làm mới"
+                              >
+                                <FiRefreshCw />
+                              </button>
+                            </div>
+                            <div className="notify-list">
+                              {notifications.length > 0 ? (
+                                notifications.map((notif, idx) => (
+                                  <motion.div
+                                    key={idx}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="notify-item"
+                                  >
+                                    <FiMapPin className="icon" />
+                                    <div className="content">
+                                      <p>{notif.message}</p>
+                                      <span className="time">
+                                        {new Date(
+                                          notif.timestamp
+                                        ).toLocaleTimeString()}
+                                      </span>
+                                    </div>
+                                  </motion.div>
+                                ))
+                              ) : (
+                                <div className="empty-state">
+                                  Chưa có cập nhật mới
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                      <div className="history-status completed">
-                        <div className="status-text">
-                          <FiCheckCircle /> Hoàn thành
-                        </div>
-                        {!isDriverHistory && !isRated && (
-                          <button
-                            className="rate-button"
-                            onClick={() => openRatingModal(ride)}
-                          >
-                            Đánh giá
-                          </button>
-                        )}
-                        {isRated && (
-                          <span className="rated-badge">
-                            <FiCheckCircle /> Đã đánh giá
-                          </span>
-                        )}
                       </div>
                     </motion.div>
-                  );
-                })}
-              </div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
             ) : (
-              <div className="empty-history">
-                <FiArchive className="empty-icon" />
-                <p>Chưa có lịch sử chuyến đi</p>
-              </div>
+              // EMPTY STATE
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="empty-ride-placeholder"
+              >
+                <TbMoodEmptyFilled className="icon-placeholder" />
+                <h3>Chưa có chuyến đi nào</h3>
+                <p>Hãy bắt đầu hành trình mới của bạn ngay bây giờ!</p>
+                <button
+                  className="btn-find"
+                  onClick={() => navigate("/sharing-ride")}
+                >
+                  <FiSearch /> Tìm chuyến đi
+                </button>
+              </motion.div>
             )}
-          </motion.div>
-        )}
-      </div>
+          </AnimatePresence>
+        </section>
 
-      <RatingModal
-        isOpen={showRatingModal}
-        onClose={closeRatingModal}
-        ride={selectedRide}
-        onSubmit={handleRateDriver}
-      />
+        {/* HISTORY SECTION */}
+        <section className="history-section">
+          <div className="history-header">
+            <h3>
+              <FiArchive /> Lịch sử chuyến đi
+            </h3>
+            <button
+              className="btn-toggle"
+              onClick={() => setShowHistory(!showHistory)}
+            >
+              {showHistory ? "Ẩn danh sách" : "Xem tất cả"}
+              {showHistory ? <FiChevronUp /> : <FiChevronDown />}
+            </button>
+          </div>
+
+          <AnimatePresence>
+            {showHistory && (
+              <motion.div
+                className="history-list"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+              >
+                {completedRides.length > 0 ? (
+                  completedRides.map((ride) => {
+                    const isMyDriverRide = ride.driverId === userId;
+                    const isRated = ride.isRating;
+                    return (
+                      <div key={ride.rideId} className="history-item">
+                        <div
+                          className={`icon-box ${
+                            isMyDriverRide ? "driver" : "passenger"
+                          }`}
+                        >
+                          {isMyDriverRide ? <FaCar /> : <FiUser />}
+                        </div>
+                        <div className="info">
+                          <div className="route">
+                            {ride.startLocation}{" "}
+                            <FiArrowRight className="arr" /> {ride.endLocation}
+                          </div>
+                          <div className="meta">
+                            <span>
+                              {new Date(ride.startTime).toLocaleDateString()}
+                            </span>
+                            <span>• {ride.estimatedDuration} phút</span>
+                            {ride.isSafetyTrackingEnabled && (
+                              <span style={{ color: "#10b981" }}>
+                                • An toàn
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="actions">
+                          <span className="status-badge">Hoàn thành</span>
+                          {!isMyDriverRide && !isRated ? (
+                            <button
+                              className="btn-rate"
+                              onClick={() => {
+                                setSelectedRide(ride);
+                                setShowRatingModal(true);
+                              }}
+                            >
+                              Đánh giá
+                            </button>
+                          ) : (
+                            isRated && (
+                              <span style={{ fontSize: "0.8rem", color: "#64748b" }}>
+                                <FiCheckCircle /> Đã đánh giá
+                              </span>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div style={{ textAlign: "center", color: "#94a3b8" }}>
+                    Chưa có lịch sử chuyến đi.
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </section>
+
+        {/* MODAL */}
+        <RatingModal
+          isOpen={showRatingModal}
+          onClose={() => setShowRatingModal(false)}
+          ride={selectedRide}
+          onSubmit={handleRateDriver}
+        />
+      </div>
     </div>
   );
 };
