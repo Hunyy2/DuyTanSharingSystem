@@ -324,21 +324,6 @@
   }
 }
 
-// Custom marker styles (fallback)
-.custom-marker {
-  background: #1976d2;
-  border: 3px solid white;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  
-  &.highlighted {
-    background: #e53935;
-    transform: scale(1.2);
-  }
-}
-
 // Loading state
 .loading-posts {
   position: absolute;
@@ -393,81 +378,6 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   min-width: fit-content;
 }
-
-// Custom marker hoàn chỉnh (global cho TomTom)
-.custom-marker {
-  cursor: pointer;
-  position: relative;
-  z-index: 10;
-
-  .marker-content {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition: all 0.2s ease;
-
-    .marker-emoji {
-      font-size: 18px;
-      line-height: 1;
-      margin-bottom: 2px;
-    }
-
-    .marker-price {
-      font-size: 11px;
-      font-weight: 700;
-      line-height: 1;
-    }
-  }
-
-  .marker-pulse {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 56px;
-    height: 56px;
-    border: 2px solid;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    animation: pulse 2s infinite ease-out;
-    z-index: -1;
-  }
-
-  &:hover .marker-content {
-    transform: scale(1.1);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-  }
-
-  &.selected .marker-content {
-    transform: scale(1.3) !important;
-    box-shadow: 0 8px 20px rgba(25, 118, 210, 0.4) !important;
-    background-color: #e53935 !important; // Red for selected
-  }
-}
-
-@keyframes pulse {
-  0% {
-    transform: translate(-50%, -50%) scale(0.8);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1.4);
-    opacity: 0;
-  }
-}
-
-// Highlight selected marker (JS sẽ add class 'selected')
-.leaflet-marker-icon.selected,
-.tt-marker-element.selected {
-  .marker-content {
-    background-color: #e53935 !important;  // Đỏ cho selected
-  }
-}
-// Thêm vào cuối file AllAccommodationPosts.scss
 
 // Edit mode styles
 .form-group {
@@ -607,7 +517,6 @@
     }
   }
 }
-// Thêm vào cuối file AllAccommodationPosts.scss
 
 // Create mode styles
 .create-instruction {
@@ -657,7 +566,6 @@
     }
   }
 }
-// Thêm vào cuối file AllAccommodationPosts.scss
 
 // Radius Legend Styles
 .radius-legend {
@@ -721,95 +629,6 @@
     }
   }
 }
-.school-marker {
-  .marker-content {
-    background: #FFD700 !important;  // Vàng nổi bật
-    border: 2px solid #FFA500;  // Viền cam
-    width: 50px;
-    height: 50px;
-  }
-
-  .marker-emoji {
-    font-size: 24px;  // To hơn
-  }
-
-  .marker-label {
-    font-size: 10px;
-    font-weight: bold;
-    color: #333;
-  }
-}
-// Thêm vào cuối file AllAccommodationPosts.scss
-
-// Marker styles for creation mode
-.creation-marker {
-  cursor: pointer;
-  position: relative;
-  z-index: 1000;
-  width: 44px;
-  height: 44px;
-  
-  // KHÔNG CÒN transform: translate(-50%, -50%) ở đây
-  
-  .marker-content {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition: all 0.2s ease;
-    background: #4caf50 !important; // Green color for creation mode
-    border: 3px solid white;
-
-    .marker-emoji {
-      font-size: 18px;
-      line-height: 1;
-      margin-bottom: 2px;
-    }
-
-    .marker-label {
-      font-size: 11px;
-      font-weight: 700;
-      line-height: 1;
-      color: white;
-    }
-  }
-
-  .marker-pulse {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 56px;
-    height: 56px;
-    border: 2px solid #4caf50;
-    border-radius: 50%;
-    transform: translate(-50%, -50%); // <--- transform này là ĐÚNG, vì nó căn giữa .marker-pulse so với .creation-marker
-    animation: pulse 2s infinite ease-out;
-    z-index: -1;
-  }
-}
-
-// (Các khối CSS bị xóa đã được gỡ bỏ)
-
-
-
-
-
-
-// Selected creation marker
-.creation-marker.selected {
-  z-index: 1001;
-  
-  .marker-content {
-    transform: scale(1.2);
-    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-    background: #388e3c !important; // Darker green when selected
-  }
-}
-// Thêm vào file AllAccommodationPosts.scss
 
 // Improved loading states
 .loading-posts {

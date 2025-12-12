@@ -1,72 +1,75 @@
 import { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
+import { FiArrowLeft, FiBell, FiMessageSquare, FiSearch } from "react-icons/fi";
 import avatarweb from "../../assets/AvatarDefault.png";
 import logoweb from "../../assets/Logo.png";
 import { useSignalR } from "../../Service/SignalRProvider";
-import "../../styles/headerHome.scss";
-import "../../styles/MoblieReponsive/HomeViewMobile/HeaderHomeReponsive.scss";
-
-import { FiArrowLeft, FiBell, FiMessageSquare, FiSearch } from "react-icons/fi";
 
 import MessengerModal from "../MessengerModal";
 import NotifyModal from "../NotifyModal";
 import SettingModal from "../SettingModal";
 
-import "animate.css";
-import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import { fetchUnreadNotificationCount } from "../../stores/action/notificationAction";
 import { searchPost } from "../../stores/action/searchAction";
 
+import "animate.css";
+import "../../styles/headerHome.scss";
+import "../../styles/MoblieReponsive/HomeViewMobile/HeaderHomeReponsive.scss";
+
 const Header = ({ usersProfile }) => {
-  const [unreadCount, setUnreadCount] = useState(0);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { signalRService } = useSignalR();
+
+  // Redux & State
+  const unreadNotificationCount = useSelector((state) => state.notifications.unreadCount);
+  const messengerState = useSelector((state) => state.messenges || {});
+  const isRejectChatbox = messengerState?.isMessengerView;
+
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [modalPosition, setModalPosition] = useState({});
+  const [modalState, setModalState] = useState({
+    notify: false,
+    messenger: false,
+    setting: false,
+  });
+
+  // Refs for Mobile Animation
   const searchRef = useRef(null);
   const logoRef = useRef(null);
   const rightRef = useRef(null);
-  const [searchKeyword, setSearchKeyword] = useState("");
-  const navigate = useNavigate();
-  const [modalPosition, setModalPosition] = useState({});
-  const unreadNotificationCount = useSelector(
-    (state) => state.notifications.unreadCount
-  );
-  const { signalRService } = useSignalR();
-  //hiện nút chat
-  const messengerState = useSelector((state) => state.messenges || {});
-  const isRejectChatbox = messengerState?.isMessengerView;
-  // Fetch unread notification count on component mount
+
+  // --- EFFECTS ---
   useEffect(() => {
     dispatch(fetchUnreadNotificationCount());
   }, [dispatch]);
 
   useEffect(() => {
-    const handleUnreadCount = (count) => {
-      setUnreadCount(count);
-    };
-
+    const handleUnreadCount = (count) => setUnreadCount(count);
     signalRService.onReceiveUnreadCount(handleUnreadCount);
-
-    return () => {
-      // Nếu bạn có hỗ trợ unsubscribe thì thực hiện ở đây
-    };
+    return () => {}; // Cleanup if needed
   }, [signalRService]);
 
-  const UserProfile = () => {
-    navigate("/ProfileUserView");
-    // window.location.href = "/ProfileUserView";
-  };
+  useEffect(() => {
+    if (modalState.messenger) {
+      setUnreadCount(0);
+    }
+  }, [modalState.messenger]);
 
-  const handleHomeView = () => {
-    navigate("/home");
-  };
-
+  // --- HANDLERS ---
+  const handleHomeView = () => navigate("/home");
+  const UserProfile = () => navigate("/ProfileUserView");
+  
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchKeyword.trim()) {
       dispatch(searchPost(searchKeyword));
       navigate(`/ResultSearchView?q=${encodeURIComponent(searchKeyword)}`);
       setSearchKeyword("");
+      hideSearchBox(); // Ẩn search box sau khi search trên mobile
     }
   };
 
@@ -75,18 +78,7 @@ const Header = ({ usersProfile }) => {
     window.location.href = "/";
   };
 
-  const [modalState, setModalState] = useState({
-    notify: false,
-    messenger: false,
-    setting: false,
-  });
-  useEffect(() => {
-    if (modalState.messenger) {
-      setUnreadCount(0);
-      // TODO: Gọi API đánh dấu tin nhắn là đã đọc
-    }
-  }, [modalState.messenger]);
-  // Add this function to calculate button position
+  // Tính toán vị trí modal
   const getButtonPosition = (buttonId) => {
     const button = document.getElementById(buttonId);
     if (button) {
@@ -98,7 +90,7 @@ const Header = ({ usersProfile }) => {
     }
     return {};
   };
-  // Sửa hàm toggle để không đóng các modal khác
+
   const toggleModal = (modalName) => {
     if (!modalState[modalName]) {
       setModalPosition(getButtonPosition(`${modalName}-button`));
@@ -109,85 +101,86 @@ const Header = ({ usersProfile }) => {
     }));
   };
 
-  //Mở đóng left menu
+  // --- MOBILE SEARCH LOGIC ---
   const showSearchBox = () => {
     if (window.innerWidth <= 768) {
       searchRef.current?.classList.remove("hide-mobile");
-      logoRef.current?.classList.add("hide-mobile");
-      rightRef.current?.classList.add("hide-mobile");
+      searchRef.current?.classList.add("active-mobile");
+      logoRef.current?.classList.add("hide-content");
+      rightRef.current?.classList.add("hide-content");
     }
   };
 
   const hideSearchBox = () => {
     if (window.innerWidth <= 768) {
       searchRef.current?.classList.add("hide-mobile");
-      logoRef.current?.classList.remove("hide-mobile");
-      rightRef.current?.classList.remove("hide-mobile");
+      searchRef.current?.classList.remove("active-mobile");
+      logoRef.current?.classList.remove("hide-content");
+      rightRef.current?.classList.remove("hide-content");
     }
   };
+
+  // Click outside to close search on mobile
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
-        searchRef.current &&
+        window.innerWidth <= 768 &&
+        searchRef.current?.classList.contains("active-mobile") &&
         !searchRef.current.contains(event.target) &&
-        window.innerWidth <= 768
+        !logoRef.current.contains(event.target) // Tránh conflict khi bấm nút search
       ) {
         hideSearchBox();
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  //Mở đóng left menu
+
   return (
     <>
       <div className="header">
+        {/* LOGO AREA */}
         <div className="logoWeb" ref={logoRef}>
           <div className="logo-container" onClick={handleHomeView}>
-            <img
-              className="logowebsite"
-              src={logoweb}
-              alt="University Sharing"
-            />
+            <img className="logowebsite" src={logoweb} alt="University Sharing" />
             <div className="app-name">
               <span className="university-text">UNIVERSITY</span>
               <span className="sharing-text">SHARING</span>
             </div>
           </div>
-          <div className="btn-search" onClick={showSearchBox}>
-            <FiSearch className="search-icon-btn"></FiSearch>
+          {/* Nút kính lúp chỉ hiện trên mobile */}
+          <div className="btn-search-mobile" onClick={showSearchBox}>
+            <FiSearch className="search-icon-btn" />
           </div>
         </div>
 
+        {/* SEARCH BOX AREA */}
         <div className="search hide-mobile" ref={searchRef}>
-          <div className="close-search-btn ">
-            <FiArrowLeft className="close-btn-search" onClick={hideSearchBox} />
+          <div className="close-search-btn" onClick={hideSearchBox}>
+            <FiArrowLeft className="close-btn-search" />
           </div>
-          <form onSubmit={handleSearch} className="search-form ">
+          <form onSubmit={handleSearch} className="search-form">
             <div className="search-container">
               <FiSearch className="search-icon" />
               <input
                 type="text"
-                placeholder="Tìm kiếm"
+                placeholder="Tìm kiếm..."
                 value={searchKeyword}
                 onChange={(e) => setSearchKeyword(e.target.value)}
                 className="search-input"
+                autoFocus={window.innerWidth <= 768} // Tự động focus trên mobile
               />
             </div>
           </form>
         </div>
 
+        {/* RIGHT ACTION ICONS */}
         <div className="rightHeader" ref={rightRef}>
           {!isRejectChatbox && (
             <button
               id="messenger-button"
               className={`icon-button ${modalState.messenger ? "active" : ""}`}
               onClick={() => toggleModal("messenger")}
-              aria-label="Messenger"
             >
               <FiMessageSquare className="icon" />
               {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
@@ -195,35 +188,31 @@ const Header = ({ usersProfile }) => {
           )}
 
           <button
+            id="notify-button"
             className={`icon-button ${modalState.notify ? "active" : ""}`}
             onClick={() => toggleModal("notify")}
-            aria-label="Notifications"
           >
             <FiBell className="icon" />
-            <span className="badge">{unreadNotificationCount}</span>
+            {unreadNotificationCount > 0 && <span className="badge">{unreadNotificationCount}</span>}
           </button>
 
           <button
+            id="setting-button"
             className="avatar-button"
             onClick={() => toggleModal("setting")}
-            aria-label="User settings"
           >
             <img
               className="avatarweb"
               src={usersProfile?.profilePicture || avatarweb}
               alt="Avatar"
             />
-            {/* {modalState.setting && <div className="indicator"></div>} */}
-            <div className="indicator"></div>
           </button>
         </div>
       </div>
 
+      {/* MODALS */}
       {modalState.notify && (
-        <NotifyModal
-          isOpen={modalState.notify}
-          onClose={() => toggleModal("notify")}
-        />
+        <NotifyModal isOpen={modalState.notify} onClose={() => toggleModal("notify")} />
       )}
       {modalState.messenger && (
         <MessengerModal

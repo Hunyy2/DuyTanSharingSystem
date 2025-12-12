@@ -47,7 +47,29 @@ const ROOM_TYPES = [
   'Homestay',
   'Ký túc xá'
 ];
+// Thêm ngay sau các import
+const SCHOOL_ICON = `
+<svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#1565C0"/>
+  <g fill="white" transform="translate(0, -1)">
+    <path d="M11.7 2.805a.75.75 0 0 1 .6 0A60.65 60.65 0 0 1 22.83 8.72a.75.75 0 0 1-.231 1.337 49.948 49.948 0 0 0-9.902 3.912l-.003.002c-.114.06-.227.119-.34.18a.75.75 0 0 1-.707 0A50.88 50.88 0 0 0 7.5 12.173v-.224c0-.131.067-.248.172-.311a54.615 54.615 0 0 1 4.653-2.52.75.75 0 0 0-.65-1.352 56.123 56.123 0 0 0-4.78 2.589 1.858 1.858 0 0 0-.859 1.228 49.803 49.803 0 0 0-4.634-1.527.75.75 0 0 1-.231-1.337A60.653 60.653 0 0 1 11.7 2.805Z" />
+    <path d="M13.06 15.473a48.45 48.45 0 0 1 7.666-3.282c.134 1.414.22 2.843.255 4.284a.75.75 0 0 1-.46.711 47.87 47.87 0 0 0-8.105 4.342.75.75 0 0 1-.832 0 47.87 47.87 0 0 0-8.104-4.342.75.75 0 0 1-.461-.71c.035-1.442.121-2.87.255-4.286.921.304 1.83.634 2.726.99v1.27a1.5 1.5 0 0 0-.14 2.508c-.09.38-.222.753-.397 1.11.452.213.901.434 1.346.66a6.727 6.727 0 0 0 .551-1.607 1.5 1.5 0 0 0 .14-2.67v-.645a48.549 48.549 0 0 1 3.44 1.667 2.25 2.25 0 0 0 2.12 0Z" />
+    <path d="M4.462 19.462c.42-.419.753-.89 1-1.395.453.214.902.435 1.347.662a6.742 6.742 0 0 1-1.286 1.794.75.75 0 0 1-1.06-1.06Z" />
+  </g>
+</svg>`;
+const OWNER_ICON = `
+<svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#FBC02D"/>
+  <g fill="#0D47A1" transform="translate(0, -1)">
+    <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clip-rule="evenodd" />
+  </g>
+</svg>`;
 
+const NORMAL_ICON = `
+<svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#388E3C"/>
+  <path d="M10 17V12H14V17H17V10L12 6L7 10V17H10Z" fill="white"/>
+</svg>`;
 const AllAccommodationPosts = () => {
   const dispatch = useDispatch();
   const { posts, loading, error, postDetail,detailLoading } = useSelector(
@@ -97,6 +119,17 @@ const AllAccommodationPosts = () => {
     maxPeople:'',
     currentPeople:''
   });
+  const createSVGMarker = (svgString, isOwner = false) => {
+  const el = document.createElement('div');
+  el.innerHTML = svgString;
+  el.style.width = isOwner ? '48px' : '40px';
+  el.style.height = isOwner ? '48px' : '40px';
+  el.style.transform = 'translate(-50%, -100%)';
+  el.style.cursor = 'pointer';
+  el.style.zIndex = isOwner ? '1000' : 'auto';
+
+  return new tt.Marker({ element: el });
+};
 // Thêm useEffect này để xử lý click event khi tạo bài đăng
 useEffect(() => {
   if (!mapInstanceRef.current) return;
@@ -116,22 +149,7 @@ useEffect(() => {
       if (createMarkerRef.current) {
         createMarkerRef.current.setLngLat([lng, lat]);
       } else {
-        const markerElement = document.createElement('div');
-        markerElement.className = 'creation-marker'; 
-        
-        markerElement.innerHTML = `
-          <div class="marker-content">
-            <div class="marker-emoji">📍</div>
-            <div class="marker-label">MỚI</div>
-          </div>
-          <div class="marker-pulse"></div>
-        `;
-        
-        createMarkerRef.current = new tt.Marker({ 
-            element: markerElement,
-            anchor: 'bottom',
-            offset: { x: 0, y: -220 }
-        })
+        createMarkerRef.current = new tt.Marker()
           .setLngLat([lng, lat])
           .addTo(mapInstanceRef.current);
       }
@@ -152,6 +170,11 @@ useEffect(() => {
   };
 }, [isCreating]); // Chỉ phụ thuộc vào isCreating
 // Nếu bạn có button "Hủy" trong sidebar (khi isCreating), thêm onClick={handleCancel}
+// useEffect(() => {
+//   if (mapInstanceRef.current) {
+//     setTimeout(() => mapInstanceRef.current.resize(), 350);
+//   }
+// }, [showDetail, isCreating]);
 const handleCancel = () => {
   setIsCreating(false);  // Trigger useEffect ở trên
 };
@@ -222,24 +245,23 @@ const initializeMap = useCallback(() => {
 
     mapInstanceRef.current = map;
 
-    // Sửa: Thêm school markers nhưng KHÔNG thêm click event ở đây
+    // Sửa: Thêm school markers với marker tiêu chuẩn
     UNIVERSITY_LOCATIONS.forEach(school => {
-      const schoolMarkerElement = document.createElement('div');
-      schoolMarkerElement.className = 'custom-marker school-marker';
-      schoolMarkerElement.innerHTML = `
-        <div class="marker-emoji">🏫</div>
-      `;
+  const el = document.createElement('div');
+  el.innerHTML = SCHOOL_ICON;
+  el.style.width = '40px';
+  el.style.height = '40px';
+  el.style.transform = 'translate(-50%, -100%)';
 
-      const schoolMarker = new tt.Marker({ 
-        element: schoolMarkerElement,
-        anchor: 'bottom',
-        offset: { x: 0, y: -25 }
-      })
-        .setLngLat([school.lng, school.lat])
-        .addTo(map);
+  const marker = new tt.Marker({ element: el })
+    .setLngLat([school.lng, school.lat])
+    .addTo(map);
 
-      schoolMarker.setPopup(new tt.Popup().setHTML(`<b>${school.name}</b><br>${school.address}`));
-    });
+  const popup = new tt.Popup({ offset: 20 }).setHTML(
+    `<div style="font-weight:bold;color:#1976d2;">${school.name}</div><small>${school.address}</small>`
+  );
+  marker.setPopup(popup);
+});
 
     map.on('load', () => {
       console.log('✅ Map loaded successfully');
@@ -337,61 +359,46 @@ const filteredPosts = useMemo(() => {
 
 
   // Add/update markers based on filtered posts
-  const addMarkers = useCallback(() => {
-    if (!mapInstanceRef.current) return;
+const addMarkers = useCallback(() => {
+  if (!mapInstanceRef.current) return;
 
-    // Remove old markers (except create marker)
-    Object.values(markersRef.current).forEach(marker => marker.remove());
-    markersRef.current = {};
+  // Xóa marker cũ
+  Object.values(markersRef.current).forEach(m => m.remove());
+  markersRef.current = {};
 
-    filteredPosts.forEach(post => {
-      if (!post.latitude || !post.longitude) return;
+  filteredPosts.forEach(post => {
+    if (!post.latitude || !post.longitude) return;
 
-      const markerElement = document.createElement('div');
-      markerElement.className = 'custom-marker';
+    let marker;
+    if (post.userId === currentUserId) {
+      // Bài đăng của chính mình → icon OWNER đặc biệt
+      marker = createSVGMarker(OWNER_ICON, true);
+    } else {
+      // Bài đăng bình thường
+      marker = createSVGMarker(NORMAL_ICON);
+    }
 
-      // Get status config (handle string or number)
-      let statusKey = post.status;
-      if (typeof post.status === 'number') {
-        statusKey = post.status.toString();
-      }
-      const config = STATUS_CONFIG[statusKey] || STATUS_CONFIG.Available;
+    marker
+      .setLngLat([post.longitude, post.latitude])
+      .addTo(mapInstanceRef.current);
 
-      // Thêm nội dung cho marker
-  markerElement.innerHTML = `
-    
-      <div class="marker-emoji">${config.emoji}</div>
-    
-    <div class="marker-pulse" style="border-color: ${config.color}"></div>
-  `;
+    marker.getElement().addEventListener('click', () => handleMarkerClick(post.id));
+    markersRef.current[post.id] = marker;
+  });
+}, [filteredPosts, currentUserId]);
 
-  // Sử dụng anchor 'bottom' và offset
-  const marker = new tt.Marker({ 
-    element: markerElement,
-    anchor: 'bottom',
-    offset: { x: 0, y: -22 }
-  })
-    .setLngLat([post.longitude, post.latitude])
-    .addTo(mapInstanceRef.current);
 
-      marker.getElement().addEventListener('click', () => handleMarkerClick(post.id));
-
-      markersRef.current[post.id] = marker;
-    });
-  }, [filteredPosts]);
 
   // Highlight selected marker
   const highlightMarker = useCallback((postId) => {
     if (!mapInstanceRef.current) return;
 
-    Object.values(markersRef.current).forEach(marker => {
-      marker.getElement().classList.remove('selected');
-    });
-
+    // Vì không custom class nữa, bỏ highlight CSS, thay bằng mở popup nếu cần
     if (postId && markersRef.current[postId]) {
-      markersRef.current[postId].getElement().classList.add('selected');
+      const marker = markersRef.current[postId];
+      //marker.setPopup(new tt.Popup().setHTML(`<b>${postDetail.title}</b><br>Status: ${postDetail.status}`)).togglePopup();
     }
-  }, []);
+  }, [postDetail]);
 
   const handleMarkerClick = async (postId) => {
     try {
@@ -422,6 +429,8 @@ const filteredPosts = useMemo(() => {
 
   // Start creating new post
   const handleStartCreate = () => {
+    setSelectedSchool(null);
+    setSelectedRadius(null);
     setCreateForm({
       title: '',
       content: '',
@@ -690,8 +699,7 @@ const handleCreateChange = (field, value) => {
     dispatch(fetchAccommodationPosts({ lastPostId: null, pageSize: 50 }));
   }, [dispatch]);
 
-  // Init map after component mount
-// Init map after component mount AND after initial loading is done
+  // Init map after component mount AND after initial loading is done
   useEffect(() => {
     if (loading || mapInstanceRef.current) {
       return;
@@ -712,15 +720,31 @@ const handleCreateChange = (field, value) => {
   useEffect(() => {
     if (showDetail && postDetail?.id && !isCreating) {
       highlightMarker(postDetail.id);
+      
       if (mapInstanceRef.current) {
+        // Khớp với width của .detail-sidebar trong CSS (400px)
+        const sidebarWidth = 400; 
+        
         mapInstanceRef.current.flyTo({
           center: [postDetail.longitude, postDetail.latitude],
-          zoom: 15,
-          duration: 1000
+          zoom: 16, // Zoom đủ gần để thấy rõ vị trí
+          
+          // ✨ QUAN TRỌNG: Thêm padding để "đẩy" tâm bản đồ sang trái
+          // right: 400 (sidebar) + 50 (khoảng cách thêm cho thoáng)
+          padding: { 
+            top: 50, 
+            bottom: 50, 
+            left: 50, 
+            right: sidebarWidth + 50 
+          },
+          
+          duration: 1500, // Thời gian bay (ms)
+          essential: true // Bắt buộc thực hiện animation
         });
       }
     } else {
       highlightMarker(null);
+      // Khi đóng sidebar, không cần flyTo đâu cả, giữ nguyên vị trí hiện tại
     }
   }, [showDetail, postDetail, highlightMarker, isCreating]);
 

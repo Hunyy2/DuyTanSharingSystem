@@ -1,10 +1,28 @@
+// admin/styles/AdminRideDetails.scss
+
 .admin-ride-details {
+  // Layout Responsive (Giống Dashboard)
+  .site-layout {
+    margin-left: 200px; // Desktop
+    transition: margin-left 0.2s;
+
+    @media (max-width: 992px) {
+      margin-left: 0 !important; // Mobile/Tablet
+    }
+  }
+
+  // Padding nội dung
+  .ride-details-content {
+    padding: 24px;
+    
+    @media (max-width: 768px) {
+      padding: 12px; // Giảm padding trên mobile
+    }
+  }
+
   .ant-layout {
     background-color: #f8fafc;
-
     .ant-layout-content {
-      padding: 24px;
-      min-height: calc(100vh - 64px);
       background-color: transparent;
     }
   }
@@ -14,43 +32,35 @@
     border: 1px solid #e2e8f0;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    height: 400px; // Chiều cao Desktop
+    width: 100%;
+
+    @media (max-width: 768px) {
+      height: 300px; // Chiều cao Mobile
+    }
   }
 
-  // Style the toggle map button
   .toggle-map-btn {
     background-color: #3182ce;
     border-color: #3182ce;
     border-radius: 8px;
-    padding: 8px 16px;
-    transition: all 0.3s ease;
-
+    
     &:hover {
       background-color: #2b6cb0;
       border-color: #2b6cb0;
-      transform: translateY(-1px);
-    }
-
-    &:focus {
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.3);
     }
   }
 
-  // Custom marker colors
-  .driver-marker {
-    filter: hue-rotate(220deg); // Blue tint
-  }
-
-  .passenger-marker {
-    filter: hue-rotate(120deg); // Green tint
-  }
+  // Marker colors
+  .driver-marker { filter: hue-rotate(220deg); }
+  .passenger-marker { filter: hue-rotate(120deg); }
 
   .page-title {
     color: #1a365d;
     margin-bottom: 24px;
     font-weight: 600;
-    position: relative;
     padding-bottom: 12px;
+    position: relative;
 
     &::after {
       content: "";
@@ -64,135 +74,49 @@
     }
   }
 
-  // Common card styles
+  // Card Responsive
   .ant-card {
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     border: none;
-    transition: all 0.3s ease;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
-    }
-
+    
     .ant-card-head {
-      background-color: #fff;
-      border-bottom: 1px solid #e2e8f0;
       padding: 16px 24px;
-
-      .ant-card-head-title {
-        color: #2b6cb0;
-        font-weight: 600;
-        font-size: 16px;
-      }
+      @media (max-width: 768px) { padding: 12px 16px; }
     }
-
+    
     .ant-card-body {
       padding: 24px;
+      @media (max-width: 768px) { padding: 16px; }
     }
   }
 
-  // Ride info card
-  .ride-card {
-    background-color: #fff;
+  // Info Items Responsive
+  .info-item {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: flex-start;
 
-    .info-item {
-      margin-bottom: 16px;
-      display: flex;
-      align-items: flex-start;
-
-      .ant-typography {
-        &:first-child {
-          flex: 0 0 140px;
-          color: #4a5568;
-        }
-        &:last-child {
-          color: #1a202c;
-          font-weight: 500;
-        }
-      }
-    }
-  }
-
-  // User cards
-  .user-card {
-    background-color: #fff;
-
-    .info-item {
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-
-      .ant-typography {
-        &:first-child {
-          flex: 0 0 120px;
-          color: #4a5568;
-        }
-        &:last-child {
-          color: #1a202c;
-          font-weight: 500;
-        }
-      }
-    }
-  }
-
-  // Location cards
-  .location-card {
-    .location-list {
-      max-height: 300px;
-      overflow-y: auto;
-      padding-right: 8px;
-    }
-
-    .location-item {
-      padding: 12px 0;
-      border-bottom: 1px solid #edf2f7;
-
-      &:last-child {
-        border-bottom: none;
-      }
-
-      .ant-typography {
-        display: block;
-        margin-bottom: 4px;
+    .ant-typography {
+      &:first-child {
+        flex: 0 0 140px; // Label width cố định trên desktop
         color: #4a5568;
-        font-size: 13px;
-
-        &:last-child {
-          margin-bottom: 0;
-        }
       }
-    }
-  }
-
-  // Responsive design
-  @media (max-width: 992px) {
-    .ant-layout-content {
-      margin-left: 0 !important;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .ant-row {
-      flex-direction: column;
-
-      .ant-col {
-        width: 100%;
-        margin-bottom: 16px;
-
-        &:last-child {
-          margin-bottom: 0;
-        }
+      &:last-child {
+        color: #1a202c;
+        font-weight: 500;
+        word-break: break-word; // Tránh tràn text
       }
     }
 
-    .info-item {
+    // Mobile: Chuyển label lên dòng trên nếu cần
+    @media (max-width: 576px) {
       flex-direction: column;
-      align-items: flex-start !important;
-
+      
       .ant-typography:first-child {
-        margin-bottom: 4px;
+        flex: auto;
+        margin-bottom: 2px;
+        font-size: 13px;
       }
     }
   }

@@ -1,15 +1,13 @@
-import React from "react";
-import { Layout, Menu } from "antd";
 import {
-  DashboardOutlined,
-  UserOutlined,
   BellOutlined,
+  CarOutlined,
+  DashboardOutlined,
   FileTextOutlined,
   NotificationOutlined,
-  CarOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
-import { Tooltip } from "antd";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Layout, Menu, Tooltip } from "antd";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import logoWeb from "../../assets/Logo white.png";
 
@@ -35,18 +33,24 @@ const AppSidebar = () => {
   return (
     <Sider
       width={200}
+      breakpoint="lg" // Tự động ẩn trên màn hình < 992px
+      collapsedWidth="0" // Chiều rộng khi ẩn là 0
+      zeroWidthTriggerStyle={{ display: "none" }} // Ẩn nút trigger mặc định của Antd
       style={{
         position: "fixed",
         top: 0,
         left: 0,
         bottom: 0,
         paddingTop: "20px",
+        zIndex: 1000, // Đảm bảo sidebar nằm trên các thành phần khác
+        height: "100vh",
+        overflowY: "auto", // Cho phép cuộn nếu menu dài
       }}
     >
       <div
         className="logo"
         onClick={() => navigate("/admin/dashboard")}
-        style={{ color: "white", textAlign: "center" }}
+        style={{ color: "white", textAlign: "center", cursor: "pointer", marginBottom: 20 }}
       >
         <img src={logoWeb} style={{ width: "150px" }} alt="logo" />
       </div>

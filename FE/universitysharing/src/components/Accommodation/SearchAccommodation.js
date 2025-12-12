@@ -143,7 +143,7 @@ const SearchAccommodation = ({
     
     postsToShow.forEach(post => {
       if (post.latitude && post.longitude) {
-        bounds.push([post.latitude, post.longitude]);
+        bounds.push([post.longitude, post.latitude]);
       }
     });
 

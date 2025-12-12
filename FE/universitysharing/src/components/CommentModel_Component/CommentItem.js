@@ -1,437 +1,166 @@
-import { debounce } from "lodash";
-import { useEffect, useRef, useState } from "react";
-import { FaHeart } from "react-icons/fa";
-import {
-  FiChevronDown,
-  FiChevronUp,
-  FiHeart,
-  FiMessageSquare,
-  FiMoreHorizontal,
-} from "react-icons/fi";
+import { useState } from "react";
+import { FiMoreHorizontal } from "react-icons/fi";
 import { useDispatch } from "react-redux";
-import avatarDefaut from "../../assets/AvatarDefault.png";
+import AvatarDefault from "../../assets/AvatarDefault.png";
 import { getReplyComment, updateComment } from "../../stores/action/listPostActions";
-import "../../styles/CommentOverlay.scss";
+import "../../styles/PostDetail/CommentItem.scss";
 import getUserIdFromToken from "../../utils/JwtDecode";
 import CommentOption from "./CommentOption";
 
-const CommentItem = ({
-  comments,
-  handleLikeComment,
-  post,
-  usersProfile,
-  handleReplyComment,
-}) => {
+const CommentItem = ({ comments, handleLikeComment, post, usersProfile, handleReplyComment }) => {
   const dispatch = useDispatch();
+  const userId = getUserIdFromToken();
+  
+  // State quản lý hiển thị
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(comments.content);
+  const [showOptions, setShowOptions] = useState(false);
+  
+  // State quản lý reply
   const [isReplying, setIsReplying] = useState(false);
   const [replyText, setReplyText] = useState("");
-  const [replyingCommentId, setReplyingCommentId] = useState(null);
-  const [replyingTo, setReplyingTo] = useState("");
-  const [openOptionId, setOpenOptionId] = useState(null);
-  const [visibleReplies, setVisibleReplies] = useState(1); // Chỉ hiển thị 1 reply ban đầu
-  const [isRepliesHidden, setIsRepliesHidden] = useState(false); // Trạng thái ẩn/hiện replies
-  const [isEditing, setIsEditing] = useState(false);
-  const [editCommentId, setEditCommentId] = useState(null);
-  const [editContent, setEditContent] = useState(comments.content);
+  const [visibleRepliesCount, setVisibleRepliesCount] = useState(1);
+  const [areRepliesExpanded, setAreRepliesExpanded] = useState(false);
 
-  const replyInputRef = useRef(null);
-  const moreReplyRef = useRef(null);
-  const menuRef = useRef(null);
-  const repliesContainerRef = useRef(null);
-  const userId = getUserIdFromToken();
+  // Handlers
+  const handleToggleOptions = () => setShowOptions(!showOptions);
 
-  // Xử lý khi click nút trả lời
-  const handleReplyClick = (commentId, userName) => {
-    setReplyingTo(userName);
-    setReplyingCommentId(commentId);
-    setIsReplying(!isReplying);
-    setReplyText(`@${userName} `);
+  const onEdit = () => {
+    setIsEditing(true);
+    setShowOptions(false);
+  };
 
-    // Mở replies nếu đang ẩn
-    if (isRepliesHidden) {
-      setIsRepliesHidden(false);
+  const onSaveEdit = () => {
+    if (editContent.trim() !== comments.content) {
+      dispatch(updateComment({ postId: post.id, commentId: comments.id, content: editContent }));
     }
-
-    setTimeout(() => {
-      replyInputRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      });
-    }, 100);
+    setIsEditing(false);
   };
 
-  // Gửi reply
-  const handleSendReply = () => {
-    if (!replyingCommentId || !replyText.trim()) return;
-    handleReplyComment(replyingCommentId, replyText);
-    setIsReplying(false);
+  const onReplyClick = () => {
+    setIsReplying(true);
+    setAreRepliesExpanded(true); // Mở list reply nếu đang đóng
+  };
+
+  const onSendReply = () => {
+    if (!replyText.trim()) return;
+    handleReplyComment(comments.id, replyText);
     setReplyText("");
+    setIsReplying(false);
   };
 
-  // Xử lý thay đổi nội dung reply
-  const handleChange = (e) => {
-    setReplyText(e.target.value);
-  };
-
-  // Load thêm replies
-  const handleLoadMoreReplies = debounce(() => {
+  const onLoadMoreReplies = () => {
     if (comments.hasMoreReplies) {
       dispatch(getReplyComment(comments.id));
-    } else {
-      // Hiển thị thêm replies đã load
-      setVisibleReplies((prev) => prev + 3);
     }
-
-    setTimeout(() => {
-      moreReplyRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      });
-    }, 300);
-  }, 500);
-
-  // Toggle ẩn/hiện replies
-  const toggleRepliesVisibility = () => {
-    setIsRepliesHidden(!isRepliesHidden);
+    setVisibleRepliesCount((prev) => prev + 5);
   };
 
-  // Đóng menu khi click bên ngoài
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setOpenOptionId(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // Tự động mở rộng textarea khi nội dung nhiều
-  useEffect(() => {
-    if (replyInputRef.current) {
-      const textarea = replyInputRef.current.querySelector("textarea");
-      if (textarea) {
-        textarea.style.height = "auto";
-        textarea.style.height = `${textarea.scrollHeight}px`;
-      }
-    }
-  }, [replyText]);
-
-  // Lấy số lượng replies hiển thị
-  const displayedReplies = comments.replies?.slice(0, visibleReplies) || [];
-  const hasHiddenReplies =
-    comments.replies?.length > visibleReplies || comments.hasMoreReplies;
-  const totalReplyCount = comments.replyCount || comments.replies?.length || 0;
-
-  const handleEdit = (commentId) => {
-    setEditCommentId(commentId);
-    setEditContent(
-      comments.replies
-        ? comments.replies.find((r) => r.id === commentId)?.content ||
-            comments.content
-        : comments.content
-    );
-    setIsEditing(true);
-  };
-
-  const handleSaveEdit = () => {
-    if (
-      editContent.trim() ===
-      (comments.replies?.find((r) => r.id === editCommentId)?.content ||
-        comments.content)
-    ) {
-      setIsEditing(false);
-      setEditCommentId(null);
-      return;
-    }
-    if (editContent.trim()) {
-      dispatch(
-        updateComment({
-          postId: post.id,
-          commentId: editCommentId,
-          content: editContent,
-        })
-      );
-    }
-    setIsEditing(false);
-    setEditCommentId(null);
-  };
-
-  const handleCancelEdit = () => {
-    setEditContent(
-      comments.replies
-        ? comments.replies.find((r) => r.id === editCommentId)?.content ||
-            comments.content
-        : comments.content
-    );
-    setIsEditing(false);
-    setEditCommentId(null);
-  };
-
-  const handleContentChange = (e) => {
-    setEditContent(e.target.value);
-  };
+  const replies = comments.replies || [];
+  const displayReplies = replies.slice(0, visibleRepliesCount);
+  const hasHiddenReplies = replies.length > visibleRepliesCount || comments.hasMoreReplies;
 
   return (
-    <div className="comment-item">
-      {/* Comment chính */}
-      <div className="comment-main">
-        <img
-          className="comment-avatar"
-          src={comments.profilePicture || avatarDefaut}
-          alt="Avatar"
-        />
-
-        <div className="comment-body">
-          <div className="comment-header">
-            <span className="comment-author">{comments.userName}</span>
-
-            <button
-              className="comment-more-btn"
-              onClick={() =>
-                setOpenOptionId(
-                  openOptionId === comments.id ? null : comments.id
-                )
-              }
-            >
-              <FiMoreHorizontal size={18} />
-            </button>
-
-            {openOptionId === comments.id && (
-              <div ref={menuRef} className="comment-options-container">
-                <CommentOption
-                  isOwner={userId === comments.userId}
-                  onClose={() => setOpenOptionId(null)}
-                  idComment={comments.id}
-                  post={post}
-                  onEdit={() => handleEdit(comments.id)}
-                />
-              </div>
-            )}
-          </div>
-
-          {isEditing && editCommentId === comments.id ? (
-            <div className="comment-content editing">
-              <textarea
-                value={editContent}
-                onChange={handleContentChange}
-                placeholder="Chỉnh sửa bình luận..."
-                autoFocus
-                rows="1"
-                onKeyPress={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSaveEdit();
-                  }
-                }}
+    <div className="comment-item-container">
+      {/* --- Nội dung Comment chính --- */}
+      <div className="comment-row">
+        <img className="avatar" src={comments.profilePicture || AvatarDefault} alt="user" />
+        
+        <div className="content-area">
+          {isEditing ? (
+            <div className="edit-mode">
+              <textarea 
+                value={editContent} 
+                onChange={(e) => setEditContent(e.target.value)} 
+                rows={2} 
+                autoFocus 
               />
               <div className="edit-actions">
-                <button onClick={handleSaveEdit}>Lưu</button>
-                <button onClick={handleCancelEdit}>Hủy</button>
+                <button className="cancel" onClick={() => setIsEditing(false)}>Hủy</button>
+                <button className="save" onClick={onSaveEdit}>Lưu</button>
               </div>
             </div>
           ) : (
-            <div className="comment-content">{comments.content}</div>
+            <div className="bubble-wrapper">
+              <div className="bubble">
+                <span className="user-name">{comments.userName}</span>
+                <span className="text">{comments.content}</span>
+              </div>
+              
+              {/* Nút 3 chấm */}
+              <button className={`options-btn ${showOptions ? 'active' : ''}`} onClick={handleToggleOptions}>
+                <FiMoreHorizontal />
+              </button>
+              
+              {showOptions && (
+                <CommentOption 
+                  isOwner={userId === comments.userId}
+                  onClose={() => setShowOptions(false)}
+                  idComment={comments.id}
+                  post={post}
+                  onEdit={onEdit}
+                />
+              )}
+            </div>
           )}
 
-          <div className="comment-actions">
-            <button
-              className={`action-btn ${comments.hasLiked ? "liked" : ""}`}
-              onClick={() => handleLikeComment(comments.id)}
-            >
-              {comments.hasLiked ? (
-                <FaHeart className="like-icon" size={16} />
-              ) : (
-                <FiHeart className="like-icon" size={16} />
-              )}
-              <span className="action-count">{comments.likeCountComment}</span>
-            </button>
-
-            <button
-              className="action-btn"
-              onClick={() => handleReplyClick(comments.id, comments.userName)}
-            >
-              <FiMessageSquare className="reply-icon" size={16} />
-              <span className="action-text">Trả lời</span>
-            </button>
-          </div>
+          {/* Actions: Like, Reply, Time */}
+          {!isEditing && (
+            <div className="actions">
+              <span 
+                className={comments.hasLiked ? "liked" : ""} 
+                onClick={() => handleLikeComment(comments.id)}
+              >
+                Thích {comments.likeCountComment > 0 && `(${comments.likeCountComment})`}
+              </span>
+              <span onClick={onReplyClick}>Trả lời</span>
+              <span className="time">1 giờ</span> {/* Bạn có thể thêm hàm format time ở đây */}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Nút hiển thị/ẩn replies */}
-      {totalReplyCount > 0 && (
-        <button
-          className="toggle-replies-btn"
-          onClick={toggleRepliesVisibility}
-        >
-          {isRepliesHidden ? (
-            <>
-              <FiChevronDown size={16} />
-              <span>Hiển thị {totalReplyCount} bình luận</span>
-            </>
-          ) : (
-            <>
-              <FiChevronUp size={16} />
-              <span>Ẩn bình luận</span>
-            </>
-          )}
-        </button>
-      )}
+      {/* --- Khu vực Replies --- */}
+      {(replies.length > 0 || isReplying) && (
+         <div className="replies-wrapper">
+           {/* Render đệ quy các replies con */}
+           {areRepliesExpanded && displayReplies.map(reply => (
+             <CommentItem 
+                key={reply.id} 
+                comments={reply} 
+                post={post}
+                usersProfile={usersProfile}
+                handleLikeComment={handleLikeComment}
+                handleReplyComment={handleReplyComment}
+             />
+           ))}
 
-      {/* Các reply - chỉ hiển thị khi không bị ẩn */}
-      {!isRepliesHidden && displayedReplies.length > 0 && (
-        <div className="replies-container" ref={repliesContainerRef}>
-          {displayedReplies.map((reply) => (
-            <div key={reply.id} className="reply-item">
-              <img
-                className="reply-avatar"
-                src={reply.profilePicture || avatarDefaut}
-                alt="Avatar"
-              />
+           {/* Nút xem thêm reply */}
+           {areRepliesExpanded && hasHiddenReplies && (
+             <div 
+                style={{fontSize: '13px', fontWeight: '600', cursor: 'pointer', padding: '5px 0', color: '#65676b'}}
+                onClick={onLoadMoreReplies}
+             >
+               Xem thêm bình luận...
+             </div>
+           )}
 
-              <div className="reply-body">
-                <div className="reply-header">
-                  <span className="reply-author">{reply.userName}</span>
-
-                  <button
-                    className="reply-more-btn"
-                    onClick={() =>
-                      setOpenOptionId(
-                        openOptionId === reply.id ? null : reply.id
-                      )
-                    }
-                  >
-                    <FiMoreHorizontal size={16} />
-                  </button>
-
-                  {openOptionId === reply.id && (
-                    <div ref={menuRef} className="comment-options-container">
-                      <CommentOption
-                        isOwner={userId === reply.userId}
-                        onClose={() => setOpenOptionId(null)}
-                        idComment={reply.id}
-                        post={post}
-                        onEdit={() => handleEdit(reply.id)}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {isEditing && editCommentId === reply.id ? (
-                  <div className="reply-content editing">
-                    <textarea
-                      value={editContent}
-                      onChange={handleContentChange}
-                      placeholder="Chỉnh sửa bình luận..."
-                      autoFocus
-                      rows="1"
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSaveEdit();
-                        }
-                      }}
-                    />
-                    <div className="edit-actions">
-                      <button onClick={handleSaveEdit}>Lưu</button>
-                      <button onClick={handleCancelEdit}>Hủy</button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="reply-content">{reply.content}</div>
-                )}
-
-                <div className="reply-actions">
-                  <button
-                    className={`action-btn ${reply.hasLiked ? "liked" : ""}`}
-                    onClick={() => handleLikeComment(reply.id)}
-                  >
-                    {reply.hasLiked ? (
-                      <FaHeart className="like-icon" size={14} />
-                    ) : (
-                      <FiHeart className="like-icon" size={14} />
-                    )}
-                    <span className="action-count">
-                      {reply.likeCountComment}
-                    </span>
-                  </button>
-
-                  <button
-                    className="action-btn"
-                    onClick={() => handleReplyClick(reply.id, reply.userName)}
-                  >
-                    <FiMessageSquare className="reply-icon" size={14} />
-                    <span className="action-text">Trả lời</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-          <div ref={moreReplyRef} />
-        </div>
-      )}
-
-      {/* Nút xem thêm reply - chỉ hiển thị khi không bị ẩn */}
-      {!isRepliesHidden && hasHiddenReplies && (
-        <button className="view-more-replies" onClick={handleLoadMoreReplies}>
-          {comments.hasMoreReplies
-            ? "Tải thêm bình luận"
-            : `Xem thêm ${comments.replies.length - visibleReplies} bình luận`}
-        </button>
-      )}
-
-      {/* Ô nhập reply */}
-      {isReplying && (
-        <div className="reply-input-container" ref={replyInputRef}>
-          <div className="reply-input-avatar">
-            <img
-              src={usersProfile.profilePicture || avatarDefaut}
-              alt="Avatar"
-            />
-          </div>
-          <div className="reply-input-wrapper">
-            <div className="input-box">
-              <textarea
-                value={replyText}
-                onChange={handleChange}
-                placeholder="Viết phản hồi..."
-                autoFocus
-                rows="1"
-              />
-              <div className="input-actions">
-                <button
-                  className={`send-reply-btn ${
-                    !replyText.trim() ? "disabled" : ""
-                  }`}
-                  onClick={handleSendReply}
-                  disabled={!replyText.trim()}
-                >
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M22 2L11 13"
-                      stroke={!replyText.trim() ? "#BCC0C4" : "#1877F2"}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M22 2L15 22L11 13L2 9L22 2Z"
-                      stroke={!replyText.trim() ? "#BCC0C4" : "#1877F2"}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+           {/* Input trả lời */}
+           {isReplying && (
+             <div className="reply-input-area">
+               <img className="reply-avatar" src={usersProfile?.profilePicture || AvatarDefault} alt="me" />
+               <div className="input-box">
+                 <input 
+                    placeholder={`Trả lời ${comments.userName}...`} 
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && onSendReply()}
+                    autoFocus
+                 />
+               </div>
+             </div>
+           )}
+         </div>
       )}
     </div>
   );

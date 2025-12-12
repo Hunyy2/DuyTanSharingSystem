@@ -162,50 +162,54 @@ const RightSidebar = () => {
   // Hàm render danh sách bạn bè
   const renderFriendList = (list) => (
     <ul>
-        {list.map((friend) => {
+      {list.map((friend) => {
         const isOnline = onlineStatus[friend.friendId] ?? false;
         return (
-            <li
+          <li
             key={friend.friendId}
             className={activeFriend === friend.friendId ? "active" : ""}
             onClick={() =>
-                handleSelectedFriend({
+              handleSelectedFriend({
                 friendId: friend.friendId,
                 fullName: friend.fullName,
                 pictureProfile: friend.pictureProfile,
                 conversationId: 0,
-                })
+              })
             }
-            >
+          >
             <div className="friend-info">
-                <div className="avatar-container">
-                    <img
-                        src={friend.pictureProfile || avatarDefault}
-                        alt={`${friend.fullName || "Bạn bè"}'s avatar`}
-                    />
-                    <span
-                        className={`status-dot ${
-                        isOnline ? "online" : "offline"
-                        }`}
-                    ></span>
-                </div>
-                
-                <div className="name-status">
+              <div className="avatar-container">
+                <img
+                  src={friend.pictureProfile || avatarDefault}
+                  alt={`${friend.fullName || "Bạn bè"}'s avatar`}
+                  // --- THÊM ĐOẠN NÀY ---
+                  onError={(e) => {
+                    e.target.onerror = null; // Ngăn chặn vòng lặp vô hạn nếu ảnh mặc định cũng lỗi
+                    e.target.src = avatarDefault; // Thay thế bằng ảnh mặc định
+                  }}
+                  // ---------------------
+                />
+                <span
+                  className={`status-dot ${isOnline ? "online" : "offline"}`}
+                ></span>
+              </div>
+
+              <div className="name-status">
                 <div className="friend-name">
-                    {friend.fullName || "Không tên"}
+                  {friend.fullName || "Không tên"}
                 </div>
                 <div className="status-text">
-                    <span className={isOnline ? "online-text" : ""}>
+                  <span className={isOnline ? "online-text" : ""}>
                     {isOnline
-                        ? "Đang hoạt động" 
-                        : getLastSeenText(friend.lastSeen)}
-                    </span>
+                      ? "Đang hoạt động"
+                      : getLastSeenText(friend.lastSeen)}
+                  </span>
                 </div>
-                </div>
+              </div>
             </div>
-            </li>
+          </li>
         );
-        })}
+      })}
     </ul>
   );
 

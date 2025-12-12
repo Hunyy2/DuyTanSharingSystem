@@ -1,91 +1,55 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import "../../styles/CommentOverlay.scss";
-import imagePost from "../../assets/ImgDefault.png";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi"; // Sử dụng icon từ react-icons
-import dieImage from "../../assets/Imgae Not found.png";
+import { useMemo, useState } from "react";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import ImageDefault from "../../assets/ImgDefault.png";
+import "../../styles/PostDetail/ImagePost.scss";
 
-const ImagePostComment = ({ post }) => {
-  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
-  const navigate = useNavigate();
-  // Tạo mảng media chứa cả ảnh và video (nếu có)
-  const mediaArray = [
+const ImagePost = ({ post }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Memoize mảng media để không tạo lại mỗi lần render
+  const mediaArray = useMemo(() => [
     ...(post.imageUrl ? [{ type: "image", url: post.imageUrl }] : []),
     ...(post.videoUrl ? [{ type: "video", url: post.videoUrl }] : []),
-  ];
+  ], [post.imageUrl, post.videoUrl]);
 
-  // Kiểm tra nếu media hiện tại là video
-  const isVideo = mediaArray[currentMediaIndex]?.type === "video";
-
-  // Xử lý khi nhấn nút Next
-  const handleNext = () => {
-    setCurrentMediaIndex((prevIndex) => (prevIndex + 1) % mediaArray.length);
+  const handleNext = (e) => {
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev + 1) % mediaArray.length);
   };
 
-  // Xử lý khi nhấn nút Previous
-  const handlePrev = () => {
-    setCurrentMediaIndex(
-      (prevIndex) => (prevIndex - 1 + mediaArray.length) % mediaArray.length
-    );
-  };
-  const homeReturn = () => {
-    navigate("/home");
+  const handlePrev = (e) => {
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev - 1 + mediaArray.length) % mediaArray.length);
   };
 
-  // Nếu không có media nào, hiển thị ảnh mặc định
   if (!mediaArray.length) {
     return (
-      <div className="image-Post">
-        <img className="post-media" src={imagePost} alt="Bài viết" />
+      <div className="image-post-container">
+        <img className="media-content" src={ImageDefault} alt="Default" />
       </div>
     );
   }
 
+  const currentMedia = mediaArray[currentIndex];
+
   return (
-    <div className="image-Post">
-      {isVideo ? (
-        <div className="media-container">
-          {mediaArray.length > 1 && (
-            <>
-              <button className="nav-button prev-button" onClick={handlePrev}>
-                <FiChevronLeft size={30} />
-              </button>
-              <button className="nav-button next-button" onClick={handleNext}>
-                <FiChevronRight size={30} />
-              </button>
-            </>
-          )}
-          <video
-            className="post-media"
-            controls
-            autoPlay
-            src={mediaArray[currentMediaIndex].url}
-          >
-            <source src={mediaArray[currentMediaIndex].url} type="video/mp4" />
-            Trình duyệt của bạn không hỗ trợ video.
-          </video>
-        </div>
+    <div className="image-post-container">
+      {mediaArray.length > 1 && (
+        <>
+          <button className="nav-btn prev" onClick={handlePrev}><FiChevronLeft size={30} /></button>
+          <button className="nav-btn next" onClick={handleNext}><FiChevronRight size={30} /></button>
+        </>
+      )}
+
+      {currentMedia.type === "video" ? (
+        <video className="media-content" controls autoPlay src={currentMedia.url}>
+          <source src={currentMedia.url} type="video/mp4" />
+        </video>
       ) : (
-        <div className="media-container">
-          {mediaArray.length > 1 && (
-            <>
-              <button className="nav-button prev-button" onClick={handlePrev}>
-                <FiChevronLeft size={30} />
-              </button>
-              <button className="nav-button next-button" onClick={handleNext}>
-                <FiChevronRight size={30} />
-              </button>
-            </>
-          )}
-          <img
-            className="post-media"
-            src={mediaArray[currentMediaIndex].url || imagePost}
-            alt="Bài viết"
-          />
-        </div>
+        <img className="media-content" src={currentMedia.url} alt="Post content" />
       )}
     </div>
   );
 };
 
-export default ImagePostComment;
+export default ImagePost;

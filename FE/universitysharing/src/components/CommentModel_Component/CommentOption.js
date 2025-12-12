@@ -1,88 +1,57 @@
-import React, { useEffect, useRef } from "react";
-import "../../styles/CommentOption.scss";
-import { useDispatch, useSelector } from "react-redux";
-import { deleteComments } from "../../stores/action/listPostActions";
-import { debounce } from "lodash";
+import { useEffect, useRef } from "react";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
+import { useDispatch } from "react-redux";
+import { deleteComments } from "../../stores/action/listPostActions";
+import "../../styles/PostDetail/CommentOption.scss"; // Import file SCSS riêng
 
-const CommentOption = ({
-  isOwner,
-  onClose,
-  style,
-  idComment,
-  post,
-  onEdit,
-}) => {
+const CommentOption = ({ isOwner, onClose, idComment, post, onEdit }) => {
   const optionRef = useRef(null);
   const dispatch = useDispatch();
 
+  // Xử lý click outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (optionRef.current && !optionRef.current.contains(event.target)) {
-        console.log("Click outside -> Đóng CommentOption");
-        onClose(); // Gọi hàm đóng khi click bên ngoài
+        onClose();
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
 
-  const handleDeleteComments = debounce((postId, commentId) => {
-    dispatch(deleteComments({ postId, commentId }));
-  }, 1000);
-
-  // Hiển thị hộp thoại xác nhận trước khi xóa
-  const confirmDeleteComment = (postId, commentId) => {
+  const handleDelete = () => {
     confirmAlert({
-      title: "Xác nhận xóa bình luận!",
-      message: "Bạn muốn xóa bình luận này không?",
+      title: "Xóa bình luận?",
+      message: "Hành động này không thể hoàn tác.",
       buttons: [
         {
-          label: "Có",
-          onClick: () => handleDeleteComments(postId, commentId), // Gọi hàm debounce đúng cách
+          label: "Xóa",
+          onClick: () => {
+            dispatch(deleteComments({ postId: post.id, commentId: idComment }));
+            onClose();
+          },
         },
-        {
-          label: "Không",
-          onClick: () => console.log("Hủy xóa"),
-        },
+        { label: "Hủy", onClick: onClose },
       ],
     });
   };
 
-  const handleEditClick = (event) => {
-    event.stopPropagation(); // Ngăn sự kiện lan truyền
-    onEdit(); // Gọi hàm chỉnh sửa
-    onClose(); // Chủ động đóng menu
-  };
-
   return (
-    <div className="comment-options" ref={optionRef} style={{ ...style }}>
+    <div className="comment-options-menu" ref={optionRef}>
       {isOwner ? (
         <>
-          <span className="update-comment" onClick={handleEditClick}>
+          <div className="menu-item" onClick={() => { onEdit(); onClose(); }}>
             Sửa bình luận
-          </span>
-          <span
-            className="delete-comment"
-            onClick={(event) => {
-              event.stopPropagation(); // Ngăn sự kiện lan truyền
-              confirmDeleteComment(post.id, idComment);
-            }}
-          >
+          </div>
+          <div className="menu-item delete" onClick={handleDelete}>
             Xóa bình luận
-          </span>
+          </div>
         </>
       ) : (
-        <span
-          className="report-comment"
-          onClick={(event) => event.stopPropagation()} // Ngăn sự kiện lan truyền
-        >
+        <div className="menu-item" onClick={onClose}>
           Báo cáo bình luận
-        </span>
+        </div>
       )}
     </div>
   );

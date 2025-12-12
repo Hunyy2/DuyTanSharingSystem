@@ -1,15 +1,14 @@
-import React from "react";
-import { Bar } from "react-chartjs-2";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
   BarElement,
-  Tooltip,
+  CategoryScale,
+  Chart as ChartJS,
   Legend,
+  LinearScale,
   Title,
+  Tooltip,
 } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
+import { Bar } from "react-chartjs-2";
 
 ChartJS.register(
   CategoryScale,
@@ -25,20 +24,11 @@ const RideStatusStatisticsChart = ({ rideStatusStatistics }) => {
   // Kiểm tra nếu không có dữ liệu
   if (!rideStatusStatistics || rideStatusStatistics.length === 0) {
     return (
-      <div
-        style={{
-          height: "300px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <p style={{ textAlign: "center", color: "#666", fontSize: "14px" }}>
-          Không có dữ liệu để hiển thị biểu đồ.
-        </p>
+      <div className="chart-state-container">
+        <p>Không có dữ liệu để hiển thị biểu đồ.</p>
       </div>
     );
-  }
+}
 
   const data = {
     labels: rideStatusStatistics.map((item) => item.timeLabel),
@@ -195,10 +185,10 @@ const RideStatusStatisticsChart = ({ rideStatusStatistics }) => {
   };
 
   return (
-    <div style={{ height: "300px", width: "100%" }}>
+    <div className="dashboard-chart-container">
       <Bar data={data} options={options} />
     </div>
-  );
+);
 };
 
 export default RideStatusStatisticsChart;

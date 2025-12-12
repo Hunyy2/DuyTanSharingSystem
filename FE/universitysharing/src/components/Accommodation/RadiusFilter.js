@@ -114,7 +114,6 @@ const RadiusFilter = ({
   // Remove all existing circle layers and sources
   const removeAllCircles = () => {
     if (!mapInstance) return;
-    
     // Xóa tất cả các layer và source đã tạo
     circleIdsRef.current.forEach(id => {
       if (mapInstance.getLayer(id)) {
