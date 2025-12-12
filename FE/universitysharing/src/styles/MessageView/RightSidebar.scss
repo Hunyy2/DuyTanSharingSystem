@@ -82,7 +82,7 @@ $sidebar-width: 280px;
     @include flex-between;
     padding: $padding-base;
     position: sticky;
-    top: 0;
+    top: -16px;
     background-color: $bg-color;
     z-index: 2;
     border-bottom: 1px solid $border-color;

@@ -154,9 +154,14 @@ namespace Infrastructure.Data.Repositories
                  .Select(u => new { u.TrustScore })
                  .ToListAsync();
 
+
             // 2. Thực hiện đếm theo 3 nhóm yêu cầu
             // Nhóm Thấp: 0 - 30
             var lowCount = users.Count(u => (u.TrustScore) <= 30);
+
+            var trustedCount = users.Count(u => u.TrustScore >= 40);
+            var untrustedCount = users.Count(u => u.TrustScore < 40);
+
 
             // Nhóm Trung bình: 31 - 50
             var mediumCount = users.Count(u => (u.TrustScore) > 30 && (u.TrustScore) <= 50);
