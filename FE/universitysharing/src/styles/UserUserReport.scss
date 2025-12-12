@@ -1,238 +1,159 @@
-.user-user-report-container-ur {
-  margin-top: 20px;
-  padding: 20px;
-  background-color: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+// admin/styles/UserUserReport.scss
 
+.user-user-report-container-ur {
+  width: 100%;
+  
   .section-title-ur {
     font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 16px;
-    color: #333;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 20px;
+    padding-left: 4px;
   }
 
   .report-list-ur {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 24px;
   }
 
+  // Card bao quanh 1 nhóm báo cáo
   .report-card-container-ur {
     display: flex;
-    gap: 16px;
-  }
+    background: #fff;
+    border: 1px solid #e4e6eb;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 
-  .reported-user-card-ur {
-    flex: 1;
-    background-color: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 4px;
-    padding: 12px;
-
-    .reported-user-info-ur {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-
-      .avatar-ur {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        object-fit: cover;
-      }
-
-      .reported-user-details-ur {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-
-        .reported-user-ur,
-        .total-reports-ur {
-          font-size: 14px;
-          color: #333;
-          margin: 0;
-        }
-
-        .reported-user-ur,
-        .total-reports-ur strong {
-          font-weight: 600;
-        }
-      }
-    }
-  }
-
-  .report-details-card-ur {
-    flex: 1;
-    background-color: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 4px;
-    padding: 12px;
-
-    .report-details-ur {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-
-      .report-info-ur {
-        position: relative;
-        padding-bottom: 12px;
-        margin-bottom: 12px;
-
-        &:not(:last-child)::after {
-          content: "";
-          position: absolute;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          height: 1px;
-          background-color: #e5e7eb; // màu xám nhẹ giống divider-ur
-        }
-      }
+    // --- RESPONSIVE MOBILE ---
+    @media (max-width: 992px) {
+      flex-direction: column; // Chuyển thành dọc
     }
 
-    .report-actions-ur {
-      display: flex;
-      justify-content: flex-start;
-      gap: 8px;
-
-      .accept-btn-ur,
-      .reject-btn-ur {
-        padding: 8px 16px;
-        border-radius: 4px;
-        font-size: 14px;
-        font-weight: 500;
-        transition: background-color 0.2s ease;
-        cursor: pointer;
-      }
-
-      .accept-btn-ur {
-        background-color: #ef4444;
-        color: #fff;
-        border: none;
-
-        &:hover {
-          background-color: #dc2626;
-        }
-      }
-
-      .reject-btn-ur {
-        background-color: #e5e7eb;
-        color: #374151;
-        border: none;
-
-        &:hover {
-          background-color: #d1d5db;
-        }
-      }
-    }
-
-    .divider-ur {
-      border: none;
-      border-top: 1px solid #e5e7eb;
-      margin: 8px 0;
-    }
-
-    .report-info-ur {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-
-      .avatar-ur {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        object-fit: cover;
-      }
-
-      .report-content-ur {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-
-        .reported-by-ur,
-        .reason-ur,
-        .report-date-ur,
-        .status-ur {
-          font-size: 14px;
-          color: #333;
-          margin: 0;
-        }
-
-        .reason-ur strong,
-        .report-date-ur strong,
-        .status-ur strong {
-          font-weight: 600;
-        }
-
-        .status-ur {
-          &.pending-ur {
-            color: #f59e0b;
-          }
-          &.accepted-ur {
-            color: #10b981;
-          }
-          &.rejected-ur {
-            color: #ef4444;
-          }
-        }
-      }
-    }
-  }
-}
-
-// Responsive design
-@media (max-width: 640px) {
-  .user-user-report-container-ur {
-    padding: 16px;
-
-    .section-title-ur {
-      font-size: 18px;
-      margin-bottom: 12px;
-    }
-
-    .report-card-container-ur {
-      flex-direction: column;
-      gap: 12px;
-    }
-
+    // Cột trái: Thông tin người bị báo cáo
     .reported-user-card-ur {
-      padding: 10px;
-    }
+      width: 35%; // Desktop
+      background: #f7f8fa;
+      padding: 20px;
+      border-right: 1px solid #e4e6eb;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
 
-    .report-details-card-ur {
-      padding: 10px;
-
-      .report-details-ur {
-        gap: 10px;
+      @media (max-width: 992px) {
+        width: 100%; // Mobile
+        border-right: none;
+        border-bottom: 1px solid #e4e6eb;
+        padding: 16px;
       }
 
-      .report-info-ur {
+      .reported-user-info-ur {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 12px;
+
         .avatar-ur {
-          width: 20px;
-          height: 20px;
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 3px solid #fff;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        .report-content-ur {
-          .reported-by-ur,
-          .reason-ur,
-          .report-date-ur,
-          .status-ur {
-            font-size: 13px;
+        .reported-user-details-ur {
+          .reported-user-ur {
+            display: block;
+            font-size: 16px;
+            margin-bottom: 4px;
+            color: #050505;
+          }
+          .total-reports-ur {
+            font-size: 14px;
+            color: #65676b;
+            background: #e4e6eb;
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
           }
         }
+      }
+    }
+
+    // Cột phải: Chi tiết các báo cáo & Hành động
+    .report-details-card-ur {
+      width: 65%; // Desktop
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+
+      @media (max-width: 992px) {
+        width: 100%; // Mobile
       }
 
       .report-actions-ur {
         display: flex;
-        justify-content: flex-start;
-        align-items: center;
-        margin-left: 0;
+        gap: 12px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
 
-        .accept-btn-ur,
-        .reject-btn-ur {
-          padding: 6px 12px;
-          font-size: 13px;
+        button {
+          flex: 1;
+          padding: 10px 16px;
+          border: none;
+          border-radius: 6px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          white-space: nowrap;
+
+          &.accept-btn-ur { // Xóa tất cả báo cáo
+            background: #ff4d4f;
+            color: #fff;
+            &:hover { background: #ff7875; }
+          }
+          
+          &.reject-btn-ur { // Chấp nhận báo cáo (Ban user?)
+            background: #1890ff;
+            color: #fff;
+            &:hover { background: #40a9ff; }
+          }
+        }
+      }
+
+      .report-details-ur {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        
+        .divider-ur {
+            border: 0;
+            border-top: 1px solid #f0f2f5;
+            margin: 0 0 16px 0;
+        }
+
+        .report-info-ur {
+            display: flex;
+            gap: 12px;
+            
+            .avatar-ur {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+            }
+
+            .report-content-ur {
+                flex: 1;
+                font-size: 14px;
+                
+                p { margin: 4px 0; color: #444; }
+                
+                .reason-ur { color: #d9363e; } // Màu đỏ cho lý do
+                .report-date-ur { font-size: 12px; color: #888; }
+            }
         }
       }
     }

@@ -1,21 +1,27 @@
-import React, { useEffect, useRef } from "react";
-import "../../styles/AllReport.scss";
-import { FiHeart, FiMessageSquare, FiShare2, FiClock } from "react-icons/fi";
+import { formatDistanceToNow } from "date-fns";
+import { vi } from "date-fns/locale";
+import { useEffect, useRef } from "react";
+import "react-confirm-alert/src/react-confirm-alert.css";
 import { FaHeart } from "react-icons/fa";
-import avatarWeb from "../../../assets/AvatarDefault.png";
+import { FiClock } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
+
+// Actions & Reducers
 import {
   fetchReportedPosts,
   fetchUserUserReports,
 } from "../../../stores/action/adminActions";
 import { openCommentModal } from "../../../stores/reducers/listPostReducers";
 import getUserIdFromToken from "../../../utils/JwtDecode";
-import "react-confirm-alert/src/react-confirm-alert.css";
-import { formatDistanceToNow } from "date-fns";
-import { vi } from "date-fns/locale";
-import { useLocation, useNavigate } from "react-router-dom";
+
+// Components
 import AllReportFromUser from "./ReportFromUser";
 import UserUserReport from "./UserUserReport";
+
+// Assets & Styles
+import avatarWeb from "../../../assets/AvatarDefault.png";
+import "../../styles/AllReport.scss";
 
 const AllReport = () => {
   const dispatch = useDispatch();
@@ -23,9 +29,13 @@ const AllReport = () => {
   const location = useLocation();
   const postsEndRef = useRef(null);
 
-  const { reportedPosts, userUserReports, loading, error } = useSelector(
-    (state) => state.reportAdmintSlice
-  );
+  // SỬA LỖI 1: Thêm giá trị mặc định để tránh undefined/null
+  const { 
+    reportedPosts = [], 
+    userUserReports = [], 
+    loading = false, 
+    error 
+  } = useSelector((state) => state.reportAdmintSlice || {});
 
   useEffect(() => {
     dispatch(fetchReportedPosts());
@@ -40,13 +50,13 @@ const AllReport = () => {
     }
   };
 
-  // Chuyển đổi ngày sang UTC+7
   const handleOpenCommentModal = (post, index = 0) => {
     dispatch(openCommentModal({ ...post, initialMediaIndex: index }));
     navigate(`/post/${post.id}`, { state: { background: location } });
   };
 
   const convertUTCToVNTime = (utcDate) => {
+    if (!utcDate) return new Date();
     const date = new Date(utcDate);
     date.setHours(date.getHours() + 7);
     return date;
@@ -88,13 +98,19 @@ const AllReport = () => {
           const fullUrl = url.startsWith("http")
             ? url.trim()
             : `${process.env.REACT_APP_BASE_URL}${url.trim()}`;
+            
           const showOverlay = totalMedia > 2 && index === (hasVideo ? 0 : 1);
 
           if (totalMedia > 2 && index > (hasVideo ? 0 : 1)) return null;
           if (hasVideo && index > 0) return null;
 
           return (
-            <div className="media-item" key={index}>
+            <div 
+              className="media-item" 
+              key={`img-${index}`}
+              onClick={() => handleOpenCommentModal(post, index)}
+              style={{ cursor: 'pointer' }}
+            >
               <img src={fullUrl} alt={`Post media ${index}`} />
               {showOverlay && (
                 <div className="media-overlay">
@@ -118,10 +134,14 @@ const AllReport = () => {
   return (
     <div className="all-posts-report">
       {error && <div className="error-message">{error.message || error}</div>}
+      
+      {/* Báo cáo người dùng */}
       {Array.isArray(userUserReports) && userUserReports.length > 0 && (
         <UserUserReport reports={userUserReports} />
       )}
-      {Array.isArray(reportedPosts) && reportedPosts.length > 0 ? (
+
+      {/* SỬA LỖI 2: Logic hiển thị báo cáo bài viết */}
+      
         <>
           {reportedPosts.map((post) => (
             <div className="post-container" key={post.id}>
@@ -144,43 +164,11 @@ const AllReport = () => {
                       <div className="status-time-post">
                         <span className="timePost">
                           <FiClock size={12} style={{ marginRight: 4 }} />
-                          {formatDistanceToNow(
+                          {post.createdAt && formatDistanceToNow(
                             convertUTCToVNTime(post.createdAt),
                             {
                               addSuffix: true,
-                              locale: {
-                                ...vi,
-                                formatDistance: (token, count) => {
-                                  switch (token) {
-                                    case "lessThanXSeconds":
-                                      return "vài giây trước";
-                                    case "xSeconds":
-                                      return `${count} giây trước`;
-                                    case "halfAMinute":
-                                      return "30 giây trước";
-                                    case "lessThanXMinutes":
-                                      return `${count} phút trước`;
-                                    case "xMinutes":
-                                      return `${count} phút trước`;
-                                    case "aboutXHours":
-                                      return `${count} giờ trước`;
-                                    case "xHours":
-                                      return `${count} giờ trước`;
-                                    case "xDays":
-                                      return `${count} ngày trước`;
-                                    case "aboutXMonths":
-                                      return `${count} tháng trước`;
-                                    case "xMonths":
-                                      return `${count} tháng trước`;
-                                    case "aboutXYears":
-                                      return `${count} năm trước`;
-                                    case "xYears":
-                                      return `${count} năm trước`;
-                                    default:
-                                      return "";
-                                  }
-                                },
-                              },
+                              locale: { ...vi },
                               includeSeconds: true,
                             }
                           )}
@@ -191,7 +179,6 @@ const AllReport = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="post-actions"></div>
                 </div>
 
                 <div className="content-posts">{post.content}</div>
@@ -200,52 +187,36 @@ const AllReport = () => {
 
                 <div className="post-actions-summary">
                   <div className="reactions" style={{ cursor: "pointer" }}>
-                    <FaHeart className="like-icon" size={16} />
-                    <span>{post.likeCount}</span>
+                    <FaHeart className="like-icon" size={16} color="#f3425f" />
+                    <span style={{ marginLeft: 4 }}>{post.likeCount}</span>
                   </div>
                   <div className="comments-shares">
-                    <span style={{ cursor: "pointer" }}>
+                    <span style={{ cursor: "pointer", marginRight: 10 }}>
                       {post.commentCount} bình luận
                     </span>
                     <span style={{ cursor: "pointer" }}>
-                      {post.shareCount} lượt chia sẻ
+                      {post.shareCount} chia sẻ
                     </span>
                   </div>
                 </div>
-                {/* 
-                <div className="actions">
-                  <button
-                    className={`action-btn ${post.hasLiked ? "liked" : ""}`}
-                    disabled={post.isLiking}
-                  >
-                    {post.hasLiked ? (
-                      <FaHeart className="like-icon" size={18} />
-                    ) : (
-                      <FiHeart className="like-icon" size={18} />
-                    )}
-                    <span className="action-count">Thích</span>
-                  </button>
-                  <button className="action-btn">
-                    <FiMessageSquare className="comment-icon" size={18} />
-                    <span className="action-count">Bình luận</span>
-                  </button>
-                  <button className="action-btn">
-                    <FiShare2 className="share-icon" size={18} />
-                    <span className="action-count">Chia sẻ</span>
-                  </button>
-                </div> */}
               </div>
+
+              {/* Action xử lý báo cáo */}
               <AllReportFromUser reports={post.reports} postId={post.id} />
             </div>
           ))}
+          
           <div ref={postsEndRef} className="load-more-indicator">
-            {loading && <p>Đang tải thêm bài viết...</p>}
+            {loading && <p>Đang tải thêm...</p>}
           </div>
         </>
-      ) : (
-        <div className="no-posts">
-          <p>Không có bài viết nào.</p>
-        </div>
+      
+      
+      {/* Hiển thị loading khi mới vào trang và chưa có dữ liệu */}
+      {loading && reportedPosts.length === 0 && (
+         <div className="load-more-indicator">
+            <p>Đang tải dữ liệu...</p>
+         </div>
       )}
     </div>
   );

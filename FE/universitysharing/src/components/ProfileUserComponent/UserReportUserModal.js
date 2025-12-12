@@ -5,7 +5,7 @@ import "../../styles/ProfileUserView/UserReportUserModal.scss";
 const UserReportUserModal = ({ isOpen, onClose, reportedUserId }) => {
   const [selectedReason, setSelectedReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const baseUrl = process.env.REACT_APP_API_BASE_URL;
+  const baseUrl = process.env.REACT_APP_BASE_URL;
   const reportReasons = [
     "Người dùng giả mạo",
     "Hành vi xúc phạm",

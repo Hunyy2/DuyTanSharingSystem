@@ -1,6 +1,5 @@
-import React from "react";
+import { ArcElement, Chart as ChartJS, Legend, Title, Tooltip } from "chart.js";
 import { Pie } from "react-chartjs-2";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from "chart.js";
 
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
@@ -13,19 +12,10 @@ const RatingStatisticsChart = ({ ratingStatistics }) => {
     ratingStatistics.excellentPercentage === 0;
 
   // Nếu không có dữ liệu, hiển thị thông điệp
-  if (isEmpty) {
+if (isEmpty) {
     return (
-      <div
-        style={{
-          height: "300px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <p style={{ textAlign: "center" }}>
-          Không có dữ liệu đánh giá nào để hiển thị.
-        </p>
+      <div className="chart-state-container">
+        <p>Không có dữ liệu đánh giá nào để hiển thị.</p>
       </div>
     );
   }
@@ -88,7 +78,7 @@ const RatingStatisticsChart = ({ ratingStatistics }) => {
   };
 
   return (
-    <div style={{ height: "300px" }}>
+    <div className="dashboard-chart-container">
       <Pie data={data} options={options} />
     </div>
   );

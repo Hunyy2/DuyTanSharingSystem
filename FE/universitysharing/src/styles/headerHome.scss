@@ -1,184 +1,169 @@
-// Header.scss
-$border-radius: 8px;
-$shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-$secondary-color: #707070;
+// headerHome.scss - Desktop Base
 $primary-color: #007bff;
-$hover-bg: #f0f2f5;
-$transition: all 0.3s ease;
+$text-main: #050505;
+$text-secondary: #65676b;
+$bg-hover: #f0f2f5;
+$border-color: #e4e6eb;
+$header-height: 60px;
+$transition: all 0.2s ease;
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 16px;
-  background-color: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 0 16px;
+  background-color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
-  height: 70px;
+  height: $header-height;
   z-index: 1000;
+  width: 100%;
 
+  // --- LOGO SECTION ---
   .logoWeb {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
+    gap: 10px;
 
     .logo-container {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 10px 19px;
-      border-radius: 10px;
+      gap: 10px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 8px;
       transition: $transition;
 
       &:hover {
-        background-color: rgba(0, 123, 255, 0.05);
+        background-color: $bg-hover;
       }
 
       .logowebsite {
-        max-width: 50px;
-        max-height: 50px;
+        width: 40px;
+        height: 40px;
         object-fit: contain;
       }
 
       .app-name {
         display: flex;
         flex-direction: column;
-        align-items: flex-start;
         line-height: 1.1;
 
         .university-text {
-          font-size: 16px;
-          font-weight: 700;
-          color: #2c3e50;
-          letter-spacing: 0.5px;
+          font-size: 15px;
+          font-weight: 800;
+          color: #1c1e21;
         }
 
         .sharing-text {
-          font-size: 14px;
+          font-size: 13px;
           font-weight: 600;
-          color: #007bff;
-          letter-spacing: 1px;
+          color: $primary-color;
         }
       }
     }
 
-    .btn-search {
-      align-items: center;
-      justify-content: center;
-      width: 40px;
-      height: 40px;
-      background-color: #eeeeee;
-      border-radius: 50%;
+    // Ẩn nút search mobile trên desktop
+    .btn-search-mobile {
       display: none;
-
-      .search-icon-btn {
-        color: #7c7c7c;
-        width: 20px;
-        height: 20px;
-      }
-
-      &:hover {
-        background-color: #bababa9b;
-      }
     }
   }
 
+  // --- SEARCH BAR SECTION ---
   .search {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
     flex: 1;
-    max-width: 600px;
+    max-width: 500px;
     margin: 0 20px;
-
+    
     .close-search-btn {
-      display: none;
+      display: none; // Ẩn trên desktop
     }
 
     .search-form {
       width: 100%;
-    }
+      
+      .search-container {
+        position: relative;
+        width: 100%;
 
-    .search-container {
-      position: relative;
-      display: flex;
-      align-items: center;
-      width: 100%;
-
-      .search-icon {
-        width: 20px;
-        height: 20px;
-        position: absolute;
-        left: 12px;
-        color: #000000;
-        pointer-events: none;
-      }
-
-      .search-input {
-        width: 90%;
-        padding: 10px 12px 10px 40px;
-        border-radius: 20px;
-        border: 1px solid #e5e7eb;
-        background-color: #eeeeee;
-        color: rgb(0, 0, 0);
-        outline: none;
-        transition: $transition;
-
-        &::placeholder {
-          color: $secondary-color;
-          font-size: 0.9rem;
+        .search-icon {
+          position: absolute;
+          left: 12px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: $text-secondary;
+          font-size: 18px;
         }
 
-        &:focus {
-          background-color: #e1e1e1;
-          box-shadow: 0 0 0 2px $primary-color;
+        .search-input {
+          width: 100%;
+          height: 40px;
+          background-color: $bg-hover;
+          border: none;
+          border-radius: 20px;
+          padding: 0 16px 0 40px;
+          font-size: 15px;
+          color: $text-main;
+          outline: none;
+          transition: $transition;
+
+          &::placeholder {
+            color: $text-secondary;
+          }
+
+          &:focus {
+            background-color: #e4e6eb; // Đậm hơn chút khi focus
+          }
         }
       }
     }
   }
 
+  // --- RIGHT ACTIONS SECTION ---
   .rightHeader {
     display: flex;
-    gap: 12px;
     align-items: center;
+    gap: 8px;
 
     .icon-button {
       position: relative;
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      background: $hover-bg;
+      background-color: $bg-hover;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      border: none;
       transition: $transition;
 
+      .icon {
+        font-size: 20px;
+        color: $text-main;
+      }
+
       &:hover {
-        background: darken($hover-bg, 8%);
+        background-color: #d8dadf;
       }
 
       &.active {
-        background: #e7f3ff;
-        border: 2px solid #1877f2;
+        background-color: #e7f3ff;
+        .icon { color: $primary-color; }
       }
 
       .badge {
         position: absolute;
-        top: -6px;
-        right: -6px;
-        background: #e41e3f;
-        color: white;
+        top: -2px;
+        right: -2px;
+        background-color: #e41e3f;
+        color: #fff;
         font-size: 11px;
-        min-width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
+        font-weight: bold;
+        padding: 2px 5px;
+        border-radius: 10px;
+        border: 2px solid #fff;
       }
     }
 
@@ -188,62 +173,19 @@ $transition: all 0.3s ease;
       border-radius: 50%;
       overflow: hidden;
       cursor: pointer;
-      border: 2px solid transparent;
-      transition: $transition;
+      border: none;
+      padding: 0;
+      margin-left: 4px;
 
-      &:hover {
-        border-color: #1877f2;
-      }
-
-      img {
+      .avatarweb {
         width: 100%;
         height: 100%;
         object-fit: cover;
       }
 
-      .indicator {
-        position: absolute;
-        bottom: 0;
-        right: 0;
-        width: 12px;
-        height: 12px;
-        background: #31a24c;
-        border: 2px solid white;
-        border-radius: 50%;
+      &:hover {
+        opacity: 0.9;
       }
-    }
-  }
-}
-
-// Responsive
-@media (max-width: 768px) {
-  .header {
-    .logoWeb {
-      .logo-container {
-        .app-name {
-          display: none;
-        }
-        .logowebsite {
-          max-width: 40px;
-          max-height: 40px;
-        }
-      }
-      .btn-search {
-        display: flex;
-      }
-    }
-    .search.hide-mobile {
-      display: none;
-    }
-    .search:not(.hide-mobile) {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      background: white;
-      padding: 10px;
-      z-index: 999;
-      display: flex;
     }
   }
 }

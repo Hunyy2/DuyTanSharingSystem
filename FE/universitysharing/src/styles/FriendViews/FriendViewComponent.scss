@@ -1,206 +1,240 @@
+// FriendViewComponent.scss - Responsive Optimized
 .friend-request-container {
-  font-family: Arial, sans-serif;
+  font-family: inherit;
   width: 100%;
-  margin: 20px auto;
-  padding: 15px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+  padding: 20px;
+  background-color: transparent; // Để background body lo liệu
+  box-shadow: none; // Bỏ shadow container tổng cho thoáng
+  max-width: 1200px;
 
   .friend-request-title {
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 15px;
-    color: #333;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 8px;
-    text-transform: uppercase;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #050505;
+    border-bottom: none;
+    padding-bottom: 0;
+    text-transform: none; // Bỏ uppercase cho hiện đại
   }
 
-  .error-message {
-    color: #d32f2f;
-    font-size: 14px;
+  // --- MESSAGES ---
+  .error-message, .loading-message {
     text-align: center;
-    margin: 10px 0;
-  }
-
-  .loading-message {
-    color: #555;
+    padding: 20px;
+    color: #65676b;
     font-size: 14px;
-    text-align: center;
-    margin: 10px 0;
   }
 
   .no-requests-message {
-    color: #555;
-    font-size: 16px;
     text-align: center;
-    margin: 20px 0;
-    padding: 15px;
-    background-color: #fff;
-    border-radius: 6px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-
-  .friend-request-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 15px;
-  }
-
-  .friend-request-card {
-    background-color: white;
-    border-radius: 6px;
-    padding: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 40px 20px;
+    color: #65676b;
+    font-weight: 500;
+    background: transparent;
+    box-shadow: none;
+    
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 10px;
+  }
+
+  // --- GRID LAYOUT ---
+  .friend-request-grid {
+    display: grid;
+    // Tự động tính toán cột, tối thiểu 200px
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+
+  // --- CARD ITEM ---
+  .friend-request-card {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e4e6eb;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
 
     .friend-info {
+      padding: 0; // Ảnh tràn viền
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 8px;
+      width: 100%;
 
       .Avatar-Friend {
-        border-radius: 10px;
-        border: 1px solid rgb(175, 175, 175);
+        width: 100%;
+        aspect-ratio: 1/1; // Luôn giữ tỉ lệ vuông
         overflow: hidden;
-        width: 200px;
-        height: 200px;
+        background: #f0f2f5;
+        border: none;
+        border-radius: 0; // Bỏ bo góc ảnh để tràn viền trên
+
         img {
-          object-fit: contain;
           width: 100%;
+          height: 100%;
+          object-fit: cover; // Ảnh phủ kín khung không bị méo
+          transition: transform 0.3s ease;
         }
       }
 
       .friend-details {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 5px;
+        padding: 12px 12px 0;
+        text-align: left;
         width: 100%;
       }
 
-      .friend-name {
-        font-weight: bold;
-        font-size: 18px;
-        color: #333;
+      // Xử lý chung cho tên ở các component khác nhau (label hoặc div)
+      label, .friend-name {
+        font-weight: 600;
+        font-size: 16px;
+        color: #050505;
         cursor: pointer;
+        display: block;
+        padding: 12px 12px 4px; // Padding cho phần tên
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis; // Cắt tên nếu quá dài
+        margin: 0;
+        width: 100%;
 
-        &:hover {
-          text-decoration: underline;
-        }
+        &:hover { text-decoration: underline; }
       }
 
       .friend-meta {
+        padding: 0 12px;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        width: 100%;
-      }
+        align-items: flex-start;
+        gap: 2px;
+        margin-bottom: 8px;
 
-      .trust-score,
-      .common-interests {
-        font-size: 13px;
-        color: #555;
-        text-align: center;
+        .trust-score, .common-interests {
+          font-size: 12px;
+          color: #65676b;
+        }
       }
     }
 
     .friend-actions {
+      padding: 12px;
+      margin-top: auto; // Đẩy nút xuống đáy card
       display: flex;
       flex-direction: column;
       gap: 8px;
 
       button {
-        padding: 8px 12px;
+        padding: 8px 0;
         border: none;
-        border-radius: 4px;
-        font-size: 13px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
         cursor: pointer;
-        transition: background-color 0.2s, transform 0.1s;
-        flex: 1;
+        width: 100%;
+        transition: background 0.2s;
 
-        &:hover:not(:disabled) {
-          opacity: 0.9;
-          transform: translateY(-1px);
-        }
-
-        &:disabled {
-          background-color: #ccc;
-          cursor: not-allowed;
-          opacity: 0.6;
-        }
+        &:disabled { opacity: 0.6; cursor: not-allowed; }
       }
 
       .confirm-btn {
-        background-color: #1877f2;
-        color: white;
-      }
-
-      .profile-btn {
-        background-color: #6b7280;
-        color: white;
+        background-color: #e7f3ff;
+        color: #1877f2;
+        &:hover:not(:disabled) { background-color: #dbeaff; }
       }
 
       .delete-btn {
         background-color: #e4e6eb;
-        color: #333;
+        color: #050505;
+        &:hover:not(:disabled) { background-color: #d8dadf; }
+      }
+      
+      .profile-btn {
+        background-color: #f0f2f5;
+        color: #050505;
+         &:hover:not(:disabled) { background-color: #e4e6eb; }
       }
     }
   }
 
   .load-more-btn {
     display: block;
-    margin: 20px auto;
-    padding: 10px 20px;
-    background-color: #1877f2;
-    color: white;
+    width: 100%;
+    margin: 20px 0;
+    padding: 12px;
+    background-color: #e4e6eb;
+    color: #050505;
     border: none;
     border-radius: 6px;
-    font-size: 14px;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s, transform 0.1s;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    &:hover:not(:disabled) { background-color: #d8dadf; }
+  }
+}
 
-    &:hover:not(:disabled) {
-      background-color: #165ebb;
-      transform: translateY(-1px);
-    }
+// ==========================================
+// MOBILE RESPONSIVE (Max-width: 768px)
+// ==========================================
+@media (max-width: 768px) {
+  .friend-request-container {
+    padding: 10px; // Giảm padding lề
+    margin: 0;
 
-    &:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-      opacity: 0.6;
-      transform: none;
+    .friend-request-title {
+      font-size: 18px;
+      margin-left: 4px;
     }
   }
 
-  .search-box-friend {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
+  // Chuyển Grid thành 2 cột trên mobile
+  .friend-request-grid {
+    grid-template-columns: repeat(2, 1fr); // 2 cột
+    gap: 8px; // Khoảng cách nhỏ hơn
+  }
 
-    .search-icon {
-      margin-right: 10px;
-      color: #666;
+  .friend-request-card {
+    border-radius: 8px;
+    box-shadow: none;
+    border: 1px solid #e4e6eb; // Viền nhẹ
+
+    &:hover { transform: none; }
+
+    .friend-info {
+        // Tên font nhỏ hơn chút
+        label, .friend-name {
+            font-size: 14px;
+            padding: 8px 8px 4px;
+        }
+        
+        .friend-meta {
+            padding: 0 8px;
+            .trust-score, .common-interests { font-size: 11px; }
+        }
     }
 
-    input {
+    .friend-actions {
       padding: 8px;
-      width: 100%;
-      max-width: 300px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      outline: none;
+      gap: 6px;
 
-      &:focus {
-        border-color: #007bff;
+      button {
+        font-size: 13px;
+        padding: 6px 0;
       }
     }
   }
+}
+
+// Với màn hình rất nhỏ (iPhone SE, Fold)
+@media (max-width: 360px) {
+    .friend-request-grid {
+        grid-template-columns: 1fr; // Về 1 cột nếu màn quá bé
+    }
 }
